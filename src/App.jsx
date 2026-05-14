@@ -1,0 +1,904 @@
+import { useState, useEffect, useRef } from "react";
+
+/* ─────────────────────────────────────────────
+   DATA
+───────────────────────────────────────────── */
+const NAV_LINKS = [
+  { label: "About", href: "#about" },
+  { label: "Services", href: "#services" },
+  { label: "Why Us", href: "#why" },
+  { label: "Process", href: "#process" },
+  { label: "Contact", href: "#contact" },
+];
+
+const SERVICES = [
+  {
+    num: "01",
+    icon: "📚",
+    title: "Yearbook Design",
+    flagship: true,
+    desc: "Custom-designed school yearbooks with modern layouts, organized page systems, senior sections, sports pages, club pages, and print-ready delivery.",
+    img: "yearbook",
+  },
+  {
+    num: "02",
+    icon: "⛪",
+    title: "Church Directories & Anniversary Books",
+    flagship: false,
+    desc: "Beautiful membership directories, church anniversary books, memorial books, ministry guides, and event publications designed with elegance and clarity.",
+    img: "church",
+  },
+  {
+    num: "03",
+    icon: "🎪",
+    title: "Program & Event Books",
+    flagship: false,
+    desc: "Professional event programs for graduations, banquets, conferences, galas, sports organizations, and special events.",
+    img: "event",
+  },
+  {
+    num: "04",
+    icon: "🖨️",
+    title: "Print Production & File Prep",
+    flagship: false,
+    desc: "Print-ready PDF setup, bleeds & margins, image resolution checks, CMYK conversion, large multi-page document organization, file packaging & export.",
+    img: "print",
+  },
+  {
+    num: "05",
+    icon: "✏️",
+    title: "Publication Cleanup & Redesign",
+    flagship: false,
+    desc: "Already have a publication started? We professionally redesign, organize, and modernize existing files for a cleaner, more polished final product.",
+    img: "redesign",
+  },
+];
+
+const WHY = [
+  { icon: "🖨️", title: "Professional Print Knowledge", desc: "We understand real print production — not just graphic design." },
+  { icon: "📐", title: "Adobe InDesign Expertise", desc: "Built using industry-standard tools for professional publication layout and organization." },
+  { icon: "⚡", title: "Fast Communication", desc: "Reliable updates and quick responses throughout your project." },
+  { icon: "✦", title: "Modern Design Style", desc: "Clean typography, strong layouts, and visually engaging pages designed to feel current and professional." },
+  { icon: "🎯", title: "Production Accuracy", desc: "We help reduce common print issues before files ever reach the printer." },
+];
+
+const PROCESS = [
+  { num: "01", title: "Consultation", desc: "Tell us about your publication, goals, timeline, and printing needs." },
+  { num: "02", title: "Design & Layout", desc: "We create organized, visually engaging layouts customized for your organization." },
+  { num: "03", title: "Review & Revisions", desc: "Review drafts and request revisions to ensure everything looks exactly right." },
+  { num: "04", title: "Print-Ready Delivery", desc: "Receive professionally prepared files ready for commercial printing." },
+];
+
+const AUDIENCES = [
+  "Schools & Universities","Churches & Ministries","Athletic Programs",
+  "Nonprofits","Booster Clubs","Event Organizers",
+  "Community Organizations","Alumni Associations",
+];
+
+/* ─────────────────────────────────────────────
+   IMAGE PLACEHOLDER COMPONENT
+───────────────────────────────────────────── */
+const IMG_COLORS = {
+  yearbook:  { bg: "#1e2d1e", accent: "#4a7c5f", label: "Yearbook Design" },
+  church:    { bg: "#1e1a2d", accent: "#6b5fa0", label: "Church Publication" },
+  event:     { bg: "#2d1e1a", accent: "#a05f3d", label: "Event Program" },
+  print:     { bg: "#1a2530", accent: "#3d7a9a", label: "Print Production" },
+  redesign:  { bg: "#2d2a1a", accent: "#a09040", label: "Publication Redesign" },
+  hero:      { bg: "#181410", accent: "#c8963e", label: "Publication Showcase" },
+  about:     { bg: "#121c12", accent: "#7c8a2d", label: "Studio at Work" },
+  portfolio1:{ bg: "#0f1a14", accent: "#7c8a2d", label: "Yearbook · 176 pages" },
+  portfolio2:{ bg: "#171515", accent: "#8c9a34", label: "Anniversary Book · 144 pages" },
+  portfolio3:{ bg: "#17170f", accent: "#9ea14a", label: "Event Program · 48 pages" },
+};
+
+const PALETTE = {
+  base: "#0d160f",
+  panel: "#12220f",
+  panelSoft: "#192714",
+  accent: "#7c8a2d",
+  accentSoft: "#a5b35f",
+  text: "#e8ebd6",
+  textMuted: "#b6bb96",
+  border: "rgba(124,138,45,0.18)",
+  black: "#000000",
+  white: "#f5f7dc",
+};
+
+function ImgPlaceholder({ type = "hero", style = {}, className = "", aspectRatio = "4/3" }) {
+  const c = IMG_COLORS[type] || IMG_COLORS.hero;
+  return (
+    <div
+      className={className}
+      style={{
+        background: c.bg,
+        aspectRatio,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: 2,
+        ...style,
+      }}
+    >
+      {/* decorative grid */}
+      <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.08 }} xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id={`g-${type}`} width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke={c.accent} strokeWidth="0.5" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill={`url(#g-${type})`} />
+      </svg>
+      {/* decorative circle */}
+      <div style={{ position: "absolute", width: "60%", aspectRatio: "1", borderRadius: "50%", border: `1px solid ${c.accent}`, opacity: 0.18 }} />
+      <div style={{ position: "absolute", width: "35%", aspectRatio: "1", borderRadius: "50%", border: `1px solid ${c.accent}`, opacity: 0.25 }} />
+      {/* icon */}
+      <div style={{
+        width: 56, height: 56, borderRadius: 4,
+        background: c.accent + "22",
+        border: `1px solid ${c.accent}55`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        marginBottom: 12, position: "relative", zIndex: 1,
+      }}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={c.accent} strokeWidth="1.5">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <path d="M3 9h18M9 3v18" />
+          <circle cx="6" cy="6" r="1" fill={c.accent} />
+        </svg>
+      </div>
+      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: c.accent, position: "relative", zIndex: 1 }}>
+        {c.label}
+      </div>
+      <div style={{ fontSize: 10, color: c.accent + "88", marginTop: 4, position: "relative", zIndex: 1, letterSpacing: "0.08em" }}>
+        [ Image Placeholder ]
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   SCROLL FADE HOOK
+───────────────────────────────────────────── */
+function useFadeIn() {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold: 0.12 }
+    );
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+  return [ref, visible];
+}
+
+function FadeIn({ children, delay = 0, style = {} }) {
+  const [ref, visible] = useFadeIn();
+  return (
+    <div
+      ref={ref}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(28px)",
+        transition: `opacity 0.7s ease ${delay}s, transform 0.7s ease ${delay}s`,
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   MAIN APP
+───────────────────────────────────────────── */
+export default function App() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [formSent, setFormSent] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const scrollTo = (href) => {
+    setMenuOpen(false);
+    document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  /* ── STYLES (inline for portability) ── */
+  const S = {
+    root: {
+      fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
+      background: PALETTE.base,
+      color: PALETTE.text,
+      margin: 0,
+      padding: 0,
+      overflowX: "hidden",
+    },
+    // NAV
+    nav: {
+      position: "fixed", top: 0, left: 0, right: 0, zIndex: 200,
+      background: scrolled ? "rgba(13,18,11,0.96)" : "rgba(13,18,11,0.72)",
+      backdropFilter: "blur(16px)",
+      borderBottom: scrolled ? `1px solid ${PALETTE.border}` : "1px solid transparent",
+      transition: "all 0.3s ease",
+      padding: "0 clamp(1.25rem, 5vw, 4rem)",
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      height: 68,
+    },
+    logo: {
+      fontFamily: "'Playfair Display', Georgia, serif",
+      fontSize: "clamp(1rem, 2.5vw, 1.2rem)",
+      fontWeight: 800,
+      color: PALETTE.text,
+      textDecoration: "none",
+      letterSpacing: "-0.01em",
+      cursor: "pointer",
+    },
+    logoSpan: { color: PALETTE.accent },
+    navLinks: {
+      display: "flex", gap: "2rem", listStyle: "none",
+      margin: 0, padding: 0,
+    },
+    navLink: {
+      fontSize: "0.78rem", fontWeight: 500,
+      letterSpacing: "0.1em", textTransform: "uppercase",
+      color: PALETTE.textMuted, textDecoration: "none", cursor: "pointer",
+      transition: "color 0.2s",
+      background: "none", border: "none",
+    },
+    navCta: {
+      fontSize: "0.75rem", fontWeight: 600,
+      letterSpacing: "0.08em", textTransform: "uppercase",
+      color: PALETTE.black, background: PALETTE.accent,
+      padding: "0.55rem 1.3rem", border: "none",
+      cursor: "pointer", transition: "background 0.2s",
+      textDecoration: "none",
+    },
+    hamburger: {
+      background: "none", border: "none", cursor: "pointer",
+      display: "flex", flexDirection: "column", gap: 5,
+      padding: "4px 0",
+    },
+    hamburgerLine: (open, i) => ({
+      width: 24, height: 2, background: PALETTE.text,
+      transition: "all 0.3s ease",
+      transform: open
+        ? i === 0 ? "rotate(45deg) translate(5px,5px)"
+        : i === 2 ? "rotate(-45deg) translate(5px,-5px)" : "scaleX(0)"
+        : "none",
+      opacity: open && i === 1 ? 0 : 1,
+    }),
+    mobileMenu: {
+      position: "fixed", top: 68, left: 0, right: 0, zIndex: 190,
+      background: PALETTE.panel,
+      borderBottom: `1px solid ${PALETTE.border}`,
+      padding: "1.5rem clamp(1.25rem, 5vw, 4rem) 2rem",
+      transform: menuOpen ? "translateY(0)" : "translateY(-120%)",
+      transition: "transform 0.35s ease",
+      display: "flex", flexDirection: "column", gap: "0.25rem",
+    },
+    mobileNavLink: {
+      fontSize: "1rem", fontWeight: 500,
+      color: PALETTE.text, textDecoration: "none",
+      padding: "0.75rem 0",
+      borderBottom: `1px solid ${PALETTE.border}`,
+      background: "none", border: "none", textAlign: "left",
+      cursor: "pointer", letterSpacing: "0.04em",
+    },
+    mobileCta: {
+      marginTop: "1rem",
+      fontSize: "0.82rem", fontWeight: 600,
+      letterSpacing: "0.08em", textTransform: "uppercase",
+      color: PALETTE.black, background: PALETTE.accent,
+      padding: "0.85rem 1.5rem", border: "none",
+      cursor: "pointer", textAlign: "center",
+    },
+
+    // SECTIONS
+    section: (bg = PALETTE.panelSoft) => ({
+      background: bg,
+      padding: "clamp(4rem, 10vw, 7rem) clamp(1.25rem, 6vw, 5rem)",
+    }),
+    eyebrow: (light = false) => ({
+      fontSize: "0.7rem", fontWeight: 600,
+      letterSpacing: "0.2em", textTransform: "uppercase",
+      color: PALETTE.accent, marginBottom: "1rem",
+      display: "flex", alignItems: "center", gap: "0.75rem",
+    }),
+    eyebrowLine: { width: 28, height: 1, background: PALETTE.accent, display: "inline-block", flexShrink: 0 },
+    h2: (light = false) => ({
+      fontFamily: "'Playfair Display', Georgia, serif",
+      fontSize: "clamp(2rem, 4vw, 3rem)",
+      fontWeight: 900, lineHeight: 1.1,
+      color: light ? PALETTE.white : PALETTE.text,
+      margin: "0 0 1.2rem",
+    }),
+    lead: (light = false) => ({
+      fontSize: "clamp(0.95rem, 2vw, 1.05rem)",
+      lineHeight: 1.8, color: light ? "rgba(245,247,222,0.78)" : PALETTE.textMuted,
+      maxWidth: 560,
+    }),
+
+    btnPrimary: {
+      fontSize: "0.78rem", fontWeight: 600,
+      letterSpacing: "0.08em", textTransform: "uppercase",
+      color: PALETTE.black, background: PALETTE.accent,
+      padding: "0.9rem 1.8rem", border: "none",
+      cursor: "pointer", transition: "background 0.2s",
+      textDecoration: "none", display: "inline-block",
+    },
+    btnGhost: (light = false) => ({
+      fontSize: "0.78rem", fontWeight: 600,
+      letterSpacing: "0.08em", textTransform: "uppercase",
+      color: light ? PALETTE.white : PALETTE.text,
+      background: "transparent",
+      border: `1px solid ${light ? "rgba(245,247,222,0.3)" : "rgba(124,138,45,0.25)"}`,
+      padding: "0.9rem 1.8rem",
+      cursor: "pointer", transition: "all 0.2s",
+      textDecoration: "none", display: "inline-block",
+    }),
+  };
+
+  return (
+    <div style={S.root}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { overflow-x: hidden; }
+        button:focus-visible, a:focus-visible { outline: 2px solid #7c8a2d; outline-offset: 2px; }
+        .nav-link-hover:hover { color: #7c8a2d !important; }
+        .btn-primary-hover:hover { background: #a5b35f !important; }
+        .btn-ghost-hover:hover { border-color: #7c8a2d !important; color: #7c8a2d !important; }
+        .service-card:hover { background: rgba(124,138,45,0.12) !important; }
+        .service-card:hover .service-num { color: #7c8a2d !important; }
+        .why-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(26,18,8,0.08) !important; }
+        .audience-tag:hover { background: #12220f !important; color: #7c8a2d !important; border-color: #12220f !important; }
+        @media (max-width: 900px) {
+          .desktop-nav { display: none !important; }
+          .hamburger-btn { display: flex !important; }
+          .hero-grid { grid-template-columns: 1fr !important; }
+          .about-grid { grid-template-columns: 1fr !important; }
+          .services-grid { grid-template-columns: 1fr !important; }
+          .why-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .process-steps { flex-direction: column !important; }
+          .process-connector { display: none !important; }
+          .cta-grid { grid-template-columns: 1fr !important; text-align: center; }
+          .cta-btns { justify-content: center !important; }
+          .footer-inner { flex-direction: column !important; gap: 1rem !important; text-align: center; }
+          .audience-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .portfolio-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 540px) {
+          .why-grid { grid-template-columns: 1fr !important; }
+          .audience-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+
+      {/* ── NAV ── */}
+      <nav style={S.nav}>
+        <span style={S.logo} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+          Press<span style={S.logoSpan}>mark</span> Studio
+        </span>
+        <ul className="desktop-nav" style={S.navLinks}>
+          {NAV_LINKS.map(l => (
+            <li key={l.label}>
+              <button className="nav-link-hover" style={S.navLink} onClick={() => scrollTo(l.href)}>
+                {l.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <button className="desktop-nav btn-primary-hover" style={S.navCta} onClick={() => scrollTo("#contact")}>
+          Get a Quote
+        </button>
+        <button className="hamburger-btn" style={{ ...S.hamburger, display: "none" }} onClick={() => setMenuOpen(o => !o)} aria-label="Toggle menu">
+          {[0,1,2].map(i => <span key={i} style={S.hamburgerLine(menuOpen, i)} />)}
+        </button>
+      </nav>
+
+      {/* ── MOBILE MENU ── */}
+      <div style={S.mobileMenu}>
+        {NAV_LINKS.map(l => (
+          <button key={l.label} style={S.mobileNavLink} onClick={() => scrollTo(l.href)}>{l.label}</button>
+        ))}
+        <button className="btn-primary-hover" style={S.mobileCta} onClick={() => scrollTo("#contact")}>
+          Get a Quote →
+        </button>
+      </div>
+
+      {/* ── HERO ── */}
+      <section style={{ paddingTop: 68, background: PALETTE.base, minHeight: "100vh", display: "flex", alignItems: "center" }}>
+        <div style={{ padding: "clamp(3rem,8vw,6rem) clamp(1.25rem,6vw,5rem)", width: "100%", maxWidth: 1400, margin: "0 auto" }}>
+          <div className="hero-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(2rem,5vw,5rem)", alignItems: "center" }}>
+
+            {/* Left */}
+            <div>
+              <div style={{ ...S.eyebrow(), marginBottom: "1.2rem" }}>
+                <span style={S.eyebrowLine} />
+                Publication Design & Print Production
+              </div>
+              <h1 style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontSize: "clamp(2.4rem, 5vw, 4rem)",
+                fontWeight: 900, lineHeight: 1.08,
+                color: "#f5f0e8", marginBottom: "1.5rem",
+              }}>
+                For Schools,<br />
+                <span style={{ color: PALETTE.accent, fontStyle: "italic" }}>Churches</span> &<br />
+                Organizations
+              </h1>
+              <p style={{ ...S.lead(true), marginBottom: "1rem" }}>
+                Professional yearbooks, directories, commemorative books, programs, and printed publications designed with premium visuals and production-ready accuracy.
+              </p>
+              <p style={{ fontSize: "0.92rem", lineHeight: 1.75, color: "rgba(245,240,232,0.5)", marginBottom: "2.4rem", maxWidth: 480 }}>
+                From creative layout design to final print prep, Pressmark Studio helps organizations create polished publications that look professional, organized, and built to last.
+              </p>
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                <button className="btn-primary-hover" style={S.btnPrimary} onClick={() => scrollTo("#contact")}>
+                  Request a Quote
+                </button>
+                <button className="btn-ghost-hover" style={S.btnGhost(true)} onClick={() => scrollTo("#services")}>
+                  View Services
+                </button>
+              </div>
+              {/* Stats */}
+              <div style={{ display: "flex", gap: "2.5rem", marginTop: "3rem", paddingTop: "2.5rem", borderTop: "1px solid rgba(245,240,232,0.1)", flexWrap: "wrap" }}>
+                {[["1,400+","Publications"], ["8","Specialties"], ["97%","Return Rate"]].map(([n,l]) => (
+                  <div key={l}>
+                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.6rem,3vw,2rem)", fontWeight: 900, color: "#c8963e", lineHeight: 1 }}>{n}</div>
+                    <div style={{ fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(245,240,232,0.45)", marginTop: 4 }}>{l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right — image stack */}
+            <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <ImgPlaceholder type="hero" aspectRatio="16/10" style={{ width: "100%", borderRadius: 4 }} />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <ImgPlaceholder type="portfolio1" aspectRatio="4/3" style={{ borderRadius: 4 }} />
+                <ImgPlaceholder type="portfolio2" aspectRatio="4/3" style={{ borderRadius: 4 }} />
+              </div>
+              {/* floating badge */}
+              <div style={{
+                position: "absolute", bottom: 80, right: -16,
+                background: "#c8963e", padding: "0.75rem 1.1rem",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+              }}>
+                <div style={{ fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#1a1208", marginBottom: 2 }}>Flagship Service</div>
+                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "0.95rem", fontWeight: 800, color: "#1a1208" }}>Yearbook Design</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ── ABOUT ── */}
+      <section id="about" style={S.section(PALETTE.panelSoft)}>
+        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+          <div className="about-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(2.5rem,6vw,6rem)", alignItems: "center" }}>
+
+            <FadeIn>
+              <div style={{ position: "relative" }}>
+                <ImgPlaceholder type="about" aspectRatio="3/4" style={{ width: "100%", borderRadius: 4 }} />
+                {/* decorative offset border */}
+                <div style={{
+                  position: "absolute", top: 16, left: -16, bottom: -16, right: 16,
+                  border: `1px solid ${PALETTE.accent}`, borderRadius: 4, zIndex: -1, pointerEvents: "none",
+                }} />
+                {/* experience badge */}
+                <div style={{
+                  position: "absolute", top: -20, right: 20,
+                  background: "#122915", padding: "1.2rem 1.4rem",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+                }}>
+                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", fontWeight: 900, color: PALETTE.accent, lineHeight: 1 }}>18+</div>
+                  <div style={{ fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(245,240,232,0.7)", marginTop: 4 }}>Years Experience</div>
+                </div>
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={0.15}>
+              <div style={S.eyebrow()}>
+                <span style={S.eyebrowLine} />
+                About Pressmark Studio
+              </div>
+              <h2 style={S.h2()}>
+                Designed for Print.<br />
+                <em style={{ color: PALETTE.accentSoft }}>Built for Impact.</em>
+              </h2>
+              <p style={{ ...S.lead(), marginBottom: "1.5rem" }}>
+                At Pressmark Studio we specialize in publication design and print production services for schools, churches, teams, nonprofits, and organizations that need high-quality printed materials without the stress of managing complicated layouts and print files.
+              </p>
+              <p style={{ fontSize: "0.95rem", lineHeight: 1.8, color: PALETTE.textMuted, marginBottom: "2rem" }}>
+                With years of real-world print production experience, we understand more than just design — we understand how publications are prepared, organized, and optimized for professional printing.
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem 1.5rem" }}>
+                {[
+                  "Clean, modern layouts","Organized multi-page documents",
+                  "Print-ready files","Professional typography",
+                  "High-resolution image handling","Fast turnaround times",
+                  "Reliable communication","Industry-standard tools",
+                ].map(item => (
+                  <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem" }}>
+                    <div style={{
+                      width: 20, height: 20, background: "#c8963e", borderRadius: 2,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      flexShrink: 0, marginTop: 1, fontSize: "0.7rem", color: "#1a1208", fontWeight: 700,
+                    }}>✓</div>
+                    <span style={{ fontSize: "0.88rem", color: "#4a4a5a", lineHeight: 1.5 }}>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </FadeIn>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ── SERVICES ── */}
+      <section id="services" style={S.section(PALETTE.panel)}>
+        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+          <FadeIn>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "2rem", marginBottom: "3.5rem", paddingBottom: "2.5rem", borderBottom: "1px solid rgba(26,18,8,0.1)" }}>
+              <div>
+                <div style={S.eyebrow()}>
+                  <span style={S.eyebrowLine} />
+                  What We Do
+                </div>
+                <h2 style={{ ...S.h2(), marginBottom: 0 }}>Publication Design<br /><em style={{ color: "#a63d2f" }}>Services</em></h2>
+              </div>
+              <p style={{ ...S.lead(), maxWidth: 420, fontSize: "0.95rem" }}>
+                From flagship yearbooks to church commemoratives — one studio, every publication type your organization needs.
+              </p>
+            </div>
+          </FadeIn>
+
+          <div className="services-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gridAutoRows: "1fr", alignItems: "stretch", gap: 0, border: `1px solid ${PALETTE.border}` }}>
+            {SERVICES.map((s, i) => (
+              <FadeIn key={s.num} delay={i * 0.08}>
+                <div className="service-card" style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  height: "100%",
+                  padding: "2.5rem 2rem",
+                  borderRight: (i + 1) % 3 !== 0 ? `1px solid ${PALETTE.border}` : "none",
+                  borderBottom: i < 3 ? `1px solid ${PALETTE.border}` : "none",
+                  transition: "background 0.3s",
+                }}>
+                  <ImgPlaceholder type={s.img} aspectRatio="16/9" style={{ marginBottom: "1.25rem", borderRadius: 3 }} />
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
+                    <span className="service-num" style={{ fontFamily: "'Playfair Display', serif", fontSize: "0.75rem", fontWeight: 700, color: PALETTE.textMuted, letterSpacing: "0.1em", transition: "color 0.3s" }}>{s.num}</span>
+                    {s.flagship && (
+                      <span style={{ fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", background: PALETTE.panel, color: PALETTE.accent, padding: "0.2rem 0.55rem" }}>
+                        ★ Flagship
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: "1.6rem", marginBottom: "0.6rem" }}>{s.icon}</div>
+                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1rem", fontWeight: 700, color: "#1a1208", marginBottom: "0.6rem", lineHeight: 1.3 }}>{s.title}</div>
+                  <div style={{ fontSize: "0.85rem", lineHeight: 1.7, color: "#4a4a5a" }}>{s.desc}</div>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── WHY ── */}
+      <section id="why" style={S.section(PALETTE.base)}>
+        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+          <FadeIn>
+            <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
+              <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
+                <span style={S.eyebrowLine} />
+                Why Choose Us
+                <span style={S.eyebrowLine} />
+              </div>
+              <h2 style={S.h2(true)}>
+                Why Organizations Choose<br />
+                <em style={{ color: "#c8963e" }}>Pressmark Studio</em>
+              </h2>
+            </div>
+          </FadeIn>
+
+          <div className="why-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gridAutoRows: "1fr", alignItems: "stretch", gap: "1.5rem" }}>
+            {WHY.map((w, i) => (
+              <FadeIn key={w.title} delay={i * 0.1}>
+                <div className="why-card" style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  height: "100%",
+                  background: "rgba(245,240,232,0.05)",
+                  border: "1px solid rgba(245,240,232,0.08)",
+                  padding: "2rem 1.75rem",
+                  borderRadius: 4,
+                  transition: "all 0.3s ease",
+                  boxShadow: "0 0 0 rgba(26,18,8,0)",
+                }}>
+                  <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>{w.icon}</div>
+                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.05rem", fontWeight: 700, color: "#f5f0e8", marginBottom: "0.6rem" }}>{w.title}</div>
+                  <div style={{ fontSize: "0.88rem", lineHeight: 1.7, color: "rgba(245,240,232,0.55)" }}>{w.desc}</div>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PROCESS ── */}
+      <section id="process" style={S.section(PALETTE.panelSoft)}>
+        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+          <FadeIn>
+            <div style={{ textAlign: "center", marginBottom: "4rem" }}>
+              <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
+                <span style={S.eyebrowLine} />
+                How It Works
+                <span style={S.eyebrowLine} />
+              </div>
+              <h2 style={S.h2()}>Simple Process.<br /><em style={{ color: "#a63d2f" }}>Professional Results.</em></h2>
+            </div>
+          </FadeIn>
+
+          <div className="process-steps" style={{ display: "flex", alignItems: "flex-start", gap: 0, position: "relative" }}>
+            {PROCESS.map((p, i) => (
+              <div key={p.num} style={{ flex: 1, display: "flex", alignItems: "flex-start", position: "relative" }}>
+                <FadeIn delay={i * 0.12} style={{ flex: 1 }}>
+                  <div style={{ textAlign: "center", padding: "0 1.5rem" }}>
+                    {/* circle */}
+                    <div style={{
+                      width: 64, height: 64, borderRadius: "50%",
+                      border: "2px solid #c8963e",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      margin: "0 auto 1.5rem",
+                      background: "#f5f0e8",
+                      position: "relative", zIndex: 1,
+                    }}>
+                      <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "1rem", color: "#c8963e" }}>{p.num}</span>
+                    </div>
+                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.05rem", fontWeight: 700, color: "#1a1208", marginBottom: "0.6rem" }}>{p.title}</div>
+                    <div style={{ fontSize: "0.88rem", lineHeight: 1.7, color: "#4a4a5a" }}>{p.desc}</div>
+                  </div>
+                </FadeIn>
+                {/* connector line */}
+                {i < PROCESS.length - 1 && (
+                  <div className="process-connector" style={{
+                    position: "absolute", top: 31, left: "50%", right: "-50%",
+                    height: 1, background: "rgba(200,150,62,0.3)",
+                    zIndex: 0,
+                  }} />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── AUDIENCES ── */}
+      <section style={S.section(PALETTE.panel)}>
+        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+          <FadeIn>
+            <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+              <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
+                <span style={S.eyebrowLine} />
+                Who We Serve
+                <span style={S.eyebrowLine} />
+              </div>
+              <h2 style={S.h2()}>Perfect For</h2>
+            </div>
+          </FadeIn>
+          <div className="audience-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gridAutoRows: "1fr", alignItems: "stretch", gap: "1rem" }}>
+            {AUDIENCES.map((a, i) => (
+              <FadeIn key={a} delay={i * 0.06}>
+                <div className="audience-tag" style={{
+                  height: "100%",
+                  padding: "1.25rem 1.5rem",
+                  border: "1px solid rgba(26,18,8,0.15)",
+                  textAlign: "center",
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: "0.95rem",
+                  fontWeight: 700,
+                  color: "#1a1208",
+                  cursor: "default",
+                  transition: "all 0.25s ease",
+                  borderRadius: 2,
+                  background: "#faf8f4",
+                }}>
+                  {a}
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PORTFOLIO TEASER ── */}
+      <section style={S.section(PALETTE.base)}>
+        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+          <FadeIn>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1.5rem", marginBottom: "2.5rem" }}>
+              <div>
+                <div style={S.eyebrow()}>
+                  <span style={S.eyebrowLine} />
+                  Recent Work
+                </div>
+                <h2 style={{ ...S.h2(true), marginBottom: 0 }}>
+                  Publications <em style={{ color: "#c8963e" }}>people keep.</em>
+                </h2>
+              </div>
+              <button className="btn-ghost-hover" style={S.btnGhost(true)} onClick={() => scrollTo("#contact")}>
+                Start Your Project
+              </button>
+            </div>
+          </FadeIn>
+          <div className="portfolio-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gridAutoRows: "1fr", gap: "1.2rem" }}>
+            {[{
+              type: "portfolio1", label: "Yearbook · 176 pages", title: "The Bruin 2024 — Beaumont High School" },
+              { type: "portfolio2", label: "Anniversary Book · 144 pages", title: "Greater Hope MBC — 125th Anniversary" },
+              { type: "portfolio3", label: "Event Program · 48 pages", title: "NPHC Greek Gala Evening Program" },
+            ].map((p, i) => (
+              <FadeIn key={p.title} delay={i * 0.1}>
+                <div style={{ position: "relative", borderRadius: 4, overflow: "hidden", height: "100%", display: "flex", flexDirection: "column" }}>
+                  <ImgPlaceholder type={p.type} aspectRatio={"3/4"} style={{ width: "100%" }} />
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    background: "linear-gradient(to top, rgba(26,18,8,0.9) 0%, transparent 55%)",
+                    display: "flex", flexDirection: "column", justifyContent: "flex-end",
+                    padding: "1.5rem",
+                  }}>
+                    <div style={{ fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: PALETTE.accent, marginBottom: "0.3rem" }}>{p.label}</div>
+                    <div style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "0.95rem", color: PALETTE.white, lineHeight: 1.35 }}>{p.title}</div>
+                  </div>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section style={S.section("#122915")}>
+        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+          <div className="cta-grid" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "3rem", alignItems: "center" }}>
+            <FadeIn>
+              <div style={S.eyebrow()}>
+                <span style={S.eyebrowLine} />
+                Let's Get Started
+              </div>
+              <h2 style={{ ...S.h2(true), marginBottom: "1rem" }}>
+                Let's Create Something<br /><em style={{ color: PALETTE.accent }}>Worth Keeping</em>
+              </h2>
+              <p style={{ ...S.lead(true), marginBottom: "2rem" }}>
+                Whether you need a yearbook, church directory, commemorative publication, or event program, Pressmark Studio delivers professional publication design backed by real print production experience.
+              </p>
+              <div className="cta-btns" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                <button className="btn-primary-hover" style={S.btnPrimary} onClick={() => scrollTo("#contact")}>
+                  Start Your Project
+                </button>
+                <button className="btn-ghost-hover" style={S.btnGhost(true)} onClick={() => scrollTo("#contact")}>
+                  Request a Quote
+                </button>
+              </div>
+            </FadeIn>
+            <FadeIn delay={0.2}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem", minWidth: 220 }}>
+                {[["📞","Call or Text","(504) 555-0182"],["✉️","Email","hello@pressmarkstudio.com"],["📍","Location","Serving Nationwide"]].map(([ic,label,val]) => (
+                  <div key={label} style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+                    <div style={{ fontSize: "1.2rem", width: 36, textAlign: "center" }}>{ic}</div>
+                    <div>
+                      <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#c8963e", marginBottom: 2 }}>{label}</div>
+                      <div style={{ fontSize: "0.88rem", color: "rgba(245,240,232,0.8)" }}>{val}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CONTACT FORM ── */}
+      <section id="contact" style={S.section(PALETTE.panel)}>
+        <div style={{ maxWidth: 860, margin: "0 auto" }}>
+          <FadeIn>
+            <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+              <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
+                <span style={S.eyebrowLine} />
+                Free Quote Request
+                <span style={S.eyebrowLine} />
+              </div>
+              <h2 style={S.h2()}>Ready to Start Your<br /><em style={{ color: "#a63d2f" }}>Publication Project?</em></h2>
+              <p style={{ ...S.lead(), margin: "0 auto", textAlign: "center" }}>Tell us about your project. We'll respond within 24 hours.</p>
+            </div>
+          </FadeIn>
+          <FadeIn delay={0.1}>
+            {formSent ? (
+              <div style={{ textAlign: "center", padding: "3rem", background: "#f5f0e8", border: "1px solid rgba(26,18,8,0.1)" }}>
+                <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>✓</div>
+                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.4rem", fontWeight: 700, color: PALETTE.text, marginBottom: "0.5rem" }}>Quote Request Sent!</div>
+                <div style={{ color: PALETTE.textMuted, fontSize: "0.95rem" }}>We'll be in touch within 24 hours.</div>
+              </div>
+            ) : (
+              <div style={{ background: "#101a10", border: `1px solid ${PALETTE.border}`, padding: "clamp(2rem,5vw,3.5rem)" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem" }}>
+                  {[["First Name","text","Marcus"],["Last Name","text","Williams"]].map(([label,type,ph]) => (
+                    <div key={label}>
+                      <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#7a7868", marginBottom: "0.45rem" }}>{label}</label>
+                      <input type={type} placeholder={ph} style={{ width: "100%", padding: "0.75rem 1rem", border: "1px solid rgba(26,18,8,0.15)", background: "#faf8f4", fontSize: "0.92rem", fontFamily: "'DM Sans', sans-serif", outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = "#c8963e"} onBlur={e => e.target.style.borderColor = "rgba(26,18,8,0.15)"} />
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem", marginTop: "1.2rem" }}>
+                  {[["Email Address","email","you@organization.com"],["Organization","text","Your organization name"]].map(([label,type,ph]) => (
+                    <div key={label}>
+                      <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#7a7868", marginBottom: "0.45rem" }}>{label}</label>
+                      <input type={type} placeholder={ph} style={{ width: "100%", padding: "0.75rem 1rem", border: "1px solid rgba(26,18,8,0.15)", background: "#faf8f4", fontSize: "0.92rem", fontFamily: "'DM Sans', sans-serif", outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = "#c8963e"} onBlur={e => e.target.style.borderColor = "rgba(26,18,8,0.15)"} />
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: "1.2rem" }}>
+                  <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#7a7868", marginBottom: "0.45rem" }}>Publication Type</label>
+                  <select style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#101a10", color: PALETTE.text, fontSize: "0.92rem", fontFamily: "'DM Sans', sans-serif", outline: "none", appearance: "none", cursor: "pointer" }}>
+                    <option value="" disabled defaultValue>Select your publication type…</option>
+                    <option>School Yearbook</option>
+                    <option>Church Directory / Anniversary Book</option>
+                    <option>Program & Event Book</option>
+                    <option>Print Production & File Prep</option>
+                    <option>Publication Cleanup & Redesign</option>
+                    <option>Other / Not Sure</option>
+                  </select>
+                </div>
+                <div style={{ marginTop: "1.2rem" }}>
+                  <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#7a7868", marginBottom: "0.45rem" }}>Tell Us About Your Project</label>
+                  <textarea placeholder="Estimated page count, deadline, theme ideas, or anything that helps us understand your vision…" rows={5} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#101a10", color: PALETTE.text, fontSize: "0.92rem", fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "vertical", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = "#7c8a2d"} onBlur={e => e.target.style.borderColor = "rgba(124,138,45,0.2)"} />
+                </div>
+                <div style={{ marginTop: "1.8rem" }}>
+                  <button className="btn-primary-hover" style={{ ...S.btnPrimary, width: "100%", padding: "1rem", fontSize: "0.82rem", textAlign: "center" }} onClick={() => setFormSent(true)}>
+                    Send Quote Request →
+                  </button>
+                </div>
+              </div>
+            )}
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer style={{ background: "#0c140c", padding: "2.5rem clamp(1.25rem,6vw,5rem)", borderTop: "1px solid rgba(124,138,45,0.22)" }}>
+        <div className="footer-inner" style={{ maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1.5rem", flexWrap: "wrap" }}>
+          <div>
+            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.1rem", fontWeight: 800, color: PALETTE.white, marginBottom: "0.3rem" }}>
+              Press<span style={{ color: "#7c8a2d" }}>mark</span> Studio
+            </div>
+            <div style={{ fontSize: "0.72rem", color: "rgba(245,240,232,0.4)", letterSpacing: "0.05em", lineHeight: 1.5 }}>
+              Publication Design & Print Production Specialist<br />Serving Schools, Churches & Organizations
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap" }}>
+            {NAV_LINKS.map(l => (
+              <button key={l.label} onClick={() => scrollTo(l.href)} style={{ fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(245,240,232,0.45)", background: "none", border: "none", cursor: "pointer", transition: "color 0.2s" }}
+                onMouseEnter={e => e.target.style.color = "#c8963e"} onMouseLeave={e => e.target.style.color = "rgba(245,240,232,0.45)"}>
+                {l.label}
+              </button>
+            ))}
+          </div>
+          <div style={{ fontSize: "0.72rem", color: "rgba(245,240,232,0.3)" }}>
+            © 2025 Pressmark Studio. All rights reserved.
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  );
+}
