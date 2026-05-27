@@ -1,4 +1,12 @@
 import { useState, useEffect, useRef } from "react";
+import heroImage from "./assets/give_me_a_publication_showcase_image.png";
+import yearbookImage from "./assets/Bates_Digital_yearbook_with_pictures.png";
+import yearbookAltImage from "./assets/Bates_Digital_yearbook_with_pictures_--v_7_4defa031-d9f3-47a7-a62d-ea91f7682e52_0.png";
+import yearbookDetailImage from "./assets/Bates_Digital_yearbook_with_pictures_--v_7_4defa031-d9f3-47a7-a62d-ea91f7682e52_1.png";
+import redesignImage from "./assets/Bates_Digital_yearbook_with_pictures_--v_7_99e660ea-7bae-492e-bc1b-128143a628dc_3.png";
+import directoryImage from "./assets/directory_book_of_name_contact.png";
+import directoryLineupImage from "./assets/directory_book_of_name_contact_lined_up_like_of_c91c9532-7f3b-42d6-94e6-b81e40391ffb_1.png";
+import calebImage from "./assets/caleb-lamb-597215774-35911820.jpg";
 
 /* ─────────────────────────────────────────────
    DATA
@@ -91,6 +99,19 @@ const IMG_COLORS = {
   portfolio3:{ bg: "#17170f", accent: "#d8c178", label: "Event Program · 48 pages" },
 };
 
+const IMG_ASSETS = {
+  hero: { src: heroImage, alt: "Publication showcase with printed books and editorial layouts" },
+  about: { src: calebImage, alt: "Football team photo by Caleb Lamb" },
+  yearbook: { src: yearbookImage, alt: "Designed yearbook with photo layouts" },
+  church: { src: directoryImage, alt: "Church directory book with names and contact layout" },
+  event: { src: directoryLineupImage, alt: "Printed publication books lined up for an event or organization" },
+  print: { src: directoryLineupImage, alt: "Print-ready publication books arranged in a row" },
+  redesign: { src: redesignImage, alt: "Redesigned publication layout with photos" },
+  portfolio1: { src: yearbookAltImage, alt: "Yearbook publication portfolio sample" },
+  portfolio2: { src: directoryImage, alt: "Anniversary book and directory portfolio sample" },
+  portfolio3: { src: yearbookDetailImage, alt: "Event program publication portfolio sample" },
+};
+
 const PALETTE = {
   base: "#0d160f",
   panel: "#12220f",
@@ -106,6 +127,36 @@ const PALETTE = {
 
 function ImgPlaceholder({ type = "hero", style = {}, className = "", aspectRatio = "4/3" }) {
   const c = IMG_COLORS[type] || IMG_COLORS.hero;
+  const asset = IMG_ASSETS[type];
+
+  if (asset) {
+    return (
+      <div
+        className={className}
+        style={{
+          background: c.bg,
+          aspectRatio,
+          position: "relative",
+          overflow: "hidden",
+          borderRadius: 2,
+          ...style,
+        }}
+      >
+        <img
+          src={asset.src}
+          alt={asset.alt}
+          loading="lazy"
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "block",
+            objectFit: "cover",
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       className={className}
@@ -809,12 +860,12 @@ export default function App() {
                 </button>
               </div>
             </FadeIn>
-            <FadeIn delay={0.2}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem", minWidth: 220 }}>
-                {[["📞","Call or Text","(504) 555-0182"],["✉️","Email","hello@pressmarkstudio.com"],["📍","Location","Serving Nationwide"]].map(([ic,label,val]) => (
+            <FadeIn delay={0.2} style={{ justifySelf: "center", width: "100%", maxWidth: 300 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem", width: "fit-content", maxWidth: "100%", minWidth: 220, margin: "0 auto", textAlign: "left" }}>
+                {[["📞","Call or Text","678.790.2698"],["✉️","Email","hello@pressmarkstudio.com"],["📍","Location","Serving Nationwide"]].map(([ic,label,val]) => (
                   <div key={label} style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
                     <div style={{ fontSize: "1.2rem", width: 36, textAlign: "center" }}>{ic}</div>
-                    <div>
+                    <div style={{ textAlign: "left" }}>
                       <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#c8963e", marginBottom: 2 }}>{label}</div>
                       <div style={{ fontSize: "0.88rem", color: "rgba(245,240,232,0.8)" }}>{val}</div>
                     </div>
