@@ -85,21 +85,21 @@ const IMG_COLORS = {
   print:     { bg: "#1a2530", accent: "#3d7a9a", label: "Print Production" },
   redesign:  { bg: "#2d2a1a", accent: "#a09040", label: "Publication Redesign" },
   hero:      { bg: "#181410", accent: "#c8963e", label: "Publication Showcase" },
-  about:     { bg: "#121c12", accent: "#7c8a2d", label: "Studio at Work" },
-  portfolio1:{ bg: "#0f1a14", accent: "#7c8a2d", label: "Yearbook · 176 pages" },
-  portfolio2:{ bg: "#171515", accent: "#8c9a34", label: "Anniversary Book · 144 pages" },
-  portfolio3:{ bg: "#17170f", accent: "#9ea14a", label: "Event Program · 48 pages" },
+  about:     { bg: "#121c12", accent: "#c8963e", label: "Studio at Work" },
+  portfolio1:{ bg: "#0f1a14", accent: "#c8963e", label: "Yearbook · 176 pages" },
+  portfolio2:{ bg: "#171515", accent: "#cfb66a", label: "Anniversary Book · 144 pages" },
+  portfolio3:{ bg: "#17170f", accent: "#d8c178", label: "Event Program · 48 pages" },
 };
 
 const PALETTE = {
   base: "#0d160f",
   panel: "#12220f",
   panelSoft: "#192714",
-  accent: "#7c8a2d",
-  accentSoft: "#a5b35f",
+  accent: "#c8963e",
+  accentSoft: "#d3b86a",
   text: "#e8ebd6",
-  textMuted: "#b6bb96",
-  border: "rgba(124,138,45,0.18)",
+  textMuted: "#d3c88f",
+  border: "rgba(200,150,62,0.18)",
   black: "#000000",
   white: "#f5f7dc",
 };
@@ -339,7 +339,7 @@ export default function App() {
       letterSpacing: "0.08em", textTransform: "uppercase",
       color: light ? PALETTE.white : PALETTE.text,
       background: "transparent",
-      border: `1px solid ${light ? "rgba(245,247,222,0.3)" : "rgba(124,138,45,0.25)"}`,
+      border: `1px solid ${light ? "rgba(245,247,222,0.3)" : "rgba(200,150,62,0.25)"}`,
       padding: "0.9rem 1.8rem",
       cursor: "pointer", transition: "all 0.2s",
       textDecoration: "none", display: "inline-block",
@@ -353,14 +353,15 @@ export default function App() {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
         body { overflow-x: hidden; }
-        button:focus-visible, a:focus-visible { outline: 2px solid #7c8a2d; outline-offset: 2px; }
-        .nav-link-hover:hover { color: #7c8a2d !important; }
-        .btn-primary-hover:hover { background: #a5b35f !important; }
-        .btn-ghost-hover:hover { border-color: #7c8a2d !important; color: #7c8a2d !important; }
-        .service-card:hover { background: rgba(124,138,45,0.12) !important; }
-        .service-card:hover .service-num { color: #7c8a2d !important; }
+        p { color: #ffffff !important; }
+        button:focus-visible, a:focus-visible { outline: 2px solid #c8963e; outline-offset: 2px; }
+        .nav-link-hover:hover { color: #c8963e !important; }
+        .btn-primary-hover:hover { background: #d3b86a !important; }
+        .btn-ghost-hover:hover { border-color: #c8963e !important; color: #c8963e !important; }
+        .service-card:hover { background: rgba(200,150,62,0.12) !important; }
+        .service-card:hover .service-num { color: #c8963e !important; }
         .why-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(26,18,8,0.08) !important; }
-        .audience-tag:hover { background: #12220f !important; color: #7c8a2d !important; border-color: #12220f !important; }
+        .audience-tag:hover { background: #12220f !important; color: #c8963e !important; border-color: #12220f !important; }
         @media (max-width: 900px) {
           .desktop-nav { display: none !important; }
           .hamburger-btn { display: flex !important; }
@@ -368,7 +369,7 @@ export default function App() {
           .about-grid { grid-template-columns: 1fr !important; }
           .services-grid { grid-template-columns: 1fr !important; }
           .why-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .process-steps { flex-direction: column !important; }
+          .process-steps { grid-template-columns: repeat(2, minmax(220px, 1fr)) !important; }
           .process-connector { display: none !important; }
           .cta-grid { grid-template-columns: 1fr !important; text-align: center; }
           .cta-btns { justify-content: center !important; }
@@ -379,6 +380,7 @@ export default function App() {
         @media (max-width: 540px) {
           .why-grid { grid-template-columns: 1fr !important; }
           .audience-grid { grid-template-columns: 1fr !important; }
+          .process-steps { grid-template-columns: minmax(0, 1fr) !important; }
         }
       `}</style>
 
@@ -420,8 +422,8 @@ export default function App() {
           <div className="hero-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(2rem,5vw,5rem)", alignItems: "center" }}>
 
             {/* Left */}
-            <div>
-              <div style={{ ...S.eyebrow(), marginBottom: "1.2rem" }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ ...S.eyebrow(), marginBottom: "1.2rem", justifyContent: "center" }}>
                 <span style={S.eyebrowLine} />
                 Publication Design & Print Production
               </div>
@@ -435,13 +437,13 @@ export default function App() {
                 <span style={{ color: PALETTE.accent, fontStyle: "italic" }}>Churches</span> &<br />
                 Organizations
               </h1>
-              <p style={{ ...S.lead(true), marginBottom: "1rem" }}>
+              <p style={{ ...S.lead(true), marginBottom: "1rem", margin: "0 auto 1rem", maxWidth: 560, textAlign: "left" }}>
                 Professional yearbooks, directories, commemorative books, programs, and printed publications designed with premium visuals and production-ready accuracy.
               </p>
-              <p style={{ fontSize: "0.92rem", lineHeight: 1.75, color: "rgba(245,240,232,0.5)", marginBottom: "2.4rem", maxWidth: 480 }}>
+              <p style={{ fontSize: "0.92rem", lineHeight: 1.75, color: "rgba(245,240,232,0.5)", marginBottom: "2.4rem", maxWidth: 560, margin: "0 auto 2.4rem", textAlign: "left" }}>
                 From creative layout design to final print prep, Pressmark Studio helps organizations create polished publications that look professional, organized, and built to last.
               </p>
-              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
                 <button className="btn-primary-hover" style={S.btnPrimary} onClick={() => scrollTo("#contact")}>
                   Request a Quote
                 </button>
@@ -450,9 +452,9 @@ export default function App() {
                 </button>
               </div>
               {/* Stats */}
-              <div style={{ display: "flex", gap: "2.5rem", marginTop: "3rem", paddingTop: "2.5rem", borderTop: "1px solid rgba(245,240,232,0.1)", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", justifyContent: "center", gap: "2.5rem", marginTop: "3rem", paddingTop: "2.5rem", borderTop: "1px solid rgba(245,240,232,0.1)", flexWrap: "wrap" }}>
                 {[["1,400+","Publications"], ["8","Specialties"], ["97%","Return Rate"]].map(([n,l]) => (
-                  <div key={l}>
+                  <div key={l} style={{ textAlign: "center" }}>
                     <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.6rem,3vw,2rem)", fontWeight: 900, color: "#c8963e", lineHeight: 1 }}>{n}</div>
                     <div style={{ fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(245,240,232,0.45)", marginTop: 4 }}>{l}</div>
                   </div>
@@ -508,7 +510,7 @@ export default function App() {
             </FadeIn>
 
             <FadeIn delay={0.15}>
-              <div style={S.eyebrow()}>
+              <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
                 <span style={S.eyebrowLine} />
                 About Pressmark Studio
               </div>
@@ -516,10 +518,10 @@ export default function App() {
                 Designed for Print.<br />
                 <em style={{ color: PALETTE.accentSoft }}>Built for Impact.</em>
               </h2>
-              <p style={{ ...S.lead(), marginBottom: "1.5rem" }}>
+              <p style={{ ...S.lead(), marginBottom: "1.5rem", maxWidth: 560, margin: "0 auto 1.5rem", textAlign: "left" }}>
                 At Pressmark Studio we specialize in publication design and print production services for schools, churches, teams, nonprofits, and organizations that need high-quality printed materials without the stress of managing complicated layouts and print files.
               </p>
-              <p style={{ fontSize: "0.95rem", lineHeight: 1.8, color: PALETTE.textMuted, marginBottom: "2rem" }}>
+              <p style={{ fontSize: "0.95rem", lineHeight: 1.8, color: PALETTE.textMuted, marginBottom: "2rem", maxWidth: 560, margin: "0 auto 2rem", textAlign: "left" }}>
                 With years of real-world print production experience, we understand more than just design — we understand how publications are prepared, organized, and optimized for professional printing.
               </p>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem 1.5rem" }}>
@@ -535,7 +537,7 @@ export default function App() {
                       display: "flex", alignItems: "center", justifyContent: "center",
                       flexShrink: 0, marginTop: 1, fontSize: "0.7rem", color: "#1a1208", fontWeight: 700,
                     }}>✓</div>
-                    <span style={{ fontSize: "0.88rem", color: "#4a4a5a", lineHeight: 1.5 }}>{item}</span>
+                    <span style={{ fontSize: "0.88rem", color: PALETTE.accentSoft, lineHeight: 1.5, textAlign: "left" }}>{item}</span>
                   </div>
                 ))}
               </div>
@@ -549,15 +551,15 @@ export default function App() {
       <section id="services" style={S.section(PALETTE.panel)}>
         <div style={{ maxWidth: 1400, margin: "0 auto" }}>
           <FadeIn>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "2rem", marginBottom: "3.5rem", paddingBottom: "2.5rem", borderBottom: "1px solid rgba(26,18,8,0.1)" }}>
-              <div>
-                <div style={S.eyebrow()}>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", flexWrap: "wrap", gap: "1.5rem", marginBottom: "3.5rem", paddingBottom: "2.5rem", borderBottom: "1px solid rgba(26,18,8,0.1)" }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
                   <span style={S.eyebrowLine} />
                   What We Do
                 </div>
-                <h2 style={{ ...S.h2(), marginBottom: 0 }}>Publication Design<br /><em style={{ color: "#a63d2f" }}>Services</em></h2>
+                <h2 style={{ ...S.h2(), marginBottom: 0 }}>Publication Design<br /><em style={{ color: PALETTE.accent }}>Services</em></h2>
               </div>
-              <p style={{ ...S.lead(), maxWidth: 420, fontSize: "0.95rem" }}>
+              <p style={{ ...S.lead(), maxWidth: 560, margin: "0 auto", textAlign: "left", fontSize: "0.95rem" }}>
                 From flagship yearbooks to church commemoratives — one studio, every publication type your organization needs.
               </p>
             </div>
@@ -586,8 +588,8 @@ export default function App() {
                     )}
                   </div>
                   <div style={{ fontSize: "1.6rem", marginBottom: "0.6rem" }}>{s.icon}</div>
-                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1rem", fontWeight: 700, color: "#1a1208", marginBottom: "0.6rem", lineHeight: 1.3 }}>{s.title}</div>
-                  <div style={{ fontSize: "0.85rem", lineHeight: 1.7, color: "#4a4a5a" }}>{s.desc}</div>
+                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1rem", fontWeight: 700, color: "#d3b86a", marginBottom: "0.6rem", lineHeight: 1.3 }}>{s.title}</div>
+                  <div style={{ fontSize: "0.85rem", lineHeight: 1.7, color: "#ffffff" }}>{s.desc}</div>
                 </div>
               </FadeIn>
             ))}
@@ -628,8 +630,8 @@ export default function App() {
                   boxShadow: "0 0 0 rgba(26,18,8,0)",
                 }}>
                   <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>{w.icon}</div>
-                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.05rem", fontWeight: 700, color: "#f5f0e8", marginBottom: "0.6rem" }}>{w.title}</div>
-                  <div style={{ fontSize: "0.88rem", lineHeight: 1.7, color: "rgba(245,240,232,0.55)" }}>{w.desc}</div>
+                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.05rem", fontWeight: 700, color: "#d3b86a", marginBottom: "0.6rem" }}>{w.title}</div>
+                  <div style={{ fontSize: "0.88rem", lineHeight: 1.7, color: "#ffffff" }}>{w.desc}</div>
                 </div>
               </FadeIn>
             ))}
@@ -641,21 +643,37 @@ export default function App() {
       <section id="process" style={S.section(PALETTE.panelSoft)}>
         <div style={{ maxWidth: 1400, margin: "0 auto" }}>
           <FadeIn>
-            <div style={{ textAlign: "center", marginBottom: "4rem" }}>
-              <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
+            <div style={{
+              textAlign: "center",
+              margin: "0 auto 4rem",
+              maxWidth: 680,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}>
+              <div style={{ ...S.eyebrow(), justifyContent: "center", alignSelf: "center" }}>
                 <span style={S.eyebrowLine} />
                 How It Works
                 <span style={S.eyebrowLine} />
               </div>
-              <h2 style={S.h2()}>Simple Process.<br /><em style={{ color: "#a63d2f" }}>Professional Results.</em></h2>
+              <h2 style={{ ...S.h2(), width: "100%", textAlign: "center" }}>Simple Process.<br /><em style={{ color: PALETTE.accent }}>Professional Results.</em></h2>
             </div>
           </FadeIn>
 
-          <div className="process-steps" style={{ display: "flex", alignItems: "flex-start", gap: 0, position: "relative" }}>
+          <div className="process-steps" style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+            gap: "2.5rem 1.5rem",
+            justifyItems: "center",
+            alignItems: "flex-start",
+            position: "relative",
+            maxWidth: 1120,
+            margin: "0 auto",
+          }}>
             {PROCESS.map((p, i) => (
-              <div key={p.num} style={{ flex: 1, display: "flex", alignItems: "flex-start", position: "relative" }}>
-                <FadeIn delay={i * 0.12} style={{ flex: 1 }}>
-                  <div style={{ textAlign: "center", padding: "0 1.5rem" }}>
+              <div key={p.num} style={{ width: "100%", maxWidth: 260, display: "flex", alignItems: "flex-start", position: "relative" }}>
+                <FadeIn delay={i * 0.12} style={{ width: "100%" }}>
+                  <div style={{ textAlign: "center", padding: "0 clamp(0.25rem, 2vw, 1.25rem)" }}>
                     {/* circle */}
                     <div style={{
                       width: 64, height: 64, borderRadius: "50%",
@@ -667,8 +685,8 @@ export default function App() {
                     }}>
                       <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "1rem", color: "#c8963e" }}>{p.num}</span>
                     </div>
-                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.05rem", fontWeight: 700, color: "#1a1208", marginBottom: "0.6rem" }}>{p.title}</div>
-                    <div style={{ fontSize: "0.88rem", lineHeight: 1.7, color: "#4a4a5a" }}>{p.desc}</div>
+                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.05rem", fontWeight: 700, color: "#d3b86a", marginBottom: "0.6rem" }}>{p.title}</div>
+                    <div style={{ fontSize: "0.88rem", lineHeight: 1.7, color: "#ffffff" }}>{p.desc}</div>
                   </div>
                 </FadeIn>
                 {/* connector line */}
@@ -727,9 +745,9 @@ export default function App() {
       <section style={S.section(PALETTE.base)}>
         <div style={{ maxWidth: 1400, margin: "0 auto" }}>
           <FadeIn>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1.5rem", marginBottom: "2.5rem" }}>
-              <div>
-                <div style={S.eyebrow()}>
+            <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", flexWrap: "wrap", gap: "1.5rem", marginBottom: "2.5rem" }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
                   <span style={S.eyebrowLine} />
                   Recent Work
                 </div>
@@ -737,12 +755,12 @@ export default function App() {
                   Publications <em style={{ color: "#c8963e" }}>people keep.</em>
                 </h2>
               </div>
-              <button className="btn-ghost-hover" style={S.btnGhost(true)} onClick={() => scrollTo("#contact")}>
+              <button className="btn-ghost-hover" style={S.btnGhost(true)} onClick={() => scrollTo("#contact")}> 
                 Start Your Project
               </button>
             </div>
           </FadeIn>
-          <div className="portfolio-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gridAutoRows: "1fr", gap: "1.2rem" }}>
+          <div className="portfolio-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gridAutoRows: "1fr", gap: "1.2rem", justifyContent: "center" }}>
             {[{
               type: "portfolio1", label: "Yearbook · 176 pages", title: "The Bruin 2024 — Beaumont High School" },
               { type: "portfolio2", label: "Anniversary Book · 144 pages", title: "Greater Hope MBC — 125th Anniversary" },
@@ -818,7 +836,7 @@ export default function App() {
                 Free Quote Request
                 <span style={S.eyebrowLine} />
               </div>
-              <h2 style={S.h2()}>Ready to Start Your<br /><em style={{ color: "#a63d2f" }}>Publication Project?</em></h2>
+              <h2 style={S.h2()}>Ready to Start Your<br /><em style={{ color: PALETTE.accent }}>Publication Project?</em></h2>
               <p style={{ ...S.lead(), margin: "0 auto", textAlign: "center" }}>Tell us about your project. We'll respond within 24 hours.</p>
             </div>
           </FadeIn>
@@ -861,7 +879,7 @@ export default function App() {
                 </div>
                 <div style={{ marginTop: "1.2rem" }}>
                   <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#7a7868", marginBottom: "0.45rem" }}>Tell Us About Your Project</label>
-                  <textarea placeholder="Estimated page count, deadline, theme ideas, or anything that helps us understand your vision…" rows={5} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#101a10", color: PALETTE.text, fontSize: "0.92rem", fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "vertical", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = "#7c8a2d"} onBlur={e => e.target.style.borderColor = "rgba(124,138,45,0.2)"} />
+                  <textarea placeholder="Estimated page count, deadline, theme ideas, or anything that helps us understand your vision…" rows={5} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#101a10", color: PALETTE.text, fontSize: "0.92rem", fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "vertical", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = "#c8963e"} onBlur={e => e.target.style.borderColor = "rgba(200,150,62,0.2)"} />
                 </div>
                 <div style={{ marginTop: "1.8rem" }}>
                   <button className="btn-primary-hover" style={{ ...S.btnPrimary, width: "100%", padding: "1rem", fontSize: "0.82rem", textAlign: "center" }} onClick={() => setFormSent(true)}>
@@ -875,11 +893,11 @@ export default function App() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ background: "#0c140c", padding: "2.5rem clamp(1.25rem,6vw,5rem)", borderTop: "1px solid rgba(124,138,45,0.22)" }}>
+      <footer style={{ background: "#0c140c", padding: "2.5rem clamp(1.25rem,6vw,5rem)", borderTop: "1px solid rgba(200,150,62,0.22)" }}>
         <div className="footer-inner" style={{ maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1.5rem", flexWrap: "wrap" }}>
           <div>
             <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.1rem", fontWeight: 800, color: PALETTE.white, marginBottom: "0.3rem" }}>
-              Press<span style={{ color: "#7c8a2d" }}>mark</span> Studio
+              Press<span style={{ color: "#c8963e" }}>mark</span> Studio
             </div>
             <div style={{ fontSize: "0.72rem", color: "rgba(245,240,232,0.4)", letterSpacing: "0.05em", lineHeight: 1.5 }}>
               Publication Design & Print Production Specialist<br />Serving Schools, Churches & Organizations
