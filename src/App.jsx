@@ -335,7 +335,7 @@ export default function App() {
       backdropFilter: "blur(16px)",
       borderBottom: scrolled ? `1px solid ${PALETTE.border}` : "1px solid transparent",
       transition: "all 0.3s ease",
-      padding: "0 clamp(1.25rem, 5vw, 4rem)",
+      padding: "0 clamp(1.25rem, 5vw, 4rem) 0 0",
       display: "flex", alignItems: "center", justifyContent: "space-between",
       height: 68,
     },
