@@ -1195,7 +1195,7 @@ export default function App() {
                 </div>
                 <div style={{ marginTop: "1.2rem" }}>
                   <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Publication Type</label>
-                  <select value={quoteForm.publicationType} onChange={e => updateQuoteForm("publicationType", e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: PALETTE.panel, color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", appearance: "none", cursor: "pointer" }}>
+                  <select value={quoteForm.publicationType} onChange={e => updateQuoteForm("publicationType", e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", appearance: "none", cursor: "pointer" }}>
                     <option value="" disabled>Select your publication type…</option>
                     <option>School Yearbook</option>
                     <option>Directory / Anniversary Book</option>
@@ -1207,7 +1207,7 @@ export default function App() {
                 </div>
                 <div style={{ marginTop: "1.2rem" }}>
                   <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Tell Us About Your Project</label>
-                  <textarea value={quoteForm.projectDetails} onChange={e => updateQuoteForm("projectDetails", e.target.value)} placeholder="Estimated page count, deadline, theme ideas, or anything that helps us understand your vision…" rows={5} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: PALETTE.panel, color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", resize: "vertical", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
+                  <textarea value={quoteForm.projectDetails} onChange={e => updateQuoteForm("projectDetails", e.target.value)} placeholder="Estimated page count, deadline, theme ideas, or anything that helps us understand your vision…" rows={5} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", resize: "vertical", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
                 </div>
                 <div style={{ marginTop: "1.8rem" }}>
                   {formError && (
