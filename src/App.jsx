@@ -1080,7 +1080,7 @@ export default function App() {
             </FadeIn>
             <FadeIn delay={0.2} style={{ justifySelf: "center", width: "100%", maxWidth: 300 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem", width: "fit-content", maxWidth: "100%", minWidth: 220, margin: "0 auto", textAlign: "left" }}>
-                {[["📞","Call or Text","678.790.2698"],["✉️","Email","justin@pressmark.studio"],["📍","Location","Serving Nationwide"]].map(([ic,label,val]) => (
+                {[["📞","Call or Text","678.790.2698"],["✉️","Email","quotes@pressmark.studio"],["📍","Location","Serving Nationwide"]].map(([ic,label,val]) => (
                   <div key={label} style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
                     <div style={{ fontSize: "1.2rem", width: 36, textAlign: "center" }}>{ic}</div>
                     <div style={{ textAlign: "left" }}>
