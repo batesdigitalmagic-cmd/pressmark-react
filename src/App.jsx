@@ -306,6 +306,8 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [formSent, setFormSent] = useState(false);
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
   const [quoteForm, setQuoteForm] = useState({
     firstName: "",
     lastName: "",
@@ -335,20 +337,44 @@ export default function App() {
     setQuoteForm((current) => ({ ...current, [field]: value }));
   };
 
-  const sendQuoteRequest = () => {
-    const body = [
-      `First Name: ${quoteForm.firstName}`,
-      `Last Name: ${quoteForm.lastName}`,
-      `Email Address: ${quoteForm.email}`,
-      `Organization: ${quoteForm.organization}`,
-      `Publication Type: ${quoteForm.publicationType}`,
-      "",
-      "Tell Us About Your Project:",
-      quoteForm.projectDetails,
-    ].join("\n");
+  const sendQuoteRequest = async () => {
+    setFormSubmitting(true);
+    setFormError("");
 
-    window.location.href = `mailto:quotes@pressmark.studio?subject=${encodeURIComponent("Quote Request")}&body=${encodeURIComponent(body)}`;
-    setFormSent(true);
+    const formData = new FormData();
+    formData.append("_subject", "Pressmark Studio Quote Request");
+    formData.append("First Name", quoteForm.firstName);
+    formData.append("Last Name", quoteForm.lastName);
+    formData.append("Email Address", quoteForm.email);
+    formData.append("Organization", quoteForm.organization);
+    formData.append("Publication Type", quoteForm.publicationType);
+    formData.append("Project Details", quoteForm.projectDetails);
+
+    try {
+      const response = await fetch("https://formsubmit.co/ajax/quotes@pressmark.studio", {
+        method: "POST",
+        headers: { Accept: "application/json" },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Quote request failed");
+      }
+
+      setFormSent(true);
+      setQuoteForm({
+        firstName: "",
+        lastName: "",
+        email: "",
+        organization: "",
+        publicationType: "",
+        projectDetails: "",
+      });
+    } catch {
+      setFormError("Something went wrong. Please email quotes@pressmark.studio directly.");
+    } finally {
+      setFormSubmitting(false);
+    }
   };
 
   /* ── STYLES (inline for portability) ── */
@@ -1184,8 +1210,13 @@ export default function App() {
                   <textarea value={quoteForm.projectDetails} onChange={e => updateQuoteForm("projectDetails", e.target.value)} placeholder="Estimated page count, deadline, theme ideas, or anything that helps us understand your vision…" rows={5} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: PALETTE.panel, color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", resize: "vertical", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
                 </div>
                 <div style={{ marginTop: "1.8rem" }}>
-                  <button className="btn-primary-hover" style={{ ...S.btnPrimary, width: "100%", padding: "1rem", fontSize: "0.82rem", textAlign: "center" }} onClick={sendQuoteRequest}>
-                    Send Quote Request →
+                  {formError && (
+                    <div style={{ color: PALETTE.white, fontSize: "0.92rem", fontStyle: "italic", textAlign: "center", marginBottom: "1rem" }}>
+                      {formError}
+                    </div>
+                  )}
+                  <button className="btn-primary-hover" style={{ ...S.btnPrimary, width: "100%", padding: "1rem", fontSize: "0.82rem", textAlign: "center", opacity: formSubmitting ? 0.72 : 1 }} onClick={sendQuoteRequest} disabled={formSubmitting}>
+                    {formSubmitting ? "Sending..." : "Send Quote Request →"}
                   </button>
                 </div>
               </div>
@@ -1212,7 +1243,7 @@ export default function App() {
             ))}
           </div>
           <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.3)", textAlign: "center" }}>
-            © 2025 Pressmark Studio. All rights reserved.
+            © 2026 Pressmark Studio. All rights reserved.
           </div>
         </div>
       </footer>
