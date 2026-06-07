@@ -491,6 +491,7 @@ export default function App() {
         @media (max-width: 640px) {
           .desktop-nav { display: none !important; }
           .hamburger-btn { display: flex !important; }
+          .site-logo-image { transform: translateX(-1.5rem); }
         }
         @media (max-width: 540px) {
           .why-grid { grid-template-columns: 1fr !important; }
@@ -556,7 +557,7 @@ export default function App() {
       {/* ── NAV ── */}
       <nav style={S.nav}>
         <button style={S.logo} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="Pressmark Studio home">
-          <img src={pressmarkLogo} alt="Pressmark Studio" style={S.logoImage} />
+          <img className="site-logo-image" src={pressmarkLogo} alt="Pressmark Studio" style={S.logoImage} />
         </button>
         <ul className="desktop-nav" style={S.navLinks}>
           {NAV_LINKS.map(l => (
@@ -1079,7 +1080,7 @@ export default function App() {
             </FadeIn>
             <FadeIn delay={0.2} style={{ justifySelf: "center", width: "100%", maxWidth: 300 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem", width: "fit-content", maxWidth: "100%", minWidth: 220, margin: "0 auto", textAlign: "left" }}>
-                {[["📞","Call or Text","678.790.2698"],["✉️","Email","hello@pressmarkstudio.com"],["📍","Location","Serving Nationwide"]].map(([ic,label,val]) => (
+                {[["📞","Call or Text","678.790.2698"],["✉️","Email","justin@pressmark.studio"],["📍","Location","Serving Nationwide"]].map(([ic,label,val]) => (
                   <div key={label} style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
                     <div style={{ fontSize: "1.2rem", width: 36, textAlign: "center" }}>{ic}</div>
                     <div style={{ textAlign: "left" }}>
