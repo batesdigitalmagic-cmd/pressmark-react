@@ -306,6 +306,14 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [formSent, setFormSent] = useState(false);
+  const [quoteForm, setQuoteForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    organization: "",
+    publicationType: "",
+    projectDetails: "",
+  });
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -321,6 +329,26 @@ export default function App() {
   const emailQuote = () => {
     setMenuOpen(false);
     window.location.href = "mailto:quotes@pressmark.studio?subject=Quote%20Request";
+  };
+
+  const updateQuoteForm = (field, value) => {
+    setQuoteForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const sendQuoteRequest = () => {
+    const body = [
+      `First Name: ${quoteForm.firstName}`,
+      `Last Name: ${quoteForm.lastName}`,
+      `Email Address: ${quoteForm.email}`,
+      `Organization: ${quoteForm.organization}`,
+      `Publication Type: ${quoteForm.publicationType}`,
+      "",
+      "Tell Us About Your Project:",
+      quoteForm.projectDetails,
+    ].join("\n");
+
+    window.location.href = `mailto:quotes@pressmark.studio?subject=${encodeURIComponent("Quote Request")}&body=${encodeURIComponent(body)}`;
+    setFormSent(true);
   };
 
   /* ── STYLES (inline for portability) ── */
@@ -1124,25 +1152,25 @@ export default function App() {
             ) : (
               <div style={{ background: "#06162c", border: `1px solid ${PALETTE.border}`, padding: "clamp(2rem,5vw,3.5rem)" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem" }}>
-                  {[["First Name","text","Marcus"],["Last Name","text","Williams"]].map(([label,type,ph]) => (
-                    <div key={label}>
+                  {[["firstName","First Name","text","Marcus"],["lastName","Last Name","text","Williams"]].map(([field,label,type,ph]) => (
+                    <div key={field}>
                       <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>{label}</label>
-                      <input type={type} placeholder={ph} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
+                      <input type={type} value={quoteForm[field]} placeholder={ph} onChange={e => updateQuoteForm(field, e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
                     </div>
                   ))}
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem", marginTop: "1.2rem" }}>
-                  {[["Email Address","email","you@organization.com"],["Organization","text","Your organization name"]].map(([label,type,ph]) => (
-                    <div key={label}>
+                  {[["email","Email Address","email","you@organization.com"],["organization","Organization","text","Your organization name"]].map(([field,label,type,ph]) => (
+                    <div key={field}>
                       <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>{label}</label>
-                      <input type={type} placeholder={ph} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
+                      <input type={type} value={quoteForm[field]} placeholder={ph} onChange={e => updateQuoteForm(field, e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
                     </div>
                   ))}
                 </div>
                 <div style={{ marginTop: "1.2rem" }}>
                   <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Publication Type</label>
-                  <select style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: PALETTE.panel, color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", appearance: "none", cursor: "pointer" }}>
-                    <option value="" disabled defaultValue>Select your publication type…</option>
+                  <select value={quoteForm.publicationType} onChange={e => updateQuoteForm("publicationType", e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: PALETTE.panel, color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", appearance: "none", cursor: "pointer" }}>
+                    <option value="" disabled>Select your publication type…</option>
                     <option>School Yearbook</option>
                     <option>Directory / Anniversary Book</option>
                     <option>Program & Event Book</option>
@@ -1153,10 +1181,10 @@ export default function App() {
                 </div>
                 <div style={{ marginTop: "1.2rem" }}>
                   <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Tell Us About Your Project</label>
-                  <textarea placeholder="Estimated page count, deadline, theme ideas, or anything that helps us understand your vision…" rows={5} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: PALETTE.panel, color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", resize: "vertical", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
+                  <textarea value={quoteForm.projectDetails} onChange={e => updateQuoteForm("projectDetails", e.target.value)} placeholder="Estimated page count, deadline, theme ideas, or anything that helps us understand your vision…" rows={5} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: PALETTE.panel, color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", resize: "vertical", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
                 </div>
                 <div style={{ marginTop: "1.8rem" }}>
-                  <button className="btn-primary-hover" style={{ ...S.btnPrimary, width: "100%", padding: "1rem", fontSize: "0.82rem", textAlign: "center" }} onClick={() => { emailQuote(); setFormSent(true); }}>
+                  <button className="btn-primary-hover" style={{ ...S.btnPrimary, width: "100%", padding: "1rem", fontSize: "0.82rem", textAlign: "center" }} onClick={sendQuoteRequest}>
                     Send Quote Request →
                   </button>
                 </div>
