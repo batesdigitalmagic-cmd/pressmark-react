@@ -318,6 +318,11 @@ export default function App() {
     document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const emailQuote = () => {
+    setMenuOpen(false);
+    window.location.href = "mailto:quotes@pressmark.studio?subject=Quote%20Request";
+  };
+
   /* ── STYLES (inline for portability) ── */
   const S = {
     root: {
@@ -568,7 +573,7 @@ export default function App() {
             </li>
           ))}
         </ul>
-        <button className="desktop-nav btn-primary-hover" style={S.navCta} onClick={() => scrollTo("#contact")}>
+        <button className="desktop-nav btn-primary-hover" style={S.navCta} onClick={emailQuote}>
           Get a Quote
         </button>
         <button className="hamburger-btn" style={{ ...S.hamburger, display: "none" }} onClick={() => setMenuOpen(o => !o)} aria-label="Toggle menu">
@@ -581,7 +586,7 @@ export default function App() {
         {NAV_LINKS.map(l => (
           <button key={l.label} style={S.mobileNavLink} onClick={() => scrollTo(l.href)}>{l.label}</button>
         ))}
-        <button className="btn-primary-hover" style={S.mobileCta} onClick={() => scrollTo("#contact")}>
+        <button className="btn-primary-hover" style={S.mobileCta} onClick={emailQuote}>
           Get a Quote →
         </button>
       </div>
@@ -614,7 +619,7 @@ export default function App() {
                 From creative layout design to final print prep, Pressmark Studio helps organizations create polished publications that look professional, organized, and built to last.
               </p>
               <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
-                <button className="btn-primary-hover" style={S.btnPrimary} onClick={() => scrollTo("#contact")}>
+                <button className="btn-primary-hover" style={S.btnPrimary} onClick={emailQuote}>
                   Request a Quote
                 </button>
                 <button className="btn-ghost-hover" style={S.btnGhost(true)} onClick={() => scrollTo("#services")}>
@@ -983,7 +988,7 @@ export default function App() {
                 <button className="btn-primary-hover" style={S.btnPrimary} onClick={() => window.print()}>
                   Download / Print Guide
                 </button>
-                <button className="btn-ghost-hover" style={S.btnGhost()} onClick={() => scrollTo("#contact")}>
+                <button className="btn-ghost-hover" style={S.btnGhost()} onClick={emailQuote}>
                   Request Custom Quote
                 </button>
               </div>
@@ -1073,14 +1078,14 @@ export default function App() {
                 <button className="btn-primary-hover" style={S.btnPrimary} onClick={() => scrollTo("#contact")}>
                   Start Your Project
                 </button>
-                <button className="btn-ghost-hover" style={S.btnGhost(true)} onClick={() => scrollTo("#contact")}>
+                <button className="btn-ghost-hover" style={S.btnGhost(true)} onClick={emailQuote}>
                   Request a Quote
                 </button>
               </div>
             </FadeIn>
             <FadeIn delay={0.2} style={{ justifySelf: "center", width: "100%", maxWidth: 300 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem", width: "fit-content", maxWidth: "100%", minWidth: 220, margin: "0 auto", textAlign: "left" }}>
-                {[["📞","Call or Text","678.790.2698"],["✉️","Email","quotes@pressmark.studio"],["📍","Location","Serving Nationwide"]].map(([ic,label,val]) => (
+                {[["📞","Call or Text","678.790.2698"],["✉️","Email","info@pressmark.studio"],["📍","Location","Serving Nationwide"]].map(([ic,label,val]) => (
                   <div key={label} style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
                     <div style={{ fontSize: "1.2rem", width: 36, textAlign: "center" }}>{ic}</div>
                     <div style={{ textAlign: "left" }}>
@@ -1111,10 +1116,10 @@ export default function App() {
           </FadeIn>
           <FadeIn delay={0.1}>
             {formSent ? (
-              <div style={{ textAlign: "center", padding: "3rem", background: PALETTE.white, border: `1px solid ${PALETTE.border}` }}>
-                <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>✓</div>
-                <div style={{ fontFamily: FONT_STACK, fontSize: "1.4rem", fontWeight: 700, color: PALETTE.text, marginBottom: "0.5rem" }}>Quote Request Sent!</div>
-                <div style={{ color: PALETTE.textMuted, fontSize: "0.95rem" }}>We'll be in touch within 24 hours.</div>
+              <div style={{ textAlign: "center", padding: "2rem 1rem" }}>
+                <div style={{ color: PALETTE.white, fontSize: "clamp(1.35rem, 3vw, 2rem)", fontStyle: "italic", lineHeight: 1.4 }}>
+                  We'll be in touch within 24 hours.
+                </div>
               </div>
             ) : (
               <div style={{ background: "#06162c", border: `1px solid ${PALETTE.border}`, padding: "clamp(2rem,5vw,3.5rem)" }}>
@@ -1151,7 +1156,7 @@ export default function App() {
                   <textarea placeholder="Estimated page count, deadline, theme ideas, or anything that helps us understand your vision…" rows={5} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: PALETTE.panel, color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", resize: "vertical", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
                 </div>
                 <div style={{ marginTop: "1.8rem" }}>
-                  <button className="btn-primary-hover" style={{ ...S.btnPrimary, width: "100%", padding: "1rem", fontSize: "0.82rem", textAlign: "center" }} onClick={() => setFormSent(true)}>
+                  <button className="btn-primary-hover" style={{ ...S.btnPrimary, width: "100%", padding: "1rem", fontSize: "0.82rem", textAlign: "center" }} onClick={() => { emailQuote(); setFormSent(true); }}>
                     Send Quote Request →
                   </button>
                 </div>
