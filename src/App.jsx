@@ -1106,22 +1106,67 @@ export default function App() {
             </div>
           </FadeIn>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
             {PRICING.map((group, groupIndex) => (
               <FadeIn key={group.category} delay={groupIndex * 0.08}>
-                <div style={{ border: `1px solid ${PALETTE.border}`, background: "rgba(2,8,20,0.34)", padding: "clamp(1.5rem, 4vw, 2.5rem)" }}>
-                  <h3 style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.35rem, 3vw, 2rem)", color: PALETTE.white, textAlign: "center", marginBottom: "1.5rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                    {group.category}
-                  </h3>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1rem", alignItems: "stretch" }}>
+                <div style={{
+                  border: `1px solid ${PALETTE.border}`,
+                  borderTop: `4px solid ${PALETTE.accent}`,
+                  background: "rgba(2,8,20,0.42)",
+                  padding: "clamp(1.35rem, 4vw, 2.25rem)",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "1.4rem" }}>
+                    <span style={{ height: 1, width: 44, background: PALETTE.accent, opacity: 0.75 }} />
+                    <h3 style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.25rem, 3vw, 1.85rem)", color: PALETTE.white, textAlign: "center", textTransform: "uppercase", letterSpacing: "0.08em", lineHeight: 1.1 }}>
+                      {group.category}
+                    </h3>
+                    <span style={{ height: 1, width: 44, background: PALETTE.accent, opacity: 0.75 }} />
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1rem", alignItems: "stretch" }}>
                     {group.plans.map((plan) => (
-                      <div key={plan.name} style={{ display: "flex", flexDirection: "column", height: "100%", background: PALETTE.panel, border: `1px solid ${PALETTE.border}`, padding: "1.5rem", borderRadius: 2 }}>
-                        <div style={{ fontFamily: FONT_STACK, fontSize: "1.18rem", fontWeight: 700, color: PALETTE.white, marginBottom: "0.55rem", lineHeight: 1.2 }}>{plan.name}</div>
-                        <div style={{ fontSize: "1rem", fontWeight: 700, color: PALETTE.accent, marginBottom: "1rem" }}>{plan.price}</div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem", marginTop: "auto" }}>
+                      <div key={plan.name} style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        height: "100%",
+                        background: PALETTE.panel,
+                        border: `1px solid ${PALETTE.border}`,
+                        padding: "1.45rem",
+                        borderRadius: 3,
+                        textAlign: "center",
+                        boxShadow: "0 12px 34px rgba(0,0,0,0.16)",
+                      }}>
+                        <div style={{ fontFamily: FONT_STACK, fontSize: "1.22rem", fontWeight: 800, color: PALETTE.white, marginBottom: "0.65rem", lineHeight: 1.2 }}>{plan.name}</div>
+                        <div style={{
+                          alignSelf: "center",
+                          fontSize: "0.95rem",
+                          fontWeight: 800,
+                          color: PALETTE.base,
+                          background: PALETTE.accent,
+                          padding: "0.36rem 0.85rem",
+                          marginBottom: "1.15rem",
+                        }}>{plan.price}</div>
+                        <div style={{ display: "grid", gap: "0.5rem", marginTop: "auto" }}>
                           {plan.features.map((feature) => (
-                            <div key={feature} style={{ display: "flex", gap: "0.55rem", alignItems: "flex-start", color: "rgba(255,255,255,0.88)", fontSize: "0.92rem", lineHeight: 1.45 }}>
-                              <span style={{ color: PALETTE.accent, fontWeight: 700, lineHeight: 1.2 }}>✓</span>
+                            <div key={feature} style={{
+                              display: "flex",
+                              gap: "0.5rem",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              minHeight: 38,
+                              color: "rgba(255,255,255,0.9)",
+                              fontSize: "0.9rem",
+                              lineHeight: 1.35,
+                              width: "100%",
+                              padding: "0.5rem 0.7rem",
+                              background: "rgba(255,255,255,0.045)",
+                              border: "1px solid rgba(255,255,255,0.07)",
+                            }}>
+                              <span style={{
+                                color: PALETTE.accent,
+                                fontWeight: 900,
+                                lineHeight: 1,
+                                flex: "0 0 auto",
+                              }}>✓</span>
                               <span>{feature}</span>
                             </div>
                           ))}
@@ -1136,13 +1181,13 @@ export default function App() {
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem", marginTop: "2rem", alignItems: "stretch" }}>
             <FadeIn delay={0.1}>
-              <div style={{ height: "100%", background: PALETTE.panel, border: `1px solid ${PALETTE.border}`, padding: "clamp(1.5rem, 4vw, 2rem)" }}>
+              <div style={{ height: "100%", background: PALETTE.panel, border: `1px solid ${PALETTE.border}`, borderTop: `4px solid ${PALETTE.accent}`, padding: "clamp(1.5rem, 4vw, 2rem)" }}>
                 <h3 style={{ fontFamily: FONT_STACK, fontSize: "1.35rem", color: PALETTE.white, marginBottom: "1rem", textAlign: "center" }}>Add-On Services</h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.15rem" }}>
+                <div style={{ display: "grid", gap: "0.55rem" }}>
                   {ADD_ONS.map(([service, price]) => (
-                    <div key={service} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "1rem", padding: "0.75rem 0", borderBottom: `1px solid ${PALETTE.border}`, color: PALETTE.white, fontSize: "0.95rem" }}>
-                      <span>{service}</span>
-                      <strong style={{ color: PALETTE.accent, whiteSpace: "nowrap" }}>{price}</strong>
+                    <div key={service} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "1rem", alignItems: "center", padding: "0.72rem 0.9rem", border: `1px solid ${PALETTE.border}`, background: "rgba(255,255,255,0.04)", color: PALETTE.white, fontSize: "0.95rem" }}>
+                      <span style={{ textAlign: "left" }}>{service}</span>
+                      <strong style={{ color: PALETTE.accent, whiteSpace: "nowrap", textAlign: "right" }}>{price}</strong>
                     </div>
                   ))}
                 </div>
@@ -1150,7 +1195,7 @@ export default function App() {
             </FadeIn>
 
             <FadeIn delay={0.18}>
-              <div style={{ height: "100%", background: PALETTE.panel, border: `1px solid ${PALETTE.border}`, padding: "clamp(1.5rem, 4vw, 2rem)" }}>
+              <div style={{ height: "100%", background: PALETTE.panel, border: `1px solid ${PALETTE.border}`, borderTop: `4px solid ${PALETTE.accent}`, padding: "clamp(1.5rem, 4vw, 2rem)" }}>
                 <h3 style={{ fontFamily: FONT_STACK, fontSize: "1.35rem", color: PALETTE.white, marginBottom: "1rem", textAlign: "center" }}>Included With Every Project</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.75rem" }}>
                   {INCLUDED.map((item) => (
