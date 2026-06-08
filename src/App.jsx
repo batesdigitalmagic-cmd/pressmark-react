@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import spreadsheetHeroImage from "./assets/Spreadsheet flowing into publication pages.png";
+import classOf27HeroImage from "./assets/class of 27 hero image.png";
 import professionalReviewingImage from "./assets/professional reviewing.png";
 import yearbookImage from "./assets/Bates_Digital_yearbook_with_pictures.png";
 import yearbookAltImage from "./assets/Bates_Digital_yearbook_with_pictures_--v_7_4defa031-d9f3-47a7-a62d-ea91f7682e52_0.png";
@@ -553,7 +554,15 @@ export default function App() {
         .why-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(3,10,23,0.26) !important; }
         .audience-tag:hover { background: #051225 !important; color: #aa7d48 !important; border-color: #051225 !important; }
         @media (max-width: 900px) {
-          .hero-grid { grid-template-columns: 1fr !important; }
+          .hero-section {
+            min-height: 78vh !important;
+            background-position: center top !important;
+            background-image: linear-gradient(180deg, rgba(2,8,20,0.72) 0%, rgba(2,8,20,0.86) 42%, rgba(2,8,20,0.98) 100%), url(${classOf27HeroImage}) !important;
+          }
+          .hero-copy h1,
+          .hero-copy p { text-align: center !important; }
+          .hero-copy { margin: 0 auto !important; }
+          .hero-copy .hero-buttons { justify-content: center !important; }
           .about-grid { grid-template-columns: 1fr !important; }
           .services-grid { grid-template-columns: 1fr !important; }
           .why-grid { grid-template-columns: repeat(2, 1fr) !important; }
@@ -664,60 +673,60 @@ export default function App() {
       </div>
 
       {/* ── HERO ── */}
-      <section style={{ paddingTop: 68, background: PALETTE.base, minHeight: "100vh", display: "flex", alignItems: "center" }}>
-        <div style={{ padding: `clamp(3rem,8vw,6rem) ${PAGE_X}`, ...S.container }}>
-          <div className="hero-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(2rem,5vw,5rem)", alignItems: "flex-start" }}>
-
-            {/* Left */}
-            <div>
-              <div style={{ ...S.eyebrow(), justifyContent: "flex-start", margin: "0 auto 1.2rem", maxWidth: 560 }}>
-                Publication Design • Data Merge • Print Production
-              </div>
-              <h1 style={{
-                fontFamily: FONT_STACK,
-                fontSize: "clamp(2.4rem, 5vw, 4rem)",
-                fontWeight: 900, lineHeight: 1.08,
-                color: PALETTE.white, margin: "0 auto 1.5rem", maxWidth: 560, textAlign: "left",
-              }}>
-                When Your Publication<br />
-                Has to Be<br />
-                <span style={{ color: PALETTE.accent, fontStyle: "italic" }}>Right.</span>
-              </h1>
-              <p style={{ ...S.lead(true), margin: "0 auto 1rem", maxWidth: 560, textAlign: "left" }}>
-                Yearbooks, directories, commemorative books, annual reports, and multi-page publications professionally designed, organized, and prepared for production.
-              </p>
-              <p style={{ fontSize: "0.95rem", lineHeight: 1.75, color: "rgba(255,255,255,0.72)", margin: "0 auto 1.7rem", maxWidth: 560, textAlign: "left" }}>
-                Whether you're managing thousands of student portraits, a large member directory, or a publication that has fallen behind schedule, Pressmark Studio helps bring order to the process and confidence to the final product.
-              </p>
-              <div style={{ display: "grid", gap: "0.75rem", margin: "0 auto 2.4rem", maxWidth: 560 }}>
-                {[
-                  "Data Merge & Portrait Placement",
-                  "Publication Cleanup & Rescue",
-                  "Yearbook & Directory Design",
-                  "Print-Ready Production Files",
-                ].map(item => (
-                  <div key={item} style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: PALETTE.white, fontSize: "1.05rem", fontWeight: 600, lineHeight: 1.35 }}>
-                    <span style={{ color: PALETTE.accent, fontWeight: 900, flex: "0 0 auto" }}>✓</span>
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "flex-start", maxWidth: 560, margin: "0 auto" }}>
-                <button className="btn-primary-hover" style={S.btnPrimary} onClick={emailQuote}>
-                  Request A Quote
-                </button>
-                <button className="btn-ghost-hover" style={S.btnGhost(true)} onClick={() => scrollTo("#services")}>
-                  View Services
-                </button>
-              </div>
+      <section className="hero-section" style={{
+        position: "relative",
+        minHeight: "86vh",
+        paddingTop: 68,
+        display: "flex",
+        alignItems: "center",
+        backgroundImage: `linear-gradient(90deg, rgba(2,8,20,0.96) 0%, rgba(2,8,20,0.78) 43%, rgba(2,8,20,0.28) 72%, rgba(2,8,20,0.7) 100%), url(${classOf27HeroImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}>
+        <div style={{ padding: `clamp(4rem,8vw,6.5rem) ${PAGE_X}`, ...S.container }}>
+          <div className="hero-copy" style={{ maxWidth: 680, margin: 0 }}>
+            <h1 style={{
+              fontFamily: FONT_STACK,
+              fontSize: "clamp(3.1rem, 7vw, 6.4rem)",
+              fontWeight: 900,
+              lineHeight: 0.94,
+              letterSpacing: "0.04em",
+              color: PALETTE.white,
+              margin: "0 0 1.4rem",
+              textAlign: "left",
+            }}>
+              When Your Publication Has to Be <em style={{ color: PALETTE.accent }}>Right.</em>
+            </h1>
+            <p style={{
+              fontSize: "clamp(1.05rem, 2.1vw, 1.35rem)",
+              lineHeight: 1.65,
+              color: "rgba(255,255,255,0.82)",
+              margin: "0 0 2rem",
+              maxWidth: 600,
+              textAlign: "left",
+            }}>
+              Yearbooks, directories, data merge projects, and publication cleanup handled with production-ready precision.
+            </p>
+            <div className="hero-buttons" style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "flex-start" }}>
+              <button className="btn-primary-hover" style={{
+                ...S.btnPrimary,
+                borderRadius: 999,
+                padding: "0.95rem 2rem",
+                color: PALETTE.base,
+              }} onClick={emailQuote}>
+                REQUEST A QUOTE
+              </button>
+              <button className="btn-ghost-hover" style={{
+                ...S.btnGhost(true),
+                borderRadius: 999,
+                padding: "0.95rem 2rem",
+                background: "rgba(2,8,20,0.34)",
+                borderColor: "rgba(255,255,255,0.58)",
+              }} onClick={() => scrollTo("#services")}>
+                VIEW SERVICES
+              </button>
             </div>
-
-            {/* Right — image stack */}
-            <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <ImgPlaceholder type="hero" aspectRatio="16/10" style={{ width: "100%", borderRadius: 4 }} />
-              <ImgPlaceholder type="portfolio2" aspectRatio="16/10" style={{ width: "100%", borderRadius: 4 }} />
-            </div>
-
           </div>
         </div>
       </section>
@@ -731,6 +740,21 @@ export default function App() {
           <div style={{ color: PALETTE.accent, fontSize: "0.95rem", fontWeight: 700, letterSpacing: "0.04em", lineHeight: 1.8 }}>
             Schools • Athletic Programs • Churches • Nonprofits • Associations • Community Organizations • Government Agencies
           </div>
+          <img
+            src={spreadsheetHeroImage}
+            alt="Spreadsheet flowing into publication pages"
+            style={{
+              display: "block",
+              width: "100%",
+              maxWidth: 980,
+              aspectRatio: "16/9",
+              objectFit: "cover",
+              margin: "2rem auto 0",
+              border: `1px solid ${PALETTE.border}`,
+              borderRadius: 4,
+              boxShadow: "0 18px 48px rgba(0,0,0,0.28)",
+            }}
+          />
         </div>
       </section>
 
@@ -743,16 +767,14 @@ export default function App() {
               Publication Rescue
               <span style={S.eyebrowLine} />
             </div>
-            <h2 style={{ ...S.h2(true), marginBottom: "0.9rem" }}>
+            <h2 style={{ ...S.h2(true), marginBottom: "1.4rem" }}>
               Most Publications Don't Fail<br />
-              <em style={{ color: PALETTE.accent }}>Because Of Design.</em>
+              Because Of Design.<br />
+              <em style={{ color: PALETTE.accent }}>They Fail Because Of Organization.</em>
             </h2>
-            <div style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.45rem, 3vw, 2.2rem)", fontWeight: 800, color: PALETTE.white, marginBottom: "1.4rem" }}>
-              They Fail Because Of Organization.
-            </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.8rem", margin: "0 auto 1.6rem", maxWidth: 900 }}>
               {["Portraits are missing.", "Spreadsheets don't match.", "Names are incorrect.", "Layouts become difficult to manage.", "Deadlines get closer."].map(item => (
-                <div key={item} style={{ border: `1px solid ${PALETTE.border}`, background: "rgba(255,255,255,0.04)", padding: "1rem", color: PALETTE.white, fontWeight: 700, lineHeight: 1.35 }}>
+                <div key={item} style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 86, border: `1px solid ${PALETTE.border}`, background: "rgba(255,255,255,0.04)", padding: "1rem", color: PALETTE.white, fontWeight: 700, lineHeight: 1.35 }}>
                   {item}
                 </div>
               ))}
@@ -1130,12 +1152,12 @@ export default function App() {
                         height: "100%",
                         background: PALETTE.panel,
                         border: `1px solid ${PALETTE.border}`,
-                        padding: "1.45rem",
+                        padding: "1.1rem 1.25rem 1.35rem",
                         borderRadius: 3,
                         textAlign: "center",
                         boxShadow: "0 12px 34px rgba(0,0,0,0.16)",
                       }}>
-                        <div style={{ fontFamily: FONT_STACK, fontSize: "1.22rem", fontWeight: 800, color: PALETTE.white, marginBottom: "0.65rem", lineHeight: 1.2 }}>{plan.name}</div>
+                        <div style={{ fontFamily: FONT_STACK, fontSize: "1.22rem", fontWeight: 800, color: PALETTE.white, marginBottom: "0.5rem", lineHeight: 1.2 }}>{plan.name}</div>
                         <div style={{
                           alignSelf: "center",
                           fontSize: "0.95rem",
@@ -1143,9 +1165,9 @@ export default function App() {
                           color: PALETTE.base,
                           background: PALETTE.accent,
                           padding: "0.36rem 0.85rem",
-                          marginBottom: "1.15rem",
+                          marginBottom: "0.85rem",
                         }}>{plan.price}</div>
-                        <div style={{ display: "grid", gap: "0.5rem", marginTop: "auto" }}>
+                        <div style={{ display: "grid", gap: "0.5rem" }}>
                           {plan.features.map((feature) => (
                             <div key={feature} style={{
                               display: "flex",
