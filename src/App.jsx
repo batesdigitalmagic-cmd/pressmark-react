@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import heroImage from "./assets/give_me_a_publication_showcase_image.png";
+import spreadsheetHeroImage from "./assets/Spreadsheet flowing into publication pages.png";
+import professionalReviewingImage from "./assets/professional reviewing.png";
 import yearbookImage from "./assets/Bates_Digital_yearbook_with_pictures.png";
 import yearbookAltImage from "./assets/Bates_Digital_yearbook_with_pictures_--v_7_4defa031-d9f3-47a7-a62d-ea91f7682e52_0.png";
 import yearbookDetailImage from "./assets/Bates_Digital_yearbook_with_pictures_--v_7_4defa031-d9f3-47a7-a62d-ea91f7682e52_1.png";
@@ -27,62 +28,63 @@ const SERVICES = [
     icon: "📚",
     title: "Yearbook Design",
     flagship: true,
-    desc: "Custom-designed school yearbooks with modern layouts, organized page systems, senior sections, sports pages, club pages, and print-ready delivery.",
+    desc: "Beautiful, organized yearbooks that celebrate students, teams, activities, achievements, and the moments people want to remember.",
     img: "yearbook",
   },
   {
     num: "02",
     icon: "📇",
-    title: "Directories & Commemorative Books",
+    title: "Directory Design",
     flagship: false,
-    desc: "Beautiful membership directories, anniversary books, memorial books, organization guides, and event publications designed with elegance and clarity.",
+    desc: "Professional directories designed for schools, churches, associations, nonprofits, membership groups, and community organizations.",
     img: "directory",
   },
   {
     num: "03",
-    icon: "🎪",
-    title: "Program & Event Books",
+    icon: "📊",
+    title: "Portrait Data Merge",
     flagship: false,
-    desc: "Professional event programs for graduations, banquets, conferences, galas, sports organizations, and special events.",
+    desc: "Automatically place portraits, names, grades, titles, and custom information across hundreds of pages with accuracy and consistency.",
     img: "event",
   },
   {
     num: "04",
-    icon: "🖨️",
-    title: "Print Production & File Prep",
+    icon: "✏️",
+    title: "Publication Cleanup",
     flagship: false,
-    desc: "Print-ready PDF setup, bleeds & margins, image resolution checks, CMYK conversion, large multi-page document organization, file packaging & export.",
-    img: "print",
+    desc: "Already started the project? We'll organize files, repair layouts, fix formatting issues, and get everything back on track.",
+    img: "redesign",
   },
   {
     num: "05",
-    icon: "✏️",
-    title: "Publication Cleanup & Redesign",
+    icon: "🖨️",
+    title: "Print Production",
     flagship: false,
-    desc: "Already have a publication started? We professionally redesign, organize, and modernize existing files for a cleaner, more polished final product.",
-    img: "redesign",
+    desc: "Production-ready PDFs, bleeds, margins, image checks, file packaging, and commercial print preparation for confident delivery.",
+    img: "print",
   },
 ];
 
 const WHY = [
-  { icon: "🖨️", title: "Professional Print Knowledge", desc: "We understand real print production — not just graphic design." },
-  { icon: "📐", title: "Adobe InDesign Expertise", desc: "Built using industry-standard tools for professional publication layout and organization." },
-  { icon: "⚡", title: "Fast Communication", desc: "Reliable updates and quick responses throughout your project." },
-  { icon: "✦", title: "Modern Design Style", desc: "Clean typography, strong layouts, and visually engaging pages designed to feel current and professional." },
-  { icon: "🎯", title: "Production Accuracy", desc: "We help reduce common print issues before files ever reach the printer." },
+  { icon: "📊", title: "Portrait Data Management", desc: "We help organize large portrait sets, names, grades, titles, and custom spreadsheet fields before layout begins." },
+  { icon: "🧹", title: "Publication Cleanup", desc: "Messy files, broken layouts, missing images, and inconsistent formatting can be repaired and brought back under control." },
+  { icon: "📇", title: "Directory Organization", desc: "Large directories stay easier to navigate with clear systems for sections, listings, names, and supporting information." },
+  { icon: "🖨️", title: "Production-Ready Files", desc: "Final files are prepared with print requirements, image resolution, bleed, trim, packaging, and export in mind." },
+  { icon: "⚡", title: "Fast Turnaround", desc: "Complex publication projects move more smoothly with structured workflows and reliable communication." },
+  { icon: "🎯", title: "Quality Control", desc: "We review the details that can cause costly mistakes before your files reach the printer." },
 ];
 
 const PROCESS = [
-  { num: "01", title: "Consultation", desc: "Tell us about your publication, goals, timeline, and printing needs." },
-  { num: "02", title: "Design & Layout", desc: "We create organized, visually engaging layouts customized for your organization." },
-  { num: "03", title: "Review & Revisions", desc: "Review drafts and request revisions to ensure everything looks exactly right." },
-  { num: "04", title: "Print-Ready Delivery", desc: "Receive professionally prepared files ready for commercial printing." },
+  { num: "01", title: "Submit Your Files", desc: "Send spreadsheets, portraits, logos, and publication materials." },
+  { num: "02", title: "We Organize Everything", desc: "We verify data, organize assets, and prepare the project structure." },
+  { num: "03", title: "Design & Production", desc: "We build professional layouts and manage production workflows." },
+  { num: "04", title: "Proof & Review", desc: "Review your publication and request revisions." },
+  { num: "05", title: "Ready For Print", desc: "Receive production-ready files prepared for commercial printing." },
 ];
 
 const AUDIENCES = [
-  "Schools & Universities","Organizations & Clubs","Athletic Programs",
-  "Nonprofits","Booster Clubs","Event Organizers",
-  "Community Organizations","Alumni Associations",
+  "Schools","Athletic Programs","Churches","Nonprofits",
+  "Associations","Community Organizations","Government Agencies","Membership Groups",
 ];
 
 const PRICING = [
@@ -154,7 +156,7 @@ const IMG_COLORS = {
 };
 
 const IMG_ASSETS = {
-  hero: { src: heroImage, alt: "Publication showcase with printed books and editorial layouts" },
+  hero: { src: spreadsheetHeroImage, alt: "Spreadsheet data flowing into finished publication pages" },
   about: { src: calebImage, alt: "Football team photo by Caleb Lamb" },
   yearbook: { src: yearbookImage, alt: "Designed yearbook with photo layouts" },
   directory: { src: directoryImage, alt: "Directory book with names and contact layout" },
@@ -162,7 +164,7 @@ const IMG_ASSETS = {
   print: { src: directoryLineupImage, alt: "Print-ready publication books arranged in a row" },
   redesign: { src: redesignImage, alt: "Redesigned publication layout with photos" },
   portfolio1: { src: yearbookAltImage, alt: "Yearbook publication portfolio sample" },
-  portfolio2: { src: directoryImage, alt: "Anniversary book and directory portfolio sample" },
+  portfolio2: { src: professionalReviewingImage, alt: "Professional reviewing publication pages" },
   portfolio3: { src: yearbookDetailImage, alt: "Event program publication portfolio sample" },
 };
 
@@ -180,6 +182,7 @@ const PALETTE = {
 };
 
 const FONT_STACK = "'Cormorant Garamond', Georgia, serif";
+const PAGE_X = "clamp(1.25rem, 5vw, 4rem)";
 
 function ImgPlaceholder({ type = "hero", style = {}, className = "", aspectRatio = "4/3" }) {
   const c = IMG_COLORS[type] || IMG_COLORS.hero;
@@ -309,13 +312,15 @@ export default function App() {
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [quoteForm, setQuoteForm] = useState({
-    firstName: "",
-    lastName: "",
+    name: "",
     email: "",
     organization: "",
     publicationType: "",
+    estimatedPageCount: "",
+    deadline: "",
     projectDetails: "",
   });
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -343,12 +348,16 @@ export default function App() {
 
     const formData = new FormData();
     formData.append("_subject", "Pressmark Studio Quote Request");
-    formData.append("First Name", quoteForm.firstName);
-    formData.append("Last Name", quoteForm.lastName);
+    formData.append("Name", quoteForm.name);
     formData.append("Email Address", quoteForm.email);
     formData.append("Organization", quoteForm.organization);
     formData.append("Publication Type", quoteForm.publicationType);
+    formData.append("Estimated Page Count", quoteForm.estimatedPageCount);
+    formData.append("Deadline", quoteForm.deadline);
     formData.append("Project Details", quoteForm.projectDetails);
+    if (fileInputRef.current?.files?.[0]) {
+      formData.append("Upload Files", fileInputRef.current.files[0]);
+    }
 
     try {
       const response = await fetch("https://formsubmit.co/ajax/quotes@pressmark.studio", {
@@ -363,13 +372,17 @@ export default function App() {
 
       setFormSent(true);
       setQuoteForm({
-        firstName: "",
-        lastName: "",
+        name: "",
         email: "",
         organization: "",
         publicationType: "",
+        estimatedPageCount: "",
+        deadline: "",
         projectDetails: "",
       });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     } catch {
       setFormError("Something went wrong. Please email quotes@pressmark.studio directly.");
     } finally {
@@ -394,7 +407,7 @@ export default function App() {
       backdropFilter: "blur(16px)",
       borderBottom: scrolled ? `1px solid ${PALETTE.border}` : "1px solid transparent",
       transition: "all 0.3s ease",
-      padding: "0 clamp(1.25rem, 5vw, 4rem) 0 0",
+      padding: `0 ${PAGE_X} 0 0`,
       display: "flex", alignItems: "center", justifyContent: "space-between",
       height: 68,
     },
@@ -450,7 +463,7 @@ export default function App() {
       position: "fixed", top: 68, left: 0, right: 0, zIndex: 190,
       background: PALETTE.panel,
       borderBottom: `1px solid ${PALETTE.border}`,
-      padding: "1.5rem clamp(1.25rem, 5vw, 4rem) 2rem",
+      padding: `1.5rem ${PAGE_X} 2rem`,
       transform: menuOpen ? "translateY(0)" : "translateY(-120%)",
       transition: "transform 0.35s ease",
       display: "flex", flexDirection: "column", gap: "0.25rem",
@@ -475,8 +488,13 @@ export default function App() {
     // SECTIONS
     section: (bg = PALETTE.panelSoft) => ({
       background: bg,
-      padding: "clamp(4rem, 10vw, 7rem) clamp(1.25rem, 6vw, 5rem)",
+      padding: `clamp(4rem, 10vw, 7rem) ${PAGE_X}`,
     }),
+    container: {
+      width: "100%",
+      maxWidth: "none",
+      margin: "0 auto",
+    },
     eyebrow: (light = false) => ({
       fontSize: "0.7rem", fontWeight: 600,
       letterSpacing: "0.2em", textTransform: "uppercase",
@@ -647,75 +665,108 @@ export default function App() {
 
       {/* ── HERO ── */}
       <section style={{ paddingTop: 68, background: PALETTE.base, minHeight: "100vh", display: "flex", alignItems: "center" }}>
-        <div style={{ padding: "clamp(3rem,8vw,6rem) clamp(1.25rem,6vw,5rem)", width: "100%", maxWidth: 1400, margin: "0 auto" }}>
-          <div className="hero-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(2rem,5vw,5rem)", alignItems: "center" }}>
+        <div style={{ padding: `clamp(3rem,8vw,6rem) ${PAGE_X}`, ...S.container }}>
+          <div className="hero-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(2rem,5vw,5rem)", alignItems: "flex-start" }}>
 
             {/* Left */}
-            <div style={{ textAlign: "center" }}>
-              <div style={{ ...S.eyebrow(), marginBottom: "1.2rem", justifyContent: "center" }}>
-                <span style={S.eyebrowLine} />
-                Publication Design & Print Production
+            <div>
+              <div style={{ ...S.eyebrow(), justifyContent: "flex-start", margin: "0 auto 1.2rem", maxWidth: 560 }}>
+                Publication Design • Data Merge • Print Production
               </div>
               <h1 style={{
                 fontFamily: FONT_STACK,
                 fontSize: "clamp(2.4rem, 5vw, 4rem)",
                 fontWeight: 900, lineHeight: 1.08,
-                color: PALETTE.white, marginBottom: "1.5rem",
+                color: PALETTE.white, margin: "0 auto 1.5rem", maxWidth: 560, textAlign: "left",
               }}>
-                For Schools,<br />
-                <span style={{ color: PALETTE.accent, fontStyle: "italic" }}>Teams</span> &<br />
-                Organizations
+                When Your Publication<br />
+                Has to Be<br />
+                <span style={{ color: PALETTE.accent, fontStyle: "italic" }}>Right.</span>
               </h1>
-              <p style={{ ...S.lead(true), marginBottom: "1rem", margin: "0 auto 1rem", maxWidth: 560, textAlign: "left" }}>
-                Professional yearbooks, directories, commemorative books, programs, and printed publications designed with premium visuals and production-ready accuracy.
+              <p style={{ ...S.lead(true), margin: "0 auto 1rem", maxWidth: 560, textAlign: "left" }}>
+                Yearbooks, directories, commemorative books, annual reports, and multi-page publications professionally designed, organized, and prepared for production.
               </p>
-              <p style={{ fontSize: "0.92rem", lineHeight: 1.75, color: "rgba(255,255,255,0.5)", marginBottom: "2.4rem", maxWidth: 560, margin: "0 auto 2.4rem", textAlign: "left" }}>
-                From creative layout design to final print prep, Pressmark Studio helps organizations create polished publications that look professional, organized, and built to last.
+              <p style={{ fontSize: "0.95rem", lineHeight: 1.75, color: "rgba(255,255,255,0.72)", margin: "0 auto 1.7rem", maxWidth: 560, textAlign: "left" }}>
+                Whether you're managing thousands of student portraits, a large member directory, or a publication that has fallen behind schedule, Pressmark Studio helps bring order to the process and confidence to the final product.
               </p>
-              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
+              <div style={{ display: "grid", gap: "0.75rem", margin: "0 auto 2.4rem", maxWidth: 560 }}>
+                {[
+                  "Data Merge & Portrait Placement",
+                  "Publication Cleanup & Rescue",
+                  "Yearbook & Directory Design",
+                  "Print-Ready Production Files",
+                ].map(item => (
+                  <div key={item} style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: PALETTE.white, fontSize: "1.05rem", fontWeight: 600, lineHeight: 1.35 }}>
+                    <span style={{ color: PALETTE.accent, fontWeight: 900, flex: "0 0 auto" }}>✓</span>
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "flex-start", maxWidth: 560, margin: "0 auto" }}>
                 <button className="btn-primary-hover" style={S.btnPrimary} onClick={emailQuote}>
-                  Request a Quote
+                  Request A Quote
                 </button>
                 <button className="btn-ghost-hover" style={S.btnGhost(true)} onClick={() => scrollTo("#services")}>
                   View Services
                 </button>
-              </div>
-              {/* Stats */}
-              <div style={{ display: "flex", justifyContent: "center", gap: "2.5rem", marginTop: "3rem", paddingTop: "2.5rem", borderTop: "1px solid rgba(255,255,255,0.1)", flexWrap: "wrap" }}>
-                {[["1,400+","Publications"], ["8","Specialties"], ["97%","Return Rate"]].map(([n,l]) => (
-                  <div key={l} style={{ textAlign: "center" }}>
-                    <div style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.6rem,3vw,2rem)", fontWeight: 900, color: PALETTE.accent, lineHeight: 1 }}>{n}</div>
-                    <div style={{ fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginTop: 4 }}>{l}</div>
-                  </div>
-                ))}
               </div>
             </div>
 
             {/* Right — image stack */}
             <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: "1rem" }}>
               <ImgPlaceholder type="hero" aspectRatio="16/10" style={{ width: "100%", borderRadius: 4 }} />
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                <ImgPlaceholder type="portfolio1" aspectRatio="4/3" style={{ borderRadius: 4 }} />
-                <ImgPlaceholder type="portfolio2" aspectRatio="4/3" style={{ borderRadius: 4 }} />
-              </div>
-              {/* floating badge */}
-              <div style={{
-                position: "absolute", bottom: 80, right: -16,
-                background: PALETTE.accent, padding: "0.75rem 1.1rem",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-              }}>
-                <div style={{ fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: PALETTE.base, marginBottom: 2 }}>Flagship Service</div>
-                <div style={{ fontFamily: FONT_STACK, fontSize: "0.95rem", fontWeight: 800, color: PALETTE.base }}>Yearbook Design</div>
-              </div>
+              <ImgPlaceholder type="portfolio2" aspectRatio="16/10" style={{ width: "100%", borderRadius: 4 }} />
             </div>
 
           </div>
         </div>
       </section>
 
+      {/* ── TRUST ── */}
+      <section style={{ background: PALETTE.panel, padding: `2rem ${PAGE_X}`, borderTop: `1px solid ${PALETTE.border}`, borderBottom: `1px solid ${PALETTE.border}` }}>
+        <div style={{ ...S.container, textAlign: "center" }}>
+          <div style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.35rem, 3vw, 2rem)", fontWeight: 800, color: PALETTE.white, marginBottom: "0.7rem" }}>
+            Trusted By Organizations That Need Accuracy
+          </div>
+          <div style={{ color: PALETTE.accent, fontSize: "0.95rem", fontWeight: 700, letterSpacing: "0.04em", lineHeight: 1.8 }}>
+            Schools • Athletic Programs • Churches • Nonprofits • Associations • Community Organizations • Government Agencies
+          </div>
+        </div>
+      </section>
+
+      {/* ── PROBLEM / SOLUTION ── */}
+      <section style={S.section(PALETTE.base)}>
+        <div style={{ ...S.container, textAlign: "center" }}>
+          <FadeIn>
+            <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
+              <span style={S.eyebrowLine} />
+              Publication Rescue
+              <span style={S.eyebrowLine} />
+            </div>
+            <h2 style={{ ...S.h2(true), marginBottom: "0.9rem" }}>
+              Most Publications Don't Fail<br />
+              <em style={{ color: PALETTE.accent }}>Because Of Design.</em>
+            </h2>
+            <div style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.45rem, 3vw, 2.2rem)", fontWeight: 800, color: PALETTE.white, marginBottom: "1.4rem" }}>
+              They Fail Because Of Organization.
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.8rem", margin: "0 auto 1.6rem", maxWidth: 900 }}>
+              {["Portraits are missing.", "Spreadsheets don't match.", "Names are incorrect.", "Layouts become difficult to manage.", "Deadlines get closer."].map(item => (
+                <div key={item} style={{ border: `1px solid ${PALETTE.border}`, background: "rgba(255,255,255,0.04)", padding: "1rem", color: PALETTE.white, fontWeight: 700, lineHeight: 1.35 }}>
+                  {item}
+                </div>
+              ))}
+            </div>
+            <p style={{ ...S.lead(true), maxWidth: 760, margin: "0 auto", textAlign: "center" }}>
+              Pressmark Studio brings structure to the process by combining publication design expertise with real-world production experience.
+            </p>
+          </FadeIn>
+        </div>
+      </section>
+
       {/* ── ABOUT ── */}
       <section id="about" style={S.section(PALETTE.panelSoft)}>
-        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+        <div style={S.container}>
           <div className="about-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(2.5rem,6vw,6rem)", alignItems: "center" }}>
 
             <FadeIn>
@@ -744,21 +795,24 @@ export default function App() {
                 About Pressmark Studio
               </div>
               <h2 style={S.h2()}>
-                Designed for Print.<br />
-                <em style={{ color: PALETTE.accentSoft }}>Built for Impact.</em>
+                More Than Design.<br />
+                <em style={{ color: PALETTE.accentSoft }}>We Understand Production.</em>
               </h2>
               <p style={{ ...S.lead(), marginBottom: "1.5rem", maxWidth: 560, margin: "0 auto 1.5rem", textAlign: "left" }}>
-                At Pressmark Studio we specialize in publication design and print production services for schools, teams, nonprofits, clubs, and organizations that need high-quality printed materials without the stress of managing complicated layouts and print files.
+                At Pressmark Studio, we specialize in publication design and production services for schools, teams, nonprofits, churches, associations, and organizations.
               </p>
               <p style={{ fontSize: "0.95rem", lineHeight: 1.8, color: PALETTE.textMuted, marginBottom: "2rem", maxWidth: 560, margin: "0 auto 2rem", textAlign: "left" }}>
-                With years of real-world print production experience, we understand more than just design — we understand how publications are prepared, organized, and optimized for professional printing.
+                We understand that successful publications require more than attractive layouts. They require organization. From portrait databases and spreadsheets to page layouts and print-ready files, every part of the publication process must work together.
+              </p>
+              <p style={{ fontSize: "0.95rem", lineHeight: 1.8, color: PALETTE.textMuted, marginBottom: "2rem", maxWidth: 560, margin: "0 auto 2rem", textAlign: "left" }}>
+                Our goal is simple: create publications that look professional, stay organized, and print correctly the first time.
               </p>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem 1.5rem" }}>
                 {[
-                  "Clean, modern layouts","Organized multi-page documents",
-                  "Print-ready files","Professional typography",
-                  "High-resolution image handling","Fast turnaround times",
-                  "Reliable communication","Industry-standard tools",
+                  "Portrait data management","Publication cleanup",
+                  "Directory organization","Production-ready files",
+                  "Commercial print experience","Fast turnaround",
+                  "Reliable communication","Quality control",
                 ].map(item => (
                   <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem" }}>
                     <div style={{
@@ -778,7 +832,7 @@ export default function App() {
 
       {/* ── SERVICES ── */}
       <section id="services" style={S.section(PALETTE.panel)}>
-        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+        <div style={S.container}>
           <FadeIn>
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", flexWrap: "wrap", gap: "1.5rem", marginBottom: "3.5rem", paddingBottom: "2.5rem", borderBottom: `1px solid ${PALETTE.border}` }}>
               <div style={{ textAlign: "center", width: "100%", maxWidth: 680, margin: "0 auto", display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -787,10 +841,10 @@ export default function App() {
                   What We Do
                   <span style={S.eyebrowLine} />
                 </div>
-                <h2 style={{ ...S.h2(), marginBottom: 0 }}>Publication Design<br /><em style={{ color: PALETTE.accent }}>Services</em></h2>
+                <h2 style={{ ...S.h2(), marginBottom: 0 }}>Professional Publication<br /><em style={{ color: PALETTE.accent }}>Services</em></h2>
               </div>
               <p style={{ ...S.lead(), maxWidth: 560, margin: "0 auto", textAlign: "center", fontSize: "0.95rem" }}>
-                From flagship yearbooks to commemorative books — one studio, every publication type your organization needs.
+                Publication design, data merge, directory design, cleanup, and print production support for complex multi-page projects.
               </p>
             </div>
           </FadeIn>
@@ -829,7 +883,7 @@ export default function App() {
 
       {/* ── WHY ── */}
       <section id="why" style={S.section(PALETTE.base)}>
-        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+        <div style={S.container}>
           <FadeIn>
             <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
               <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
@@ -838,9 +892,12 @@ export default function App() {
                 <span style={S.eyebrowLine} />
               </div>
               <h2 style={S.h2(true)}>
-                Why Organizations Choose<br />
-                <em style={{ color: PALETTE.accent }}>Pressmark Studio</em>
+                Design Expertise Meets<br />
+                <em style={{ color: PALETTE.accent }}>Production Experience</em>
               </h2>
+              <p style={{ ...S.lead(true), maxWidth: 760, margin: "1rem auto 0", textAlign: "center" }}>
+                Many designers understand layouts. Few understand how publications are built, organized, prepared, and delivered for production.
+              </p>
             </div>
           </FadeIn>
 
@@ -871,7 +928,7 @@ export default function App() {
 
       {/* ── PROCESS ── */}
       <section id="process" style={S.section(PALETTE.panelSoft)}>
-        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+        <div style={S.container}>
           <FadeIn>
             <div style={{
               textAlign: "center",
@@ -886,18 +943,18 @@ export default function App() {
                 How It Works
                 <span style={S.eyebrowLine} />
               </div>
-              <h2 style={{ ...S.h2(), width: "100%", textAlign: "center" }}>Simple Process.<br /><em style={{ color: PALETTE.accent }}>Professional Results.</em></h2>
+              <h2 style={{ ...S.h2(), width: "100%", textAlign: "center" }}>A Simple Process For<br /><em style={{ color: PALETTE.accent }}>Complex Publications</em></h2>
             </div>
           </FadeIn>
 
           <div className="process-steps" style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+            gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
             gap: "2.5rem 1.5rem",
             justifyItems: "center",
             alignItems: "flex-start",
             position: "relative",
-            maxWidth: 1120,
+            width: "100%",
             margin: "0 auto",
           }}>
             {PROCESS.map((p, i) => (
@@ -935,7 +992,7 @@ export default function App() {
 
       {/* ── AUDIENCES ── */}
       <section style={S.section(PALETTE.panel)}>
-        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+        <div style={S.container}>
           <FadeIn>
             <div style={{ textAlign: "center", marginBottom: "3rem" }}>
               <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
@@ -976,7 +1033,7 @@ export default function App() {
 
       {/* ── PORTFOLIO TEASER ── */}
       <section style={S.section(PALETTE.base)}>
-        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+        <div style={S.container}>
           <FadeIn>
             <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", flexWrap: "wrap", gap: "1.5rem", marginBottom: "2.5rem" }}>
               <div style={{ textAlign: "center" }}>
@@ -1024,7 +1081,7 @@ export default function App() {
         <div className="pricing-print-guide">
           <img src={pricingGuideImage} alt="Pressmark Studio pricing guide" />
         </div>
-        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+        <div style={S.container}>
           <FadeIn>
             <div style={{ textAlign: "center", maxWidth: 760, margin: "0 auto 3.5rem", display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
@@ -1115,25 +1172,25 @@ export default function App() {
 
       {/* ── CTA ── */}
       <section style={S.section("#04142c")}>
-        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+        <div style={S.container}>
           <div className="cta-grid" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "3rem", alignItems: "center" }}>
             <FadeIn style={{ maxWidth: 560, width: "100%", justifySelf: "center", textAlign: "center" }}>
               <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
                 <span style={S.eyebrowLine} />
-                Let's Get Started
+                Let's Get Your Publication Finished
               </div>
               <h2 style={{ ...S.h2(true), marginBottom: "1rem" }}>
-                Let's Create Something<br /><em style={{ color: PALETTE.accent }}>Worth Keeping</em>
+                Let's Finish<br /><em style={{ color: PALETTE.accent }}>Your Publication.</em>
               </h2>
               <p style={{ ...S.lead(true), margin: "0 auto 2rem", textAlign: "center" }}>
-                Whether you need a yearbook, directory, commemorative publication, or event program, Pressmark Studio delivers professional publication design backed by real print production experience.
+                Get professional help organizing, designing, and preparing your next publication.
               </p>
               <div className="cta-btns" style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
                 <button className="btn-primary-hover" style={S.btnPrimary} onClick={() => scrollTo("#contact")}>
-                  Start Your Project
+                  Request A Quote
                 </button>
                 <button className="btn-ghost-hover" style={S.btnGhost(true)} onClick={emailQuote}>
-                  Request a Quote
+                  Email For A Quote
                 </button>
               </div>
             </FadeIn>
@@ -1156,7 +1213,7 @@ export default function App() {
 
       {/* ── CONTACT FORM ── */}
       <section id="contact" style={S.section(PALETTE.panel)}>
-        <div style={{ maxWidth: 860, margin: "0 auto" }}>
+        <div style={S.container}>
           <FadeIn>
             <div style={{ textAlign: "center", marginBottom: "3rem" }}>
               <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
@@ -1165,7 +1222,7 @@ export default function App() {
                 <span style={S.eyebrowLine} />
               </div>
               <h2 style={S.h2()}>Ready to Start Your<br /><em style={{ color: PALETTE.accent }}>Publication Project?</em></h2>
-              <p style={{ ...S.lead(), margin: "0 auto", textAlign: "center" }}>Tell us about your project. We'll respond within 24 hours.</p>
+              <p style={{ ...S.lead(), margin: "0 auto", textAlign: "center" }}>Tell us about your project and receive a customized quote.</p>
             </div>
           </FadeIn>
           <FadeIn delay={0.1}>
@@ -1177,37 +1234,47 @@ export default function App() {
               </div>
             ) : (
               <div style={{ background: "#06162c", border: `1px solid ${PALETTE.border}`, padding: "clamp(2rem,5vw,3.5rem)" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem" }}>
-                  {[["firstName","First Name","text","Marcus"],["lastName","Last Name","text","Williams"]].map(([field,label,type,ph]) => (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem" }}>
+                  {[["name","Name","text","Marcus Williams"],["organization","Organization","text","Your organization name"]].map(([field,label,type,ph]) => (
                     <div key={field}>
                       <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>{label}</label>
                       <input type={type} value={quoteForm[field]} placeholder={ph} onChange={e => updateQuoteForm(field, e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
                     </div>
                   ))}
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem", marginTop: "1.2rem" }}>
-                  {[["email","Email Address","email","you@organization.com"],["organization","Organization","text","Your organization name"]].map(([field,label,type,ph]) => (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem", marginTop: "1.2rem" }}>
+                  {[["email","Email Address","email","you@organization.com"],["estimatedPageCount","Estimated Page Count","text","Example: 80 pages"]].map(([field,label,type,ph]) => (
                     <div key={field}>
                       <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>{label}</label>
                       <input type={type} value={quoteForm[field]} placeholder={ph} onChange={e => updateQuoteForm(field, e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
                     </div>
                   ))}
                 </div>
-                <div style={{ marginTop: "1.2rem" }}>
-                  <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Publication Type</label>
-                  <select value={quoteForm.publicationType} onChange={e => updateQuoteForm("publicationType", e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", appearance: "none", cursor: "pointer" }}>
-                    <option value="" disabled>Select your publication type…</option>
-                    <option>School Yearbook</option>
-                    <option>Directory / Anniversary Book</option>
-                    <option>Program & Event Book</option>
-                    <option>Print Production & File Prep</option>
-                    <option>Publication Cleanup & Redesign</option>
-                    <option>Other / Not Sure</option>
-                  </select>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem", marginTop: "1.2rem" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Publication Type</label>
+                    <select value={quoteForm.publicationType} onChange={e => updateQuoteForm("publicationType", e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", appearance: "none", cursor: "pointer" }}>
+                      <option value="" disabled>Select your publication type…</option>
+                      <option>School Yearbook</option>
+                      <option>Directory Design</option>
+                      <option>Portrait Data Merge</option>
+                      <option>Publication Cleanup</option>
+                      <option>Annual Report</option>
+                      <option>Other / Not Sure</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Deadline</label>
+                    <input type="text" value={quoteForm.deadline} placeholder="Example: May 15" onChange={e => updateQuoteForm("deadline", e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
+                  </div>
                 </div>
                 <div style={{ marginTop: "1.2rem" }}>
-                  <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Tell Us About Your Project</label>
-                  <textarea value={quoteForm.projectDetails} onChange={e => updateQuoteForm("projectDetails", e.target.value)} placeholder="Estimated page count, deadline, theme ideas, or anything that helps us understand your vision…" rows={5} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", resize: "vertical", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
+                  <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Upload Files</label>
+                  <input ref={fileInputRef} type="file" style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none" }} />
+                </div>
+                <div style={{ marginTop: "1.2rem" }}>
+                  <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Project Details</label>
+                  <textarea value={quoteForm.projectDetails} onChange={e => updateQuoteForm("projectDetails", e.target.value)} placeholder="Tell us what you have, what you need, and what would help us understand the publication…" rows={5} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", resize: "vertical", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
                 </div>
                 <div style={{ marginTop: "1.8rem" }}>
                   {formError && (
@@ -1226,12 +1293,12 @@ export default function App() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ background: "#010611", padding: "2.5rem clamp(1.25rem,6vw,5rem)", borderTop: `1px solid ${PALETTE.border}` }}>
-        <div className="footer-inner" style={{ maxWidth: 1400, margin: "0 auto", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1.4rem", textAlign: "center" }}>
+      <footer style={{ background: "#010611", padding: `2.5rem ${PAGE_X}`, borderTop: `1px solid ${PALETTE.border}` }}>
+        <div className="footer-inner" style={{ ...S.container, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1.4rem", textAlign: "center" }}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
             <img src={pressmarkLogo} alt="Pressmark Studio" style={{ ...S.logoImage, width: "clamp(160px, 20vw, 220px)", marginBottom: "0.6rem" }} />
             <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)", letterSpacing: "0.05em", lineHeight: 1.5, textAlign: "center" }}>
-              Publication Design & Print Production Specialist<br />Serving Schools, Teams & Organizations
+              Publication Design • Data Merge • Directory Design • Publication Rescue<br />Serving Schools, Teams & Organizations
             </div>
           </div>
           <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap", justifyContent: "center" }}>
