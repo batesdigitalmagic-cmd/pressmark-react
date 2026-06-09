@@ -8,7 +8,6 @@ import yearbookDetailImage from "./assets/Bates_Digital_yearbook_with_pictures_-
 import redesignImage from "./assets/Bates_Digital_yearbook_with_pictures_--v_7_99e660ea-7bae-492e-bc1b-128143a628dc_3.png";
 import directoryImage from "./assets/directory_book_of_name_contact.png";
 import directoryLineupImage from "./assets/directory_book_of_name_contact_lined_up_like_of_c91c9532-7f3b-42d6-94e6-b81e40391ffb_1.png";
-import calebImage from "./assets/caleb-lamb-597215774-35911820.jpg";
 import pressmarkLogo from "./assets/pressmark studio logo main.png";
 import pricingGuideImage from "./assets/Pressmark Studio pricing guide.png";
 
@@ -158,7 +157,7 @@ const IMG_COLORS = {
 
 const IMG_ASSETS = {
   hero: { src: spreadsheetHeroImage, alt: "Spreadsheet data flowing into finished publication pages" },
-  about: { src: calebImage, alt: "Football team photo by Caleb Lamb" },
+  about: { src: professionalReviewingImage, alt: "Professional reviewing publication pages" },
   yearbook: { src: yearbookImage, alt: "Designed yearbook with photo layouts" },
   directory: { src: directoryImage, alt: "Directory book with names and contact layout" },
   event: { src: directoryLineupImage, alt: "Printed publication books lined up for an event or organization" },
@@ -740,21 +739,6 @@ export default function App() {
           <div style={{ color: PALETTE.accent, fontSize: "0.95rem", fontWeight: 700, letterSpacing: "0.04em", lineHeight: 1.8 }}>
             Schools • Athletic Programs • Churches • Nonprofits • Associations • Community Organizations • Government Agencies
           </div>
-          <img
-            src={spreadsheetHeroImage}
-            alt="Spreadsheet flowing into publication pages"
-            style={{
-              display: "block",
-              width: "100%",
-              maxWidth: 980,
-              aspectRatio: "16/9",
-              objectFit: "cover",
-              margin: "2rem auto 0",
-              border: `1px solid ${PALETTE.border}`,
-              borderRadius: 4,
-              boxShadow: "0 18px 48px rgba(0,0,0,0.28)",
-            }}
-          />
         </div>
       </section>
 
@@ -920,6 +904,22 @@ export default function App() {
               <p style={{ ...S.lead(true), maxWidth: 760, margin: "1rem auto 0", textAlign: "center" }}>
                 Many designers understand layouts. Few understand how publications are built, organized, prepared, and delivered for production.
               </p>
+              <img
+                src={spreadsheetHeroImage}
+                alt="Spreadsheet flowing into publication pages"
+                style={{
+                  display: "block",
+                  width: "100%",
+                  maxWidth: 980,
+                  aspectRatio: "16/9",
+                  objectFit: "cover",
+                  objectPosition: "center 80%",
+                  margin: "2rem auto 0",
+                  border: `1px solid ${PALETTE.border}`,
+                  borderRadius: 4,
+                  boxShadow: "0 18px 48px rgba(0,0,0,0.28)",
+                }}
+              />
             </div>
           </FadeIn>
 
