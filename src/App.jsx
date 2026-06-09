@@ -537,6 +537,9 @@ export default function App() {
           box-shadow: 0 24px 70px rgba(2,8,20,0.32);
         }
         .about-copy {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
           max-width: 600px;
           justify-self: center;
         }
@@ -554,30 +557,48 @@ export default function App() {
           .hero-copy { margin: 0 auto !important; }
           .hero-copy .hero-buttons { justify-content: center !important; }
           .about-grid {
-            grid-template-columns: 1fr !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
             gap: 2rem !important;
+            width: min(100%, 680px) !important;
+            margin: 0 auto !important;
+            padding: 0 clamp(0.75rem, 4vw, 1.25rem) !important;
             text-align: center !important;
+          }
+          .about-grid > div {
+            width: 100% !important;
+            display: flex !important;
+            justify-content: center !important;
           }
           .about-media {
             width: min(100%, 560px) !important;
             aspect-ratio: 4 / 3 !important;
             margin: 0 auto !important;
-            order: 1;
           }
           .about-copy {
-            order: 2;
             width: min(100%, 620px) !important;
             margin: 0 auto !important;
+            align-items: center !important;
           }
           .about-copy h2,
           .about-copy p {
             text-align: center !important;
             max-width: 620px !important;
+            width: 100% !important;
           }
           .about-benefits {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            justify-content: center !important;
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            justify-items: stretch !important;
             max-width: 620px !important;
+          }
+          .about-benefit-item {
+            flex: 1 1 min(260px, 100%) !important;
+            justify-content: flex-start !important;
+            max-width: 300px !important;
+            text-align: left !important;
           }
           .services-grid { grid-template-columns: 1fr !important; }
           .why-grid { grid-template-columns: repeat(2, 1fr) !important; }
@@ -602,10 +623,15 @@ export default function App() {
             aspect-ratio: 1 / 1 !important;
           }
           .about-copy h2 {
-            font-size: clamp(2.3rem, 13vw, 3.8rem) !important;
+            font-size: clamp(2.1rem, 11vw, 3.4rem) !important;
           }
           .about-benefits {
-            grid-template-columns: 1fr !important;
+            flex-direction: column !important;
+            align-items: center !important;
+          }
+          .about-benefit-item {
+            width: min(100%, 320px) !important;
+            max-width: 320px !important;
           }
         }
         @media print {
@@ -834,7 +860,7 @@ export default function App() {
                     "Commercial print experience","Fast turnaround",
                     "Reliable communication","Quality control",
                   ].map(item => (
-                    <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem" }}>
+                    <div className="about-benefit-item" key={item} style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem" }}>
                       <div style={{
                         width: 20, height: 20, background: PALETTE.accent, borderRadius: 2,
                         display: "flex", alignItems: "center", justifyContent: "center",
