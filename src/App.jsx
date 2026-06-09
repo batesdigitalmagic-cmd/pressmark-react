@@ -11,8 +11,8 @@ import yearbookDetailImage from "./assets/Bates_Digital_yearbook_with_pictures_-
 import churchDirectoryCoverImage from "./assets/church directory pbcover.png";
 import directoryLineupImage from "./assets/directory_book_of_name_contact_lined_up_like_of_c91c9532-7f3b-42d6-94e6-b81e40391ffb_1.png";
 import touchscreenIdsImage from "./assets/touchscreen ids.png";
-import studioPicImage from "./assets/STUDIO PIC.png";
-import booksInBoxImage from "./assets/puttinng books in the box.png";
+import puttingBooksImage from "./assets/puttinng books in the box.png";
+import studioProfessionalImage from "./assets/young_black_professional_in_lighted_studio_maki_c2a7974b-4503-4289-bcb6-4d706398e10b_1.png";
 import pressmarkLogo from "./assets/pressmark studio logo main.png";
 import pricingGuideImage from "./assets/Pressmark Studio pricing guide.png";
 
@@ -136,11 +136,11 @@ const IMG_COLORS = {
 
 const IMG_ASSETS = {
   hero: { src: spreadsheetHeroImage, alt: "Spreadsheet data flowing into finished publication pages" },
-  about: { src: booksInBoxImage, alt: "Putting finished books in a box" },
+  about: { src: studioProfessionalImage, alt: "Young Black professional in a lighted studio" },
   yearbook: { src: yearbookPhotosImage, alt: "Yearbook photos publication design sample" },
   directory: { src: churchDirectoryCoverImage, alt: "Church directory cover publication sample" },
   event: { src: touchscreenIdsImage, alt: "Touchscreen IDs and portrait data merge interface" },
-  print: { src: studioPicImage, alt: "Pressmark Studio print production workspace" },
+  print: { src: puttingBooksImage, alt: "Printed books being packed for delivery" },
   redesign: { src: classOf27HeroImage, alt: "Class of 2027 publication cleanup sample" },
   portfolio1: { src: yearbookOpenImage, alt: "Open yearbook publication portfolio sample" },
   portfolio2: { src: professionalReviewingImage, alt: "Professional reviewing publication pages" },
@@ -731,9 +731,8 @@ export default function App() {
               <span style={S.eyebrowLine} />
             </div>
             <h2 style={{ ...S.h2(true), marginBottom: "1.4rem" }}>
-              Most Publications Don't Fail<br />
-              Because Of Design.<br />
-              <em style={{ color: PALETTE.accent }}>They Fail Because Of Organization.</em>
+              Design Isn't The Problem.<br />
+              <em style={{ color: PALETTE.accent }}>Organization Is.</em>
             </h2>
             <div style={{ maxWidth: 980, margin: "0 auto 1.8rem", overflow: "hidden", border: `1px solid ${PALETTE.border}`, borderRadius: 4, background: PALETTE.panel, boxShadow: "0 18px 48px rgba(0,0,0,0.28)" }}>
               <img src={tornadoImage} alt="Publication project needing organization" style={{ display: "block", width: "100%", aspectRatio: "16/9", objectFit: "cover" }} />
@@ -760,11 +759,6 @@ export default function App() {
             <FadeIn>
               <div style={{ position: "relative" }}>
                 <ImgPlaceholder type="about" aspectRatio="3/4" style={{ width: "100%", borderRadius: 4 }} />
-                {/* decorative offset border */}
-                <div style={{
-                  position: "absolute", top: 16, left: -16, bottom: -16, right: 16,
-                  border: `1px solid ${PALETTE.accent}`, borderRadius: 4, zIndex: -1, pointerEvents: "none",
-                }} />
               </div>
             </FadeIn>
 
