@@ -531,6 +531,18 @@ export default function App() {
         .service-card:hover .service-num { color: #aa7d48 !important; }
         .why-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(3,10,23,0.26) !important; }
         .audience-tag:hover { background: #051225 !important; color: #aa7d48 !important; border-color: #051225 !important; }
+        .about-media {
+          max-width: 520px;
+          justify-self: center;
+          box-shadow: 0 24px 70px rgba(2,8,20,0.32);
+        }
+        .about-copy {
+          max-width: 600px;
+          justify-self: center;
+        }
+        .about-benefits {
+          justify-items: start;
+        }
         @media (max-width: 900px) {
           .hero-section {
             min-height: 78vh !important;
@@ -541,7 +553,32 @@ export default function App() {
           .hero-copy p { text-align: center !important; }
           .hero-copy { margin: 0 auto !important; }
           .hero-copy .hero-buttons { justify-content: center !important; }
-          .about-grid { grid-template-columns: 1fr !important; }
+          .about-grid {
+            grid-template-columns: 1fr !important;
+            gap: 2rem !important;
+            text-align: center !important;
+          }
+          .about-media {
+            width: min(100%, 560px) !important;
+            aspect-ratio: 4 / 3 !important;
+            margin: 0 auto !important;
+            order: 1;
+          }
+          .about-copy {
+            order: 2;
+            width: min(100%, 620px) !important;
+            margin: 0 auto !important;
+          }
+          .about-copy h2,
+          .about-copy p {
+            text-align: center !important;
+            max-width: 620px !important;
+          }
+          .about-benefits {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            justify-items: stretch !important;
+            max-width: 620px !important;
+          }
           .services-grid { grid-template-columns: 1fr !important; }
           .why-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .process-steps { grid-template-columns: repeat(2, minmax(220px, 1fr)) !important; }
@@ -561,6 +598,15 @@ export default function App() {
           .why-grid { grid-template-columns: 1fr !important; }
           .audience-grid { grid-template-columns: 1fr !important; }
           .process-steps { grid-template-columns: minmax(0, 1fr) !important; }
+          .about-media {
+            aspect-ratio: 1 / 1 !important;
+          }
+          .about-copy h2 {
+            font-size: clamp(2.3rem, 13vw, 3.8rem) !important;
+          }
+          .about-benefits {
+            grid-template-columns: 1fr !important;
+          }
         }
         @media print {
           @page {
@@ -758,44 +804,46 @@ export default function App() {
 
             <FadeIn>
               <div style={{ position: "relative" }}>
-                <ImgPlaceholder type="about" aspectRatio="3/4" style={{ width: "100%", borderRadius: 4 }} />
+                <ImgPlaceholder className="about-media" type="about" aspectRatio="3/4" style={{ width: "100%", borderRadius: 4 }} />
               </div>
             </FadeIn>
 
             <FadeIn delay={0.15}>
-              <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
-                <span style={S.eyebrowLine} />
-                About Pressmark Studio
-              </div>
-              <h2 style={S.h2()}>
-                More Than Design.<br />
-                <em style={{ color: PALETTE.accentSoft }}>We Understand Production.</em>
-              </h2>
-              <p style={{ ...S.lead(), marginBottom: "1.5rem", maxWidth: 560, margin: "0 auto 1.5rem", textAlign: "left" }}>
-                At Pressmark Studio, we specialize in publication design and production services for schools, teams, nonprofits, churches, associations, and organizations.
-              </p>
-              <p style={{ fontSize: "0.95rem", lineHeight: 1.8, color: PALETTE.textMuted, marginBottom: "2rem", maxWidth: 560, margin: "0 auto 2rem", textAlign: "left" }}>
-                We understand that successful publications require more than attractive layouts. They require organization. From portrait databases and spreadsheets to page layouts and print-ready files, every part of the publication process must work together.
-              </p>
-              <p style={{ fontSize: "0.95rem", lineHeight: 1.8, color: PALETTE.textMuted, marginBottom: "2rem", maxWidth: 560, margin: "0 auto 2rem", textAlign: "left" }}>
-                Our goal is simple: create publications that look professional, stay organized, and print correctly the first time.
-              </p>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.75rem 1.5rem", maxWidth: 560, margin: "0 auto", width: "100%" }}>
-                {[
-                  "Portrait data management","Publication cleanup",
-                  "Directory organization","Production-ready files",
-                  "Commercial print experience","Fast turnaround",
-                  "Reliable communication","Quality control",
-                ].map(item => (
-                  <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem" }}>
-                    <div style={{
-                      width: 20, height: 20, background: PALETTE.accent, borderRadius: 2,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      flexShrink: 0, marginTop: 1, fontSize: "0.7rem", color: PALETTE.base, fontWeight: 700,
-                    }}>✓</div>
-                    <span style={{ fontSize: "0.88rem", color: PALETTE.accentSoft, lineHeight: 1.5, textAlign: "left" }}>{item}</span>
-                  </div>
-                ))}
+              <div className="about-copy">
+                <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
+                  <span style={S.eyebrowLine} />
+                  About Pressmark Studio
+                </div>
+                <h2 style={S.h2()}>
+                  More Than Design.<br />
+                  <em style={{ color: PALETTE.accentSoft }}>We Understand Production.</em>
+                </h2>
+                <p style={{ ...S.lead(), marginBottom: "1.5rem", maxWidth: 560, margin: "0 auto 1.5rem", textAlign: "left" }}>
+                  At Pressmark Studio, we specialize in publication design and production services for schools, teams, nonprofits, churches, associations, and organizations.
+                </p>
+                <p style={{ fontSize: "0.95rem", lineHeight: 1.8, color: PALETTE.textMuted, marginBottom: "2rem", maxWidth: 560, margin: "0 auto 2rem", textAlign: "left" }}>
+                  We understand that successful publications require more than attractive layouts. They require organization. From portrait databases and spreadsheets to page layouts and print-ready files, every part of the publication process must work together.
+                </p>
+                <p style={{ fontSize: "0.95rem", lineHeight: 1.8, color: PALETTE.textMuted, marginBottom: "2rem", maxWidth: 560, margin: "0 auto 2rem", textAlign: "left" }}>
+                  Our goal is simple: create publications that look professional, stay organized, and print correctly the first time.
+                </p>
+                <div className="about-benefits" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.75rem 1.5rem", maxWidth: 560, margin: "0 auto", width: "100%" }}>
+                  {[
+                    "Portrait data management","Publication cleanup",
+                    "Directory organization","Production-ready files",
+                    "Commercial print experience","Fast turnaround",
+                    "Reliable communication","Quality control",
+                  ].map(item => (
+                    <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem" }}>
+                      <div style={{
+                        width: 20, height: 20, background: PALETTE.accent, borderRadius: 2,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0, marginTop: 1, fontSize: "0.7rem", color: PALETTE.base, fontWeight: 700,
+                      }}>✓</div>
+                      <span style={{ fontSize: "0.88rem", color: PALETTE.accentSoft, lineHeight: 1.5, textAlign: "left" }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </FadeIn>
 
@@ -1148,7 +1196,7 @@ export default function App() {
                 </button>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem", width: "fit-content", maxWidth: "100%", minWidth: 220, margin: "2rem auto 0", textAlign: "left" }}>
-                {[["📞","Call or Text","678.790.2698"],["✉️","Email","info@pressmark.studio"],["📍","Location","Serving Nationwide"]].map(([ic,label,val]) => (
+                {[["📞","Call or Text","470.344.4864"],["✉️","Email","info@pressmark.studio"],["📍","Location","Serving Nationwide"]].map(([ic,label,val]) => (
                   <div key={label} style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
                     <div style={{ fontSize: "1.2rem", width: 36, textAlign: "center" }}>{ic}</div>
                     <div style={{ textAlign: "left" }}>
