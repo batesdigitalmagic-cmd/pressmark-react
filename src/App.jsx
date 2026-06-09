@@ -1,13 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import spreadsheetHeroImage from "./assets/Spreadsheet flowing into publication pages.png";
 import classOf27HeroImage from "./assets/class of 27 hero image.png";
+import heroMergePhotosImage from "./assets/hero image merge photos.png";
 import professionalReviewingImage from "./assets/professional reviewing.png";
-import yearbookImage from "./assets/Bates_Digital_yearbook_with_pictures.png";
-import yearbookAltImage from "./assets/Bates_Digital_yearbook_with_pictures_--v_7_4defa031-d9f3-47a7-a62d-ea91f7682e52_0.png";
+import tornadoImage from "./assets/tornado .png";
+import sunnyImage from "./assets/sunny.png";
+import yearbookPhotosImage from "./assets/yearbook photos.png";
+import yearbookOpenImage from "./assets/year book open.png";
 import yearbookDetailImage from "./assets/Bates_Digital_yearbook_with_pictures_--v_7_4defa031-d9f3-47a7-a62d-ea91f7682e52_1.png";
-import redesignImage from "./assets/Bates_Digital_yearbook_with_pictures_--v_7_99e660ea-7bae-492e-bc1b-128143a628dc_3.png";
-import directoryImage from "./assets/directory_book_of_name_contact.png";
+import churchDirectoryCoverImage from "./assets/church directory pbcover.png";
 import directoryLineupImage from "./assets/directory_book_of_name_contact_lined_up_like_of_c91c9532-7f3b-42d6-94e6-b81e40391ffb_1.png";
+import touchscreenIdsImage from "./assets/touchscreen ids.png";
+import studioPicImage from "./assets/STUDIO PIC.png";
+import booksInBoxImage from "./assets/puttinng books in the box.png";
 import pressmarkLogo from "./assets/pressmark studio logo main.png";
 import pricingGuideImage from "./assets/Pressmark Studio pricing guide.png";
 
@@ -75,11 +80,9 @@ const WHY = [
 ];
 
 const PROCESS = [
-  { num: "01", title: "Submit Your Files", desc: "Send spreadsheets, portraits, logos, and publication materials." },
-  { num: "02", title: "We Organize Everything", desc: "We verify data, organize assets, and prepare the project structure." },
-  { num: "03", title: "Design & Production", desc: "We build professional layouts and manage production workflows." },
-  { num: "04", title: "Proof & Review", desc: "Review your publication and request revisions." },
-  { num: "05", title: "Ready For Print", desc: "Receive production-ready files prepared for commercial printing." },
+  { num: "01", title: "Organize", desc: "We gather the photos, records, and content that matter." },
+  { num: "02", title: "Design", desc: "We turn complex information into a publication people can navigate and trust." },
+  { num: "03", title: "Deliver", desc: "You receive a polished publication ready to share, distribute, or print." },
 ];
 
 const AUDIENCES = [
@@ -88,35 +91,11 @@ const AUDIENCES = [
 ];
 
 const PRICING = [
-  {
-    category: "Yearbook Design",
-    plans: [
-      { name: "Essential Yearbook", price: "Starting at $1,500", features: ["Cover Design", "Up to 40 Pages", "Student Portrait Placement", "Print-Ready PDF", "2 Revision Rounds"] },
-      { name: "Professional Yearbook", price: "Starting at $3,500", features: ["Custom Cover Design", "Up to 100 Pages", "Portrait Placement", "Club & Sports Pages", "Ad Page Design", "Print Coordination"] },
-      { name: "Complete Yearbook Production", price: "Starting at $6,500", features: ["Custom Theme Development", "100+ Pages", "Portrait & Data Merge Setup", "Ad Design", "Print-Ready Production", "Printer Coordination"] },
-    ],
-  },
-  {
-    category: "Church Directory Design",
-    plans: [
-      { name: "Directory Essentials", price: "Starting at $750", features: ["Cover Design", "Up to 24 Pages", "Family Listings", "Staff Page", "Print-Ready PDF"] },
-      { name: "Full Church Directory", price: "Starting at $1,500", features: ["Custom Cover", "Up to 64 Pages", "Family Portrait Placement", "Ministry Sections", "Sponsor Ads", "Print Coordination"] },
-    ],
-  },
-  {
-    category: "Community & Annual Reports",
-    plans: [
-      { name: "Impact Report", price: "Starting at $1,250", features: ["Up to 20 Pages", "Infographic Layouts", "Leadership Profiles", "Financial Pages", "Press-Ready PDF"] },
-      { name: "Annual Report", price: "Starting at $2,500", features: ["Up to 48 Pages", "Charts & Infographics", "Executive Messages", "Sponsor Recognition", "Print Coordination"] },
-    ],
-  },
-  {
-    category: "Book Design",
-    plans: [
-      { name: "Interior Book Layout", price: "Starting at $750", features: ["Up to 150 Pages", "Professional Typography", "Chapter Formatting", "Print-Ready PDF"] },
-      { name: "Complete Book Design", price: "Starting at $1,500", features: ["Interior Layout", "Cover Design", "Print Setup", "Amazon KDP Setup", "Printer Coordination"] },
-    ],
-  },
+  ["Church Directory", "$1,500–$5,000"],
+  ["Organization Directory", "$2,000–$8,000"],
+  ["Government Directory", "$3,000–$15,000+"],
+  ["Yearbook Production Support", "$2,500–$12,000+"],
+  ["Publication Rescue Projects", "Custom Quote"],
 ];
 
 const ADD_ONS = [
@@ -157,13 +136,13 @@ const IMG_COLORS = {
 
 const IMG_ASSETS = {
   hero: { src: spreadsheetHeroImage, alt: "Spreadsheet data flowing into finished publication pages" },
-  about: { src: professionalReviewingImage, alt: "Professional reviewing publication pages" },
-  yearbook: { src: yearbookImage, alt: "Designed yearbook with photo layouts" },
-  directory: { src: directoryImage, alt: "Directory book with names and contact layout" },
-  event: { src: directoryLineupImage, alt: "Printed publication books lined up for an event or organization" },
-  print: { src: directoryLineupImage, alt: "Print-ready publication books arranged in a row" },
-  redesign: { src: redesignImage, alt: "Redesigned publication layout with photos" },
-  portfolio1: { src: yearbookAltImage, alt: "Yearbook publication portfolio sample" },
+  about: { src: booksInBoxImage, alt: "Putting finished books in a box" },
+  yearbook: { src: yearbookPhotosImage, alt: "Yearbook photos publication design sample" },
+  directory: { src: churchDirectoryCoverImage, alt: "Church directory cover publication sample" },
+  event: { src: touchscreenIdsImage, alt: "Touchscreen IDs and portrait data merge interface" },
+  print: { src: studioPicImage, alt: "Pressmark Studio print production workspace" },
+  redesign: { src: classOf27HeroImage, alt: "Class of 2027 publication cleanup sample" },
+  portfolio1: { src: yearbookOpenImage, alt: "Open yearbook publication portfolio sample" },
   portfolio2: { src: professionalReviewingImage, alt: "Professional reviewing publication pages" },
   portfolio3: { src: yearbookDetailImage, alt: "Event program publication portfolio sample" },
 };
@@ -556,7 +535,7 @@ export default function App() {
           .hero-section {
             min-height: 78vh !important;
             background-position: center top !important;
-            background-image: linear-gradient(180deg, rgba(2,8,20,0.72) 0%, rgba(2,8,20,0.86) 42%, rgba(2,8,20,0.98) 100%), url(${classOf27HeroImage}) !important;
+            background-image: linear-gradient(180deg, rgba(2,8,20,0.72) 0%, rgba(2,8,20,0.86) 42%, rgba(2,8,20,0.98) 100%), url(${heroMergePhotosImage}) !important;
           }
           .hero-copy h1,
           .hero-copy p { text-align: center !important; }
@@ -678,7 +657,7 @@ export default function App() {
         paddingTop: 68,
         display: "flex",
         alignItems: "center",
-        backgroundImage: `linear-gradient(90deg, rgba(2,8,20,0.96) 0%, rgba(2,8,20,0.78) 43%, rgba(2,8,20,0.28) 72%, rgba(2,8,20,0.7) 100%), url(${classOf27HeroImage})`,
+        backgroundImage: `linear-gradient(90deg, rgba(2,8,20,0.96) 0%, rgba(2,8,20,0.78) 43%, rgba(2,8,20,0.28) 72%, rgba(2,8,20,0.7) 100%), url(${heroMergePhotosImage})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -756,6 +735,9 @@ export default function App() {
               Because Of Design.<br />
               <em style={{ color: PALETTE.accent }}>They Fail Because Of Organization.</em>
             </h2>
+            <div style={{ maxWidth: 980, margin: "0 auto 1.8rem", overflow: "hidden", border: `1px solid ${PALETTE.border}`, borderRadius: 4, background: PALETTE.panel, boxShadow: "0 18px 48px rgba(0,0,0,0.28)" }}>
+              <img src={tornadoImage} alt="Publication project needing organization" style={{ display: "block", width: "100%", aspectRatio: "16/9", objectFit: "cover" }} />
+            </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.8rem", margin: "0 auto 1.6rem", maxWidth: 900 }}>
               {["Portraits are missing.", "Spreadsheets don't match.", "Names are incorrect.", "Layouts become difficult to manage.", "Deadlines get closer."].map(item => (
                 <div key={item} style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 86, border: `1px solid ${PALETTE.border}`, background: "rgba(255,255,255,0.04)", padding: "1rem", color: PALETTE.white, fontWeight: 700, lineHeight: 1.35 }}>
@@ -783,15 +765,6 @@ export default function App() {
                   position: "absolute", top: 16, left: -16, bottom: -16, right: 16,
                   border: `1px solid ${PALETTE.accent}`, borderRadius: 4, zIndex: -1, pointerEvents: "none",
                 }} />
-                {/* experience badge */}
-                <div style={{
-                  position: "absolute", top: -20, right: 20,
-                  background: PALETTE.panel, padding: "1.2rem 1.4rem",
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-                }}>
-                  <div style={{ fontFamily: FONT_STACK, fontSize: "2rem", fontWeight: 900, color: PALETTE.accent, lineHeight: 1 }}>18+</div>
-                  <div style={{ fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)", marginTop: 4 }}>Years Experience</div>
-                </div>
               </div>
             </FadeIn>
 
@@ -813,7 +786,7 @@ export default function App() {
               <p style={{ fontSize: "0.95rem", lineHeight: 1.8, color: PALETTE.textMuted, marginBottom: "2rem", maxWidth: 560, margin: "0 auto 2rem", textAlign: "left" }}>
                 Our goal is simple: create publications that look professional, stay organized, and print correctly the first time.
               </p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem 1.5rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.75rem 1.5rem", maxWidth: 560, margin: "0 auto", width: "100%" }}>
                 {[
                   "Portrait data management","Publication cleanup",
                   "Directory organization","Production-ready files",
@@ -965,46 +938,36 @@ export default function App() {
                 How It Works
                 <span style={S.eyebrowLine} />
               </div>
-              <h2 style={{ ...S.h2(), width: "100%", textAlign: "center" }}>A Simple Process For<br /><em style={{ color: PALETTE.accent }}>Complex Publications</em></h2>
+              <h2 style={{ ...S.h2(), width: "100%", textAlign: "center", whiteSpace: "nowrap", fontSize: "clamp(1.7rem, 5vw, 3rem)" }}>Organize <em style={{ color: PALETTE.accent }}>→</em> Design <em style={{ color: PALETTE.accent }}>→</em> Deliver</h2>
             </div>
           </FadeIn>
 
           <div className="process-steps" style={{
             display: "grid",
-            gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-            gap: "2.5rem 1.5rem",
+            gridTemplateColumns: "minmax(0, 760px)",
+            gap: "1rem",
+            justifyContent: "center",
             justifyItems: "center",
-            alignItems: "flex-start",
+            alignItems: "center",
             position: "relative",
             width: "100%",
             margin: "0 auto",
           }}>
             {PROCESS.map((p, i) => (
-              <div key={p.num} style={{ width: "100%", maxWidth: 260, display: "flex", alignItems: "flex-start", position: "relative" }}>
+              <div key={p.title} style={{ width: "100%" }}>
                 <FadeIn delay={i * 0.12} style={{ width: "100%" }}>
-                  <div style={{ textAlign: "center", padding: "0 clamp(0.25rem, 2vw, 1.25rem)" }}>
-                    {/* circle */}
-                    <div style={{
-                      width: 64, height: 64, borderRadius: "50%",
-                      border: `2px solid ${PALETTE.accent}`,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      margin: "0 auto 1.5rem",
-                      background: PALETTE.white,
-                      position: "relative", zIndex: 1,
-                    }}>
-                      <span style={{ fontFamily: FONT_STACK, fontWeight: 900, fontSize: "1rem", color: PALETTE.accent }}>{p.num}</span>
-                    </div>
-                    <div style={{ fontFamily: FONT_STACK, fontSize: "1.05rem", fontWeight: 700, color: PALETTE.accentSoft, marginBottom: "0.6rem" }}>{p.title}</div>
-                    <div style={{ fontSize: "0.88rem", lineHeight: 1.7, color: "#ffffff" }}>{p.desc}</div>
+                  <div style={{
+                    textAlign: "center",
+                    padding: "clamp(1.5rem, 4vw, 2.4rem)",
+                    border: `1px solid ${PALETTE.border}`,
+                    background: "rgba(255,255,255,0.04)",
+                  }}>
+                    <div style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.6rem, 3vw, 2.4rem)", fontWeight: 900, color: PALETTE.accentSoft, marginBottom: "0.75rem" }}>{p.title}</div>
+                    <div style={{ fontSize: "clamp(1rem, 2vw, 1.2rem)", lineHeight: 1.7, color: "#ffffff", maxWidth: 580, margin: "0 auto" }}>{p.desc}</div>
                   </div>
                 </FadeIn>
-                {/* connector line */}
                 {i < PROCESS.length - 1 && (
-                  <div className="process-connector" style={{
-                    position: "absolute", top: 31, left: "50%", right: "-50%",
-                    height: 1, background: "rgba(170,125,72,0.34)",
-                    zIndex: 0,
-                  }} />
+                  <div style={{ fontFamily: FONT_STACK, fontSize: "2rem", fontWeight: 900, color: PALETTE.accent, lineHeight: 1, margin: "1rem 0" }}>↓</div>
                 )}
               </div>
             ))}
@@ -1112,10 +1075,10 @@ export default function App() {
                 <span style={S.eyebrowLine} />
               </div>
               <h2 style={{ ...S.h2(), marginBottom: "1rem" }}>
-                Publication & Book Design<br /><em style={{ color: PALETTE.accent }}>Pricing</em>
+                Typical<br /><em style={{ color: PALETTE.accent }}>Investment</em>
               </h2>
               <p style={{ ...S.lead(), margin: "0 auto 1.8rem", textAlign: "center" }}>
-                Professional layout, production, and print preparation packages built around project scope instead of hourly guesswork.
+                Pricing depends on publication size, complexity, timeline, data condition, and production requirements.
               </p>
               <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
                 <button className="btn-primary-hover" style={S.btnPrimary} onClick={() => window.print()}>
@@ -1128,112 +1091,27 @@ export default function App() {
             </div>
           </FadeIn>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
-            {PRICING.map((group, groupIndex) => (
-              <FadeIn key={group.category} delay={groupIndex * 0.08}>
-                <div style={{
-                  border: `1px solid ${PALETTE.border}`,
-                  borderTop: `4px solid ${PALETTE.accent}`,
-                  background: "rgba(2,8,20,0.42)",
-                  padding: "clamp(1.35rem, 4vw, 2.25rem)",
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "1.4rem" }}>
-                    <span style={{ height: 1, width: 44, background: PALETTE.accent, opacity: 0.75 }} />
-                    <h3 style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.25rem, 3vw, 1.85rem)", color: PALETTE.white, textAlign: "center", textTransform: "uppercase", letterSpacing: "0.08em", lineHeight: 1.1 }}>
-                      {group.category}
-                    </h3>
-                    <span style={{ height: 1, width: 44, background: PALETTE.accent, opacity: 0.75 }} />
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1rem", alignItems: "stretch" }}>
-                    {group.plans.map((plan) => (
-                      <div key={plan.name} style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        height: "100%",
-                        background: PALETTE.panel,
-                        border: `1px solid ${PALETTE.border}`,
-                        padding: "1.1rem 1.25rem 1.35rem",
-                        borderRadius: 3,
-                        textAlign: "center",
-                        boxShadow: "0 12px 34px rgba(0,0,0,0.16)",
-                      }}>
-                        <div style={{ fontFamily: FONT_STACK, fontSize: "1.22rem", fontWeight: 800, color: PALETTE.white, marginBottom: "0.5rem", lineHeight: 1.2 }}>{plan.name}</div>
-                        <div style={{
-                          alignSelf: "center",
-                          fontSize: "0.95rem",
-                          fontWeight: 800,
-                          color: PALETTE.base,
-                          background: PALETTE.accent,
-                          padding: "0.36rem 0.85rem",
-                          marginBottom: "0.85rem",
-                        }}>{plan.price}</div>
-                        <div style={{ display: "grid", gap: "0.5rem" }}>
-                          {plan.features.map((feature) => (
-                            <div key={feature} style={{
-                              display: "flex",
-                              gap: "0.5rem",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              minHeight: 38,
-                              color: "rgba(255,255,255,0.9)",
-                              fontSize: "0.9rem",
-                              lineHeight: 1.35,
-                              width: "100%",
-                              padding: "0.5rem 0.7rem",
-                              background: "rgba(255,255,255,0.045)",
-                              border: "1px solid rgba(255,255,255,0.07)",
-                            }}>
-                              <span style={{
-                                color: PALETTE.accent,
-                                fontWeight: 900,
-                                lineHeight: 1,
-                                flex: "0 0 auto",
-                              }}>✓</span>
-                              <span>{feature}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem", marginTop: "2rem", alignItems: "stretch" }}>
-            <FadeIn delay={0.1}>
-              <div style={{ height: "100%", background: PALETTE.panel, border: `1px solid ${PALETTE.border}`, borderTop: `4px solid ${PALETTE.accent}`, padding: "clamp(1.5rem, 4vw, 2rem)" }}>
-                <h3 style={{ fontFamily: FONT_STACK, fontSize: "1.35rem", color: PALETTE.white, marginBottom: "1rem", textAlign: "center" }}>Add-On Services</h3>
-                <div style={{ display: "grid", gap: "0.55rem" }}>
-                  {ADD_ONS.map(([service, price]) => (
-                    <div key={service} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "1rem", alignItems: "center", padding: "0.72rem 0.9rem", border: `1px solid ${PALETTE.border}`, background: "rgba(255,255,255,0.04)", color: PALETTE.white, fontSize: "0.95rem" }}>
-                      <span style={{ textAlign: "left" }}>{service}</span>
-                      <strong style={{ color: PALETTE.accent, whiteSpace: "nowrap", textAlign: "right" }}>{price}</strong>
-                    </div>
-                  ))}
-                </div>
+          <FadeIn delay={0.1}>
+            <div style={{
+              maxWidth: 920,
+              margin: "0 auto",
+              border: `1px solid ${PALETTE.border}`,
+              borderTop: `4px solid ${PALETTE.accent}`,
+              background: "rgba(2,8,20,0.42)",
+              overflow: "hidden",
+            }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", background: PALETTE.panel, borderBottom: `1px solid ${PALETTE.border}` }}>
+                <div style={{ padding: "1rem", color: PALETTE.accent, fontSize: "0.72rem", fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", textAlign: "left" }}>Publication Type</div>
+                <div style={{ padding: "1rem", color: PALETTE.accent, fontSize: "0.72rem", fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", textAlign: "right" }}>Typical Range</div>
               </div>
-            </FadeIn>
-
-            <FadeIn delay={0.18}>
-              <div style={{ height: "100%", background: PALETTE.panel, border: `1px solid ${PALETTE.border}`, borderTop: `4px solid ${PALETTE.accent}`, padding: "clamp(1.5rem, 4vw, 2rem)" }}>
-                <h3 style={{ fontFamily: FONT_STACK, fontSize: "1.35rem", color: PALETTE.white, marginBottom: "1rem", textAlign: "center" }}>Included With Every Project</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.75rem" }}>
-                  {INCLUDED.map((item) => (
-                    <div key={item} style={{ display: "flex", gap: "0.55rem", alignItems: "flex-start", color: "rgba(255,255,255,0.88)", fontSize: "0.95rem", lineHeight: 1.45 }}>
-                      <span style={{ color: PALETTE.accent, fontWeight: 700 }}>✓</span>
-                      <span>{item}</span>
-                    </div>
-                  ))}
+              {PRICING.map(([type, range]) => (
+                <div key={type} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", alignItems: "center", padding: "1.1rem", borderBottom: `1px solid ${PALETTE.border}` }}>
+                  <div style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.05rem, 2vw, 1.3rem)", fontWeight: 800, color: PALETTE.white, textAlign: "left" }}>{type}</div>
+                  <div style={{ fontSize: "clamp(1rem, 2vw, 1.25rem)", fontWeight: 900, color: PALETTE.accent, textAlign: "right" }}>{range}</div>
                 </div>
-                <div style={{ marginTop: "1.5rem", paddingTop: "1.2rem", borderTop: `1px solid ${PALETTE.border}`, textAlign: "center" }}>
-                  <div style={{ fontFamily: FONT_STACK, fontSize: "1.1rem", fontWeight: 700, color: PALETTE.white }}>Pressmark Studio</div>
-                  <div style={{ color: PALETTE.accent, fontSize: "0.9rem", marginTop: "0.25rem" }}>Designing Books | Telling Stories | Making An Impact</div>
-                </div>
-              </div>
-            </FadeIn>
-          </div>
+              ))}
+            </div>
+          </FadeIn>
         </div>
       </section>
 
@@ -1252,6 +1130,21 @@ export default function App() {
               <p style={{ ...S.lead(true), margin: "0 auto 2rem", textAlign: "center" }}>
                 Get professional help organizing, designing, and preparing your next publication.
               </p>
+              <img
+                src={sunnyImage}
+                alt="Organized publication project ready for delivery"
+                style={{
+                  display: "block",
+                  width: "100%",
+                  maxWidth: 520,
+                  aspectRatio: "16/10",
+                  objectFit: "cover",
+                  margin: "0 auto 2rem",
+                  border: `1px solid ${PALETTE.border}`,
+                  borderRadius: 4,
+                  boxShadow: "0 18px 48px rgba(0,0,0,0.28)",
+                }}
+              />
               <div className="cta-btns" style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
                 <button className="btn-primary-hover" style={S.btnPrimary} onClick={() => scrollTo("#contact")}>
                   Request A Quote
@@ -1260,9 +1153,7 @@ export default function App() {
                   Email For A Quote
                 </button>
               </div>
-            </FadeIn>
-            <FadeIn delay={0.2} style={{ justifySelf: "center", width: "100%", maxWidth: 300 }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem", width: "fit-content", maxWidth: "100%", minWidth: 220, margin: "0 auto", textAlign: "left" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem", width: "fit-content", maxWidth: "100%", minWidth: 220, margin: "2rem auto 0", textAlign: "left" }}>
                 {[["📞","Call or Text","678.790.2698"],["✉️","Email","info@pressmark.studio"],["📍","Location","Serving Nationwide"]].map(([ic,label,val]) => (
                   <div key={label} style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
                     <div style={{ fontSize: "1.2rem", width: 36, textAlign: "center" }}>{ic}</div>
