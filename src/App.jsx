@@ -6,7 +6,7 @@ import badPageImage from "./assets/bad page.png?url";
 import sunnyImage from "./assets/sunny.png";
 import yearbookSpreadImage from "./assets/yearbook-spread.png";
 import yearbookOpenImage from "./assets/year book open.png";
-import directoryDesignSpreadImage from "./assets/directory-design-spread.png";
+import directoryDesignSpreadImage from "./assets/directory-design-spread-white.png";
 import dataMergeSetupImage from "./assets/data-merge-setup.png";
 import dataMergeResultsImage from "./assets/data-merge-results.png";
 import pressmarkLogo from "./assets/pressmark studio logo main.png";
@@ -121,7 +121,8 @@ const IMG_ASSETS = {
   directory: {
     src: directoryDesignSpreadImage,
     alt: "Two-page church directory layout with organized member contact information",
-    imgStyle: { transform: "scale(1.28)", objectPosition: "center" },
+    containerStyle: { background: "#ffffff" },
+    imgStyle: { objectFit: "contain", objectPosition: "center" },
   },
   event: {
     src: dataMergeSetupImage,
