@@ -580,16 +580,15 @@ export default function App() {
             width: 100% !important;
           }
           .about-benefits {
-            display: flex !important;
-            flex-wrap: wrap !important;
-            justify-content: center !important;
+            display: grid !important;
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             max-width: 620px !important;
           }
           .about-benefit-item {
-            flex: 1 1 min(260px, 100%) !important;
+            width: 100% !important;
+            min-width: 0 !important;
             justify-content: flex-start !important;
-            max-width: 300px !important;
+            max-width: none !important;
             text-align: left !important;
           }
           .services-grid {
@@ -668,8 +667,7 @@ export default function App() {
             font-size: clamp(2.1rem, 11vw, 3.4rem) !important;
           }
           .about-benefits {
-            flex-direction: column !important;
-            align-items: stretch !important;
+            grid-template-columns: minmax(0, 1fr) !important;
             gap: 0.65rem !important;
             width: 100% !important;
           }
