@@ -590,7 +590,17 @@ export default function App() {
             max-width: 300px !important;
             text-align: left !important;
           }
-          .services-grid { grid-template-columns: 1fr !important; }
+          .services-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 1rem !important;
+            border: 0 !important;
+          }
+          .service-card {
+            padding: clamp(1.4rem, 3vw, 2rem) !important;
+            border: 1px solid rgba(170,125,72,0.3) !important;
+            border-radius: 4px;
+          }
+          .service-media { width: 100% !important; }
           .why-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .process-steps { grid-template-columns: repeat(2, minmax(220px, 1fr)) !important; }
           .process-connector { display: none !important; }
@@ -603,13 +613,19 @@ export default function App() {
           .desktop-nav { display: none !important; }
           .hamburger-btn { display: flex !important; }
           .site-logo-image { transform: translateX(-1.5rem); }
+          .services-grid { grid-template-columns: minmax(0, 1fr) !important; }
+          .service-card { padding: 1.25rem !important; }
+          .service-media { aspect-ratio: 16 / 10 !important; }
+          .problem-grid { grid-template-columns: minmax(0, 1fr) !important; }
+          .problem-card { min-height: 68px !important; }
+          .why-feature-image { aspect-ratio: 4 / 3 !important; }
         }
         @media (max-width: 540px) {
           .why-grid { grid-template-columns: 1fr !important; }
           .audience-grid { grid-template-columns: 1fr !important; }
           .process-steps { grid-template-columns: minmax(0, 1fr) !important; }
           .about-media {
-            aspect-ratio: 1 / 1 !important;
+            aspect-ratio: 4 / 3 !important;
           }
           .about-copy h2 {
             font-size: clamp(2.1rem, 11vw, 3.4rem) !important;
@@ -798,9 +814,9 @@ export default function App() {
             <div style={{ maxWidth: 550, margin: "0 auto 1.8rem", overflow: "hidden", border: `1px solid ${PALETTE.border}`, borderRadius: 4, background: PALETTE.panel, boxShadow: "0 18px 48px rgba(0,0,0,0.28)" }}>
               <img src={badPageImage} alt="Disorganized publication page needing cleanup" style={{ display: "block", width: "100%", aspectRatio: "5.5 / 8.5", objectFit: "contain", background: PALETTE.white }} />
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.8rem", margin: "0 auto 1.6rem", maxWidth: 900 }}>
+            <div className="problem-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.8rem", margin: "0 auto 1.6rem", maxWidth: 900 }}>
               {["Portraits are missing.", "Spreadsheets don't match.", "Names are incorrect.", "Layouts become difficult to manage.", "Deadlines get closer."].map(item => (
-                <div key={item} style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 86, border: `1px solid ${PALETTE.border}`, background: PALETTE.white, padding: "1rem", color: PALETTE.text, fontWeight: 700, lineHeight: 1.35 }}>
+                <div className="problem-card" key={item} style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 86, border: `1px solid ${PALETTE.border}`, background: PALETTE.white, padding: "1rem", color: PALETTE.text, fontWeight: 700, lineHeight: 1.35 }}>
                   {item}
                 </div>
               ))}
@@ -898,7 +914,7 @@ export default function App() {
                   borderBottom: i < 3 ? `1px solid ${PALETTE.border}` : "none",
                   transition: "background 0.3s",
                 }}>
-                  <ImgPlaceholder type={s.img} aspectRatio="16/9" style={{ marginBottom: "1.25rem", borderRadius: 3 }} />
+                  <ImgPlaceholder className={`service-media service-media-${s.img}`} type={s.img} aspectRatio="16/9" style={{ marginBottom: "1.25rem", borderRadius: 3 }} />
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
                     <span className="service-num" style={{ fontFamily: FONT_STACK, fontSize: "0.75rem", fontWeight: 700, color: PALETTE.textMuted, letterSpacing: "0.1em", transition: "color 0.3s" }}>{s.num}</span>
                     {s.flagship && (
@@ -935,6 +951,7 @@ export default function App() {
                 Many designers understand layouts. Few understand how publications are built, organized, prepared, and delivered for production.
               </p>
               <img
+                className="why-feature-image"
                 src={spreadsheetHeroImage}
                 alt="Spreadsheet flowing into publication pages"
                 style={{
