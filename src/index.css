@@ -11,7 +11,7 @@
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
-  --sans: 'Cormorant Garamond', Georgia, serif;
+  --sans: Inter, 'Helvetica Neue', Arial, sans-serif;
   --heading: 'Cormorant Garamond', Georgia, serif;
   --mono: ui-monospace, Consolas, monospace;
 

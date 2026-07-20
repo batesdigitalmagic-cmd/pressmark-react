@@ -1,18 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import spreadsheetHeroImage from "./assets/Spreadsheet flowing into publication pages.png";
-import classOf27HeroImage from "./assets/class of 27 hero image.png";
+import publicationCleanupImage from "./assets/publication-cleanup.png";
 import heroMergePhotosImage from "./assets/hero image merge photos.png";
-import professionalReviewingImage from "./assets/professional reviewing.png";
-import tornadoImage from "./assets/tornado .png";
+import badPageImage from "./assets/bad page.png?url";
 import sunnyImage from "./assets/sunny.png";
-import yearbookPhotosImage from "./assets/yearbook photos.png";
+import yearbookSpreadImage from "./assets/yearbook-spread.png";
 import yearbookOpenImage from "./assets/year book open.png";
-import yearbookDetailImage from "./assets/Bates_Digital_yearbook_with_pictures_--v_7_4defa031-d9f3-47a7-a62d-ea91f7682e52_1.png";
-import churchDirectoryCoverImage from "./assets/church directory pbcover.png";
-import directoryLineupImage from "./assets/directory_book_of_name_contact_lined_up_like_of_c91c9532-7f3b-42d6-94e6-b81e40391ffb_1.png";
-import touchscreenIdsImage from "./assets/touchscreen ids.png";
-import puttingBooksImage from "./assets/puttinng books in the box.png";
-import studioProfessionalImage from "./assets/young_black_professional_in_lighted_studio_maki_c2a7974b-4503-4289-bcb6-4d706398e10b_1.png";
+import directoryDesignSpreadImage from "./assets/directory-design-spread.png";
+import dataMergeSetupImage from "./assets/data-merge-setup.png";
+import dataMergeResultsImage from "./assets/data-merge-results.png";
 import pressmarkLogo from "./assets/pressmark studio logo main.png";
 import pricingGuideImage from "./assets/Pressmark Studio pricing guide.png";
 
@@ -47,7 +43,7 @@ const SERVICES = [
   {
     num: "03",
     icon: "📊",
-    title: "Portrait Data Merge",
+    title: "Data Merge",
     flagship: false,
     desc: "Automatically place portraits, names, grades, titles, and custom information across hundreds of pages with accuracy and consistency.",
     img: "event",
@@ -98,26 +94,6 @@ const PRICING = [
   ["Publication Rescue Projects", "Custom Quote"],
 ];
 
-const ADD_ONS = [
-  ["Additional Page Design", "$15-25/page"],
-  ["Cover Design Only", "$350"],
-  ["Data Merge Setup", "$250+"],
-  ["Portrait Placement", "$150+"],
-  ["Print Coordination", "$250"],
-  ["Rush Service", "+25%"],
-  ["Additional Revisions", "$75/hr"],
-];
-
-const INCLUDED = [
-  "Professional Layout Design",
-  "Typography & Styling",
-  "Adobe InDesign Production",
-  "Print-Ready PDF Delivery",
-  "Font Packaging",
-  "Bleed & Trim Setup",
-  "Press Optimization",
-];
-
 /* ─────────────────────────────────────────────
    IMAGE PLACEHOLDER COMPONENT
 ───────────────────────────────────────────── */
@@ -129,38 +105,50 @@ const IMG_COLORS = {
   redesign:  { bg: "#071a33", accent: "#aa7d48", label: "Publication Redesign" },
   hero:      { bg: "#020814", accent: "#aa7d48", label: "Publication Showcase" },
   about:     { bg: "#051225", accent: "#aa7d48", label: "Studio at Work" },
-  portfolio1:{ bg: "#020814", accent: "#aa7d48", label: "Yearbook · 176 pages" },
-  portfolio2:{ bg: "#051225", accent: "#aa7d48", label: "Anniversary Book · 144 pages" },
-  portfolio3:{ bg: "#081a33", accent: "#aa7d48", label: "Event Program · 48 pages" },
 };
 
 const IMG_ASSETS = {
   hero: { src: spreadsheetHeroImage, alt: "Spreadsheet data flowing into finished publication pages" },
-  about: { src: studioProfessionalImage, alt: "Young Black professional in a lighted studio" },
-  yearbook: { src: yearbookPhotosImage, alt: "Yearbook photos publication design sample" },
-  directory: { src: churchDirectoryCoverImage, alt: "Church directory cover publication sample" },
-  event: { src: touchscreenIdsImage, alt: "Touchscreen IDs and portrait data merge interface" },
-  print: { src: puttingBooksImage, alt: "Printed books being packed for delivery" },
-  redesign: { src: classOf27HeroImage, alt: "Class of 2027 publication cleanup sample" },
-  portfolio1: { src: yearbookOpenImage, alt: "Open yearbook publication portfolio sample" },
-  portfolio2: { src: professionalReviewingImage, alt: "Professional reviewing publication pages" },
-  portfolio3: { src: yearbookDetailImage, alt: "Event program publication portfolio sample" },
+  about: { src: dataMergeResultsImage, alt: "Completed directory records generated with Adobe InDesign Data Merge" },
+  yearbook: {
+    src: yearbookSpreadImage,
+    alt: "Class of 2027 sophomore yearbook portrait spread",
+    containerStyle: { background: "#ffffff" },
+    imgStyle: { objectFit: "contain", objectPosition: "center" },
+  },
+  directory: {
+    src: directoryDesignSpreadImage,
+    alt: "Two-page church directory layout with organized member contact information",
+    imgStyle: { transform: "scale(1.28)", objectPosition: "center" },
+  },
+  event: {
+    src: dataMergeSetupImage,
+    alt: "Setting up multiple directory records with Adobe InDesign Data Merge",
+    imgStyle: { transform: "scale(1.3)", objectPosition: "center" },
+  },
+  print: { src: yearbookOpenImage, alt: "Open printed yearbook showcasing a finished publication spread" },
+  redesign: {
+    src: publicationCleanupImage,
+    alt: "Publication layout being repaired and organized in Adobe InDesign",
+    imgStyle: { objectPosition: "center" },
+  },
 };
 
 const PALETTE = {
-  base: "#020814",
-  panel: "#051225",
-  panelSoft: "#081a33",
+  base: "#ffffff",
+  panel: "#ffffff",
+  panelSoft: "#ffffff",
   accent: "#aa7d48",
   accentSoft: "#aa7d48",
-  text: "#ffffff",
-  textMuted: "#b7c7df",
-  border: "rgba(170,125,72,0.24)",
+  text: "#020814",
+  textMuted: "#4b5563",
+  border: "rgba(170,125,72,0.3)",
   black: "#000000",
   white: "#ffffff",
 };
 
 const FONT_STACK = "'Cormorant Garamond', Georgia, serif";
+const TITLE_FONT_STACK = "Inter, 'Helvetica Neue', Arial, sans-serif";
 const PAGE_X = "clamp(1.25rem, 5vw, 4rem)";
 
 function ImgPlaceholder({ type = "hero", style = {}, className = "", aspectRatio = "4/3" }) {
@@ -178,6 +166,7 @@ function ImgPlaceholder({ type = "hero", style = {}, className = "", aspectRatio
           overflow: "hidden",
           borderRadius: 2,
           ...style,
+          ...asset.containerStyle,
         }}
       >
         <img
@@ -189,6 +178,7 @@ function ImgPlaceholder({ type = "hero", style = {}, className = "", aspectRatio
             height: "100%",
             display: "block",
             objectFit: "cover",
+            ...asset.imgStyle,
           }}
         />
       </div>
@@ -372,7 +362,7 @@ export default function App() {
   /* ── STYLES (inline for portability) ── */
   const S = {
     root: {
-      fontFamily: FONT_STACK,
+      fontFamily: TITLE_FONT_STACK,
       background: PALETTE.base,
       color: PALETTE.text,
       margin: 0,
@@ -412,7 +402,7 @@ export default function App() {
     navLink: {
       fontSize: "0.78rem", fontWeight: 500,
       letterSpacing: "0.1em", textTransform: "uppercase",
-      color: PALETTE.textMuted, textDecoration: "none", cursor: "pointer",
+      color: "#b7c7df", textDecoration: "none", cursor: "pointer",
       transition: "color 0.2s",
       background: "none", border: "none",
     },
@@ -430,7 +420,7 @@ export default function App() {
       padding: "4px 0",
     },
     hamburgerLine: (open, i) => ({
-      width: 24, height: 2, background: PALETTE.text,
+      width: 24, height: 2, background: PALETTE.white,
       transition: "all 0.3s ease",
       transform: open
         ? i === 0 ? "rotate(45deg) translate(5px,5px)"
@@ -474,7 +464,7 @@ export default function App() {
       maxWidth: "none",
       margin: "0 auto",
     },
-    eyebrow: (light = false) => ({
+    eyebrow: () => ({
       fontSize: "0.7rem", fontWeight: 600,
       letterSpacing: "0.2em", textTransform: "uppercase",
       color: PALETTE.accent, marginBottom: "1rem",
@@ -521,7 +511,7 @@ export default function App() {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
         body { overflow-x: hidden; }
-        p { color: #ffffff !important; }
+        body { background: #ffffff; }
         .pricing-print-guide { display: none; }
         button:focus-visible, a:focus-visible { outline: 2px solid #aa7d48; outline-offset: 2px; }
         .nav-link-hover:hover { color: #aa7d48 !important; }
@@ -532,7 +522,7 @@ export default function App() {
         .why-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(3,10,23,0.26) !important; }
         .audience-tag:hover { background: #051225 !important; color: #aa7d48 !important; border-color: #051225 !important; }
         .about-media {
-          max-width: 520px;
+          max-width: 700px;
           justify-self: center;
           box-shadow: 0 24px 70px rgba(2,8,20,0.32);
         }
@@ -608,7 +598,6 @@ export default function App() {
           .cta-btns { justify-content: center !important; }
           .footer-inner { flex-direction: column !important; gap: 1rem !important; text-align: center; }
           .audience-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .portfolio-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 640px) {
           .desktop-nav { display: none !important; }
@@ -763,7 +752,7 @@ export default function App() {
                 ...S.btnPrimary,
                 borderRadius: 999,
                 padding: "0.95rem 2rem",
-                color: PALETTE.base,
+                color: PALETTE.black,
               }} onClick={emailQuote}>
                 REQUEST A QUOTE
               </button>
@@ -784,7 +773,7 @@ export default function App() {
       {/* ── TRUST ── */}
       <section style={{ background: PALETTE.panel, padding: `2rem ${PAGE_X}`, borderTop: `1px solid ${PALETTE.border}`, borderBottom: `1px solid ${PALETTE.border}` }}>
         <div style={{ ...S.container, textAlign: "center" }}>
-          <div style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.35rem, 3vw, 2rem)", fontWeight: 800, color: PALETTE.white, marginBottom: "0.7rem" }}>
+          <div style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.35rem, 3vw, 2rem)", fontWeight: 800, color: PALETTE.text, marginBottom: "0.7rem" }}>
             Trusted By Organizations That Need Accuracy
           </div>
           <div style={{ color: PALETTE.accent, fontSize: "0.95rem", fontWeight: 700, letterSpacing: "0.04em", lineHeight: 1.8 }}>
@@ -802,21 +791,21 @@ export default function App() {
               Publication Rescue
               <span style={S.eyebrowLine} />
             </div>
-            <h2 style={{ ...S.h2(true), marginBottom: "1.4rem" }}>
+            <h2 style={{ ...S.h2(), marginBottom: "1.4rem" }}>
               Design Isn't The Problem.<br />
               <em style={{ color: PALETTE.accent }}>Organization Is.</em>
             </h2>
-            <div style={{ maxWidth: 980, margin: "0 auto 1.8rem", overflow: "hidden", border: `1px solid ${PALETTE.border}`, borderRadius: 4, background: PALETTE.panel, boxShadow: "0 18px 48px rgba(0,0,0,0.28)" }}>
-              <img src={tornadoImage} alt="Publication project needing organization" style={{ display: "block", width: "100%", aspectRatio: "16/9", objectFit: "cover" }} />
+            <div style={{ maxWidth: 550, margin: "0 auto 1.8rem", overflow: "hidden", border: `1px solid ${PALETTE.border}`, borderRadius: 4, background: PALETTE.panel, boxShadow: "0 18px 48px rgba(0,0,0,0.28)" }}>
+              <img src={badPageImage} alt="Disorganized publication page needing cleanup" style={{ display: "block", width: "100%", aspectRatio: "5.5 / 8.5", objectFit: "contain", background: PALETTE.white }} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.8rem", margin: "0 auto 1.6rem", maxWidth: 900 }}>
               {["Portraits are missing.", "Spreadsheets don't match.", "Names are incorrect.", "Layouts become difficult to manage.", "Deadlines get closer."].map(item => (
-                <div key={item} style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 86, border: `1px solid ${PALETTE.border}`, background: "rgba(255,255,255,0.04)", padding: "1rem", color: PALETTE.white, fontWeight: 700, lineHeight: 1.35 }}>
+                <div key={item} style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 86, border: `1px solid ${PALETTE.border}`, background: PALETTE.white, padding: "1rem", color: PALETTE.text, fontWeight: 700, lineHeight: 1.35 }}>
                   {item}
                 </div>
               ))}
             </div>
-            <p style={{ ...S.lead(true), maxWidth: 760, margin: "0 auto", textAlign: "center" }}>
+            <p style={{ ...S.lead(), maxWidth: 760, margin: "0 auto", textAlign: "center" }}>
               Pressmark Studio brings structure to the process by combining publication design expertise with real-world production experience.
             </p>
           </FadeIn>
@@ -826,11 +815,11 @@ export default function App() {
       {/* ── ABOUT ── */}
       <section id="about" style={S.section(PALETTE.panelSoft)}>
         <div style={S.container}>
-          <div className="about-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(2.5rem,6vw,6rem)", alignItems: "center" }}>
+          <div className="about-grid" style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "clamp(2rem,4vw,4rem)", alignItems: "center" }}>
 
             <FadeIn>
               <div style={{ position: "relative" }}>
-                <ImgPlaceholder className="about-media" type="about" aspectRatio="3/4" style={{ width: "100%", borderRadius: 4 }} />
+                <ImgPlaceholder className="about-media" type="about" aspectRatio="3/2" style={{ width: "100%", borderRadius: 4 }} />
               </div>
             </FadeIn>
 
@@ -920,7 +909,7 @@ export default function App() {
                   </div>
                   <div style={{ fontSize: "1.6rem", marginBottom: "0.6rem" }}>{s.icon}</div>
                   <div style={{ fontFamily: FONT_STACK, fontSize: "1rem", fontWeight: 700, color: PALETTE.accentSoft, marginBottom: "0.6rem", lineHeight: 1.3 }}>{s.title}</div>
-                  <div style={{ fontSize: "0.85rem", lineHeight: 1.7, color: "#ffffff" }}>{s.desc}</div>
+                  <div style={{ fontSize: "0.85rem", lineHeight: 1.7, color: PALETTE.textMuted }}>{s.desc}</div>
                 </div>
               </FadeIn>
             ))}
@@ -938,11 +927,11 @@ export default function App() {
                 Why Choose Us
                 <span style={S.eyebrowLine} />
               </div>
-              <h2 style={S.h2(true)}>
+              <h2 style={S.h2()}>
                 Design Expertise Meets<br />
                 <em style={{ color: PALETTE.accent }}>Production Experience</em>
               </h2>
-              <p style={{ ...S.lead(true), maxWidth: 760, margin: "1rem auto 0", textAlign: "center" }}>
+              <p style={{ ...S.lead(), maxWidth: 760, margin: "1rem auto 0", textAlign: "center" }}>
                 Many designers understand layouts. Few understand how publications are built, organized, prepared, and delivered for production.
               </p>
               <img
@@ -972,8 +961,8 @@ export default function App() {
                   flexDirection: "column",
                   justifyContent: "space-between",
                   height: "100%",
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: PALETTE.white,
+                  border: `1px solid ${PALETTE.border}`,
                   padding: "2rem 1.75rem",
                   borderRadius: 4,
                   transition: "all 0.3s ease",
@@ -981,7 +970,7 @@ export default function App() {
                 }}>
                   <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>{w.icon}</div>
                   <div style={{ fontFamily: FONT_STACK, fontSize: "1.05rem", fontWeight: 700, color: PALETTE.accentSoft, marginBottom: "0.6rem" }}>{w.title}</div>
-                  <div style={{ fontSize: "0.88rem", lineHeight: 1.7, color: "#ffffff" }}>{w.desc}</div>
+                  <div style={{ fontSize: "0.88rem", lineHeight: 1.7, color: PALETTE.textMuted }}>{w.desc}</div>
                 </div>
               </FadeIn>
             ))}
@@ -1028,10 +1017,10 @@ export default function App() {
                     textAlign: "center",
                     padding: "clamp(1.5rem, 4vw, 2.4rem)",
                     border: `1px solid ${PALETTE.border}`,
-                    background: "rgba(255,255,255,0.04)",
+                    background: PALETTE.white,
                   }}>
                     <div style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.6rem, 3vw, 2.4rem)", fontWeight: 900, color: PALETTE.accentSoft, marginBottom: "0.75rem" }}>{p.title}</div>
-                    <div style={{ fontSize: "clamp(1rem, 2vw, 1.2rem)", lineHeight: 1.7, color: "#ffffff", maxWidth: 580, margin: "0 auto" }}>{p.desc}</div>
+                    <div style={{ fontSize: "clamp(1rem, 2vw, 1.2rem)", lineHeight: 1.7, color: PALETTE.textMuted, maxWidth: 580, margin: "0 auto" }}>{p.desc}</div>
                   </div>
                 </FadeIn>
                 {i < PROCESS.length - 1 && (
@@ -1070,58 +1059,13 @@ export default function App() {
                   fontFamily: FONT_STACK,
                   fontSize: "0.95rem",
                   fontWeight: 700,
-                  color: PALETTE.base,
+                  color: PALETTE.text,
                   cursor: "default",
                   transition: "all 0.25s ease",
                   borderRadius: 2,
                   background: PALETTE.white,
                 }}>
                   {a}
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── PORTFOLIO TEASER ── */}
-      <section style={S.section(PALETTE.base)}>
-        <div style={S.container}>
-          <FadeIn>
-            <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", flexWrap: "wrap", gap: "1.5rem", marginBottom: "2.5rem" }}>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
-                  <span style={S.eyebrowLine} />
-                  Recent Work
-                  <span style={S.eyebrowLine} />
-                </div>
-                <h2 style={{ ...S.h2(true), marginBottom: 0 }}>
-                  Publications <em style={{ color: PALETTE.accent }}>people keep.</em>
-                </h2>
-              </div>
-              <button className="btn-ghost-hover" style={S.btnGhost(true)} onClick={() => scrollTo("#contact")}> 
-                Start Your Project
-              </button>
-            </div>
-          </FadeIn>
-          <div className="portfolio-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gridAutoRows: "1fr", gap: "1.2rem", justifyContent: "center" }}>
-            {[{
-              type: "portfolio1", label: "Yearbook · 176 pages", title: "The Bruin 2024 — Beaumont High School" },
-              { type: "portfolio2", label: "Commemorative Book · 144 pages", title: "Legacy Celebration — 125th Anniversary" },
-              { type: "portfolio3", label: "Event Program · 48 pages", title: "NPHC Greek Gala Evening Program" },
-            ].map((p, i) => (
-              <FadeIn key={p.title} delay={i * 0.1}>
-                <div style={{ position: "relative", borderRadius: 4, overflow: "hidden", height: "100%", display: "flex", flexDirection: "column" }}>
-                  <ImgPlaceholder type={p.type} aspectRatio={"3/4"} style={{ width: "100%" }} />
-                  <div style={{
-                    position: "absolute", inset: 0,
-                    background: "linear-gradient(to top, rgba(3,10,23,0.92) 0%, transparent 55%)",
-                    display: "flex", flexDirection: "column", justifyContent: "flex-end",
-                    padding: "1.5rem",
-                  }}>
-                    <div style={{ fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: PALETTE.accent, marginBottom: "0.3rem" }}>{p.label}</div>
-                    <div style={{ fontFamily: FONT_STACK, fontWeight: 700, fontSize: "0.95rem", color: PALETTE.white, lineHeight: 1.35 }}>{p.title}</div>
-                  </div>
                 </div>
               </FadeIn>
             ))}
@@ -1165,7 +1109,7 @@ export default function App() {
               margin: "0 auto",
               border: `1px solid ${PALETTE.border}`,
               borderTop: `4px solid ${PALETTE.accent}`,
-              background: "rgba(2,8,20,0.42)",
+              background: PALETTE.white,
               overflow: "hidden",
             }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", background: PALETTE.panel, borderBottom: `1px solid ${PALETTE.border}` }}>
@@ -1174,7 +1118,7 @@ export default function App() {
               </div>
               {PRICING.map(([type, range]) => (
                 <div key={type} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", alignItems: "center", padding: "1.1rem", borderBottom: `1px solid ${PALETTE.border}` }}>
-                  <div style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.05rem, 2vw, 1.3rem)", fontWeight: 800, color: PALETTE.white, textAlign: "left" }}>{type}</div>
+                  <div style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.05rem, 2vw, 1.3rem)", fontWeight: 800, color: PALETTE.text, textAlign: "left" }}>{type}</div>
                   <div style={{ fontSize: "clamp(1rem, 2vw, 1.25rem)", fontWeight: 900, color: PALETTE.accent, textAlign: "right" }}>{range}</div>
                 </div>
               ))}
@@ -1184,7 +1128,7 @@ export default function App() {
       </section>
 
       {/* ── CTA ── */}
-      <section style={S.section("#04142c")}>
+      <section style={S.section(PALETTE.white)}>
         <div style={S.container}>
           <div className="cta-grid" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "3rem", alignItems: "center" }}>
             <FadeIn style={{ maxWidth: 560, width: "100%", justifySelf: "center", textAlign: "center" }}>
@@ -1192,10 +1136,10 @@ export default function App() {
                 <span style={S.eyebrowLine} />
                 Let's Get Your Publication Finished
               </div>
-              <h2 style={{ ...S.h2(true), marginBottom: "1rem" }}>
+              <h2 style={{ ...S.h2(), marginBottom: "1rem" }}>
                 Let's Finish<br /><em style={{ color: PALETTE.accent }}>Your Publication.</em>
               </h2>
-              <p style={{ ...S.lead(true), margin: "0 auto 2rem", textAlign: "center" }}>
+              <p style={{ ...S.lead(), margin: "0 auto 2rem", textAlign: "center" }}>
                 Get professional help organizing, designing, and preparing your next publication.
               </p>
               <img
@@ -1217,7 +1161,7 @@ export default function App() {
                 <button className="btn-primary-hover" style={S.btnPrimary} onClick={() => scrollTo("#contact")}>
                   Request A Quote
                 </button>
-                <button className="btn-ghost-hover" style={S.btnGhost(true)} onClick={emailQuote}>
+                <button className="btn-ghost-hover" style={S.btnGhost()} onClick={emailQuote}>
                   Email For A Quote
                 </button>
               </div>
@@ -1227,7 +1171,7 @@ export default function App() {
                     <div style={{ fontSize: "1.2rem", width: 36, textAlign: "center" }}>{ic}</div>
                     <div style={{ textAlign: "left" }}>
                       <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: PALETTE.accent, marginBottom: 2 }}>{label}</div>
-                      <div style={{ fontSize: "0.88rem", color: "rgba(255,255,255,0.8)" }}>{val}</div>
+                      <div style={{ fontSize: "0.88rem", color: PALETTE.textMuted }}>{val}</div>
                     </div>
                   </div>
                 ))}
@@ -1254,17 +1198,17 @@ export default function App() {
           <FadeIn delay={0.1}>
             {formSent ? (
               <div style={{ textAlign: "center", padding: "2rem 1rem" }}>
-                <div style={{ color: PALETTE.white, fontSize: "clamp(1.35rem, 3vw, 2rem)", fontStyle: "italic", lineHeight: 1.4 }}>
+                <div style={{ color: PALETTE.text, fontSize: "clamp(1.35rem, 3vw, 2rem)", fontStyle: "italic", lineHeight: 1.4 }}>
                   We'll be in touch within 24 hours.
                 </div>
               </div>
             ) : (
-              <div style={{ background: "#06162c", border: `1px solid ${PALETTE.border}`, padding: "clamp(2rem,5vw,3.5rem)" }}>
+              <div style={{ background: PALETTE.white, border: `1px solid ${PALETTE.border}`, padding: "clamp(2rem,5vw,3.5rem)", boxShadow: "0 18px 48px rgba(2,8,20,0.08)" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem" }}>
                   {[["name","Name","text","Marcus Williams"],["organization","Organization","text","Your organization name"]].map(([field,label,type,ph]) => (
                     <div key={field}>
                       <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>{label}</label>
-                      <input type={type} value={quoteForm[field]} placeholder={ph} onChange={e => updateQuoteForm(field, e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
+                      <input type={type} value={quoteForm[field]} placeholder={ph} onChange={e => updateQuoteForm(field, e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
                     </div>
                   ))}
                 </div>
@@ -1272,18 +1216,18 @@ export default function App() {
                   {[["email","Email Address","email","you@organization.com"],["estimatedPageCount","Estimated Page Count","text","Example: 80 pages"]].map(([field,label,type,ph]) => (
                     <div key={field}>
                       <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>{label}</label>
-                      <input type={type} value={quoteForm[field]} placeholder={ph} onChange={e => updateQuoteForm(field, e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
+                      <input type={type} value={quoteForm[field]} placeholder={ph} onChange={e => updateQuoteForm(field, e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
                     </div>
                   ))}
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem", marginTop: "1.2rem" }}>
                   <div>
                     <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Publication Type</label>
-                    <select value={quoteForm.publicationType} onChange={e => updateQuoteForm("publicationType", e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", appearance: "none", cursor: "pointer" }}>
+                    <select value={quoteForm.publicationType} onChange={e => updateQuoteForm("publicationType", e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", appearance: "none", cursor: "pointer" }}>
                       <option value="" disabled>Select your publication type…</option>
                       <option>School Yearbook</option>
                       <option>Directory Design</option>
-                      <option>Portrait Data Merge</option>
+                      <option>Data Merge</option>
                       <option>Publication Cleanup</option>
                       <option>Annual Report</option>
                       <option>Other / Not Sure</option>
@@ -1291,20 +1235,20 @@ export default function App() {
                   </div>
                   <div>
                     <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Deadline</label>
-                    <input type="text" value={quoteForm.deadline} placeholder="Example: May 15" onChange={e => updateQuoteForm("deadline", e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
+                    <input type="text" value={quoteForm.deadline} placeholder="Example: May 15" onChange={e => updateQuoteForm("deadline", e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
                   </div>
                 </div>
                 <div style={{ marginTop: "1.2rem" }}>
                   <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Upload Files</label>
-                  <input ref={fileInputRef} type="file" style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none" }} />
+                  <input ref={fileInputRef} type="file" style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none" }} />
                 </div>
                 <div style={{ marginTop: "1.2rem" }}>
                   <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Project Details</label>
-                  <textarea value={quoteForm.projectDetails} onChange={e => updateQuoteForm("projectDetails", e.target.value)} placeholder="Tell us what you have, what you need, and what would help us understand the publication…" rows={5} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.base, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", resize: "vertical", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
+                  <textarea value={quoteForm.projectDetails} onChange={e => updateQuoteForm("projectDetails", e.target.value)} placeholder="Tell us what you have, what you need, and what would help us understand the publication…" rows={5} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", resize: "vertical", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
                 </div>
                 <div style={{ marginTop: "1.8rem" }}>
                   {formError && (
-                    <div style={{ color: PALETTE.white, fontSize: "0.92rem", fontStyle: "italic", textAlign: "center", marginBottom: "1rem" }}>
+                    <div style={{ color: PALETTE.text, fontSize: "0.92rem", fontStyle: "italic", textAlign: "center", marginBottom: "1rem" }}>
                       {formError}
                     </div>
                   )}
