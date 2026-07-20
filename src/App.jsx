@@ -535,9 +535,6 @@ export default function App() {
           max-width: 600px;
           justify-self: center;
         }
-        .about-benefits {
-          justify-items: start;
-        }
         @media (max-width: 900px) {
           .hero-section {
             min-height: 78vh !important;
@@ -578,18 +575,6 @@ export default function App() {
             text-align: center !important;
             max-width: 620px !important;
             width: 100% !important;
-          }
-          .about-benefits {
-            display: grid !important;
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            max-width: 620px !important;
-          }
-          .about-benefit-item {
-            width: 100% !important;
-            min-width: 0 !important;
-            justify-content: flex-start !important;
-            max-width: none !important;
-            text-align: left !important;
           }
           .services-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -665,24 +650,6 @@ export default function App() {
           }
           .about-copy h2 {
             font-size: clamp(2.1rem, 11vw, 3.4rem) !important;
-          }
-          .about-benefits {
-            grid-template-columns: minmax(0, 1fr) !important;
-            gap: 0.65rem !important;
-            width: 100% !important;
-          }
-          .about-benefit-item {
-            width: 100% !important;
-            max-width: none !important;
-            min-width: 0 !important;
-            padding: 0.85rem 1rem !important;
-            border: 1px solid rgba(170,125,72,0.3);
-            border-radius: 3px;
-            background: #ffffff;
-          }
-          .about-benefit-item span {
-            min-width: 0 !important;
-            overflow-wrap: anywhere;
           }
         }
       `}</style>
@@ -850,23 +817,6 @@ export default function App() {
                 <p style={{ fontSize: "0.95rem", lineHeight: 1.8, color: PALETTE.textMuted, marginBottom: "2rem", maxWidth: 560, margin: "0 auto 2rem", textAlign: "left" }}>
                   Our goal is simple: create publications that look professional, stay organized, and print correctly the first time.
                 </p>
-                <div className="about-benefits" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.75rem 1.5rem", maxWidth: 560, margin: "0 auto", width: "100%" }}>
-                  {[
-                    "Data merge","Publication cleanup",
-                    "Directory organization","Production-ready files",
-                    "Commercial print experience","Fast turnaround",
-                    "Reliable communication","Quality control",
-                  ].map(item => (
-                    <div className="about-benefit-item" key={item} style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem" }}>
-                      <div style={{
-                        width: 20, height: 20, background: PALETTE.accent, borderRadius: 2,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        flexShrink: 0, marginTop: 1, fontSize: "0.7rem", color: PALETTE.base, fontWeight: 700,
-                      }}>✓</div>
-                      <span style={{ fontSize: "0.88rem", color: PALETTE.accentSoft, lineHeight: 1.5, textAlign: "left" }}>{item}</span>
-                    </div>
-                  ))}
-                </div>
               </div>
             </FadeIn>
 
