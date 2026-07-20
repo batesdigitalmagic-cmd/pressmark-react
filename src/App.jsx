@@ -10,7 +10,6 @@ import directoryDesignSpreadImage from "./assets/directory-design-spread.png";
 import dataMergeSetupImage from "./assets/data-merge-setup.png";
 import dataMergeResultsImage from "./assets/data-merge-results.png";
 import pressmarkLogo from "./assets/pressmark studio logo main.png";
-import pricingGuideImage from "./assets/Pressmark Studio pricing guide.png";
 
 /* ─────────────────────────────────────────────
    DATA
@@ -87,11 +86,14 @@ const AUDIENCES = [
 ];
 
 const PRICING = [
-  ["Church Directory", "$1,500–$5,000"],
-  ["Organization Directory", "$2,000–$8,000"],
-  ["Government Directory", "$3,000–$15,000+"],
-  ["Yearbook Production Support", "$2,500–$12,000+"],
-  ["Publication Rescue Projects", "Custom Quote"],
+  { package: "Yearbook Design", starter: "$2,500", professional: "$4,500", signature: "$7,500+" },
+  { package: "Church Directory", starter: "$1,200", professional: "$2,400", signature: "$4,000+" },
+  { package: "Association Directory", starter: "$1,500", professional: "$3,000", signature: "$5,000+" },
+  { package: "Government Publication", starter: "$2,500", professional: "$5,000", signature: "Custom" },
+  { package: "Annual Report", starter: "$2,000", professional: "$4,000", signature: "$6,500+" },
+  { package: "Program / Event Book", starter: "$600", professional: "$1,200", signature: "$2,500+" },
+  { package: "Publication Rescue", starter: "$500", professional: "$900", signature: "$1,500+" },
+  { package: "Print Ready Review", starter: "$250", professional: "$450", signature: "$750" },
 ];
 
 /* ─────────────────────────────────────────────
@@ -457,7 +459,7 @@ export default function App() {
     // SECTIONS
     section: (bg = PALETTE.panelSoft) => ({
       background: bg,
-      padding: `clamp(4rem, 10vw, 7rem) ${PAGE_X}`,
+      padding: `clamp(3.25rem, 10vw, 7rem) ${PAGE_X}`,
     }),
     container: {
       width: "100%",
@@ -512,7 +514,7 @@ export default function App() {
         html { scroll-behavior: smooth; }
         body { overflow-x: hidden; }
         body { background: #ffffff; }
-        .pricing-print-guide { display: none; }
+        .pricing-mobile-label { display: none; }
         button:focus-visible, a:focus-visible { outline: 2px solid #aa7d48; outline-offset: 2px; }
         .nav-link-hover:hover { color: #aa7d48 !important; }
         .btn-primary-hover:hover { background: #aa7d48 !important; }
@@ -610,15 +612,49 @@ export default function App() {
           .audience-grid { grid-template-columns: repeat(2, 1fr) !important; }
         }
         @media (max-width: 640px) {
+          nav { padding-inline: 1rem !important; }
           .desktop-nav { display: none !important; }
           .hamburger-btn { display: flex !important; }
-          .site-logo-image { transform: translateX(-1.5rem); }
+          .site-logo-image { width: 145px !important; transform: none; }
+          .hero-section {
+            min-height: 100svh !important;
+            align-items: flex-end !important;
+          }
+          .hero-copy h1 {
+            font-size: clamp(2.55rem, 13vw, 3.5rem) !important;
+            line-height: 0.98 !important;
+          }
+          .hero-buttons { flex-direction: column !important; width: 100% !important; }
+          .hero-buttons button { width: 100% !important; }
           .services-grid { grid-template-columns: minmax(0, 1fr) !important; }
           .service-card { padding: 1.25rem !important; }
           .service-media { aspect-ratio: 16 / 10 !important; }
           .problem-grid { grid-template-columns: minmax(0, 1fr) !important; }
           .problem-card { min-height: 68px !important; }
           .why-feature-image { aspect-ratio: 4 / 3 !important; }
+          .process-title { white-space: normal !important; line-height: 1.25 !important; }
+          .pricing-header { display: none !important; }
+          .pricing-row {
+            grid-template-columns: minmax(0, 1fr) !important;
+            gap: 0.25rem !important;
+            text-align: left !important;
+          }
+          .pricing-row > div { text-align: left !important; }
+          .pricing-mobile-label {
+            display: block !important;
+            margin-bottom: 0.1rem;
+            color: #4b5563;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+          }
+          .cta-btns { flex-direction: column !important; }
+          .cta-btns button { width: 100% !important; }
+          .quote-form { padding: 1.25rem !important; }
+          .quote-form-grid { grid-template-columns: minmax(0, 1fr) !important; }
+          .quote-file-input { min-width: 0 !important; padding: 0.7rem !important; }
+          .footer-nav { gap: 1rem 1.4rem !important; }
         }
         @media (max-width: 540px) {
           .why-grid { grid-template-columns: 1fr !important; }
@@ -637,60 +673,6 @@ export default function App() {
           .about-benefit-item {
             width: min(100%, 320px) !important;
             max-width: 320px !important;
-          }
-        }
-        @media print {
-          @page {
-            size: letter portrait;
-            margin: 0.25in;
-          }
-          html, body {
-            width: 8in !important;
-            height: 10.5in !important;
-            margin: 0 !important;
-            overflow: hidden !important;
-          }
-          body * { visibility: hidden !important; }
-          #pricing {
-            display: block !important;
-            position: absolute !important;
-            inset: 0 auto auto 0 !important;
-            width: 8in !important;
-            height: 10.5in !important;
-            background: #ffffff !important;
-            padding: 0 !important;
-            overflow: hidden !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-          #pricing .pricing-print-guide,
-          #pricing .pricing-print-guide * {
-            visibility: visible !important;
-          }
-          #pricing .pricing-print-guide {
-            display: block !important;
-            position: absolute !important;
-            inset: 0 auto auto 0 !important;
-            width: 8in !important;
-            height: 10.5in !important;
-            max-width: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border: 0 !important;
-            background: #ffffff !important;
-            break-after: avoid !important;
-            page-break-after: avoid !important;
-            overflow: hidden !important;
-          }
-          #pricing .pricing-print-guide img {
-            display: block !important;
-            width: auto !important;
-            height: 10.5in !important;
-            max-width: 8in !important;
-            max-height: 10.5in !important;
-            margin: 0 auto !important;
-            object-fit: contain !important;
-            page-break-inside: avoid !important;
           }
         }
       `}</style>
@@ -712,7 +694,7 @@ export default function App() {
         <button className="desktop-nav btn-primary-hover" style={S.navCta} onClick={emailQuote}>
           Get a Quote
         </button>
-        <button className="hamburger-btn" style={{ ...S.hamburger, display: "none" }} onClick={() => setMenuOpen(o => !o)} aria-label="Toggle menu">
+        <button className="hamburger-btn" style={{ ...S.hamburger, display: "none" }} onClick={() => setMenuOpen(o => !o)} aria-label="Toggle menu" aria-expanded={menuOpen}>
           {[0,1,2].map(i => <span key={i} style={S.hamburgerLine(menuOpen, i)} />)}
         </button>
       </nav>
@@ -1012,7 +994,7 @@ export default function App() {
                 How It Works
                 <span style={S.eyebrowLine} />
               </div>
-              <h2 style={{ ...S.h2(), width: "100%", textAlign: "center", whiteSpace: "nowrap", fontSize: "clamp(1.7rem, 5vw, 3rem)" }}>Organize <em style={{ color: PALETTE.accent }}>→</em> Design <em style={{ color: PALETTE.accent }}>→</em> Deliver</h2>
+              <h2 className="process-title" style={{ ...S.h2(), width: "100%", textAlign: "center", whiteSpace: "nowrap", fontSize: "clamp(1.7rem, 5vw, 3rem)" }}>Organize <em style={{ color: PALETTE.accent }}>→</em> Design <em style={{ color: PALETTE.accent }}>→</em> Deliver</h2>
             </div>
           </FadeIn>
 
@@ -1092,9 +1074,6 @@ export default function App() {
 
       {/* ── PRICING ── */}
       <section id="pricing" style={S.section(PALETTE.panelSoft)}>
-        <div className="pricing-print-guide">
-          <img src={pricingGuideImage} alt="Pressmark Studio pricing guide" />
-        </div>
         <div style={S.container}>
           <FadeIn>
             <div style={{ textAlign: "center", maxWidth: 760, margin: "0 auto 3.5rem", display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -1110,9 +1089,6 @@ export default function App() {
                 Pricing depends on publication size, complexity, timeline, data condition, and production requirements.
               </p>
               <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
-                <button className="btn-primary-hover" style={S.btnPrimary} onClick={() => window.print()}>
-                  Download / Print Guide
-                </button>
                 <button className="btn-ghost-hover" style={S.btnGhost()} onClick={emailQuote}>
                   Request Custom Quote
                 </button>
@@ -1129,14 +1105,20 @@ export default function App() {
               background: PALETTE.white,
               overflow: "hidden",
             }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", background: PALETTE.panel, borderBottom: `1px solid ${PALETTE.border}` }}>
-                <div style={{ padding: "1rem", color: PALETTE.accent, fontSize: "0.72rem", fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", textAlign: "left" }}>Publication Type</div>
-                <div style={{ padding: "1rem", color: PALETTE.accent, fontSize: "0.72rem", fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", textAlign: "right" }}>Typical Range</div>
+              <div className="pricing-header" style={{ display: "grid", gridTemplateColumns: "1.4fr repeat(3, 1fr)", background: PALETTE.panel, borderBottom: `1px solid ${PALETTE.border}` }}>
+                {["Package", "Starter", "Professional", "Signature"].map((label, index) => (
+                  <div key={label} style={{ padding: "1rem", color: PALETTE.accent, fontSize: "0.68rem", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", textAlign: index === 0 ? "left" : index === 2 ? "center" : "right" }}>{label}</div>
+                ))}
               </div>
-              {PRICING.map(([type, range]) => (
-                <div key={type} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", alignItems: "center", padding: "1.1rem", borderBottom: `1px solid ${PALETTE.border}` }}>
-                  <div style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.05rem, 2vw, 1.3rem)", fontWeight: 800, color: PALETTE.text, textAlign: "left" }}>{type}</div>
-                  <div style={{ fontSize: "clamp(1rem, 2vw, 1.25rem)", fontWeight: 900, color: PALETTE.accent, textAlign: "right" }}>{range}</div>
+              {PRICING.map(item => (
+                <div className="pricing-row" key={item.package} style={{ display: "grid", gridTemplateColumns: "1.4fr repeat(3, 1fr)", gap: "1rem", alignItems: "center", padding: "1.1rem", borderBottom: `1px solid ${PALETTE.border}` }}>
+                  <div style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.05rem, 2vw, 1.3rem)", fontWeight: 800, color: PALETTE.text, textAlign: "left" }}>{item.package}</div>
+                  {[["Starter", item.starter], ["Professional", item.professional], ["Signature", item.signature]].map(([label, price]) => (
+                    <div key={label} style={{ fontSize: "clamp(0.95rem, 2vw, 1.15rem)", fontWeight: 900, color: PALETTE.accent, textAlign: label === "Professional" ? "center" : "right" }}>
+                      <span className="pricing-mobile-label">{label}</span>
+                      {price}
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
@@ -1220,8 +1202,8 @@ export default function App() {
                 </div>
               </div>
             ) : (
-              <div style={{ background: PALETTE.white, border: `1px solid ${PALETTE.border}`, padding: "clamp(2rem,5vw,3.5rem)", boxShadow: "0 18px 48px rgba(2,8,20,0.08)" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem" }}>
+              <div className="quote-form" style={{ background: PALETTE.white, border: `1px solid ${PALETTE.border}`, padding: "clamp(2rem,5vw,3.5rem)", boxShadow: "0 18px 48px rgba(2,8,20,0.08)" }}>
+                <div className="quote-form-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem" }}>
                   {[["name","Name","text","Marcus Williams"],["organization","Organization","text","Your organization name"]].map(([field,label,type,ph]) => (
                     <div key={field}>
                       <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>{label}</label>
@@ -1229,7 +1211,7 @@ export default function App() {
                     </div>
                   ))}
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem", marginTop: "1.2rem" }}>
+                <div className="quote-form-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem", marginTop: "1.2rem" }}>
                   {[["email","Email Address","email","you@organization.com"],["estimatedPageCount","Estimated Page Count","text","Example: 80 pages"]].map(([field,label,type,ph]) => (
                     <div key={field}>
                       <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>{label}</label>
@@ -1237,7 +1219,7 @@ export default function App() {
                     </div>
                   ))}
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem", marginTop: "1.2rem" }}>
+                <div className="quote-form-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem", marginTop: "1.2rem" }}>
                   <div>
                     <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Publication Type</label>
                     <select value={quoteForm.publicationType} onChange={e => updateQuoteForm("publicationType", e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", appearance: "none", cursor: "pointer" }}>
@@ -1257,7 +1239,7 @@ export default function App() {
                 </div>
                 <div style={{ marginTop: "1.2rem" }}>
                   <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Upload Files</label>
-                  <input ref={fileInputRef} type="file" style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none" }} />
+                  <input className="quote-file-input" ref={fileInputRef} type="file" style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none" }} />
                 </div>
                 <div style={{ marginTop: "1.2rem" }}>
                   <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Project Details</label>
@@ -1288,7 +1270,7 @@ export default function App() {
               Publication Design • Data Merge • Directory Design • Publication Rescue<br />Serving Schools, Teams & Organizations
             </div>
           </div>
-          <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap", justifyContent: "center" }}>
+          <div className="footer-nav" style={{ display: "flex", gap: "2rem", flexWrap: "wrap", justifyContent: "center" }}>
             {NAV_LINKS.map(l => (
               <button key={l.label} onClick={() => scrollTo(l.href)} style={{ fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", background: "none", border: "none", cursor: "pointer", transition: "color 0.2s" }}
                 onMouseEnter={e => e.target.style.color = PALETTE.accent} onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.45)"}>
