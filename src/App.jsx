@@ -66,7 +66,7 @@ const SERVICES = [
 ];
 
 const WHY = [
-  { icon: "📊", title: "Portrait Data Management", desc: "We help organize large portrait sets, names, grades, titles, and custom spreadsheet fields before layout begins." },
+  { icon: "📊", title: "Data Merge", desc: "We help organize large portrait sets, names, grades, titles, and custom spreadsheet fields before layout begins." },
   { icon: "🧹", title: "Publication Cleanup", desc: "Messy files, broken layouts, missing images, and inconsistent formatting can be repaired and brought back under control." },
   { icon: "📇", title: "Directory Organization", desc: "Large directories stay easier to navigate with clear systems for sections, listings, names, and supporting information." },
   { icon: "🖨️", title: "Production-Ready Files", desc: "Final files are prepared with print requirements, image resolution, bleed, trim, packaging, and export in mind." },
@@ -660,6 +660,7 @@ export default function App() {
           .why-grid { grid-template-columns: 1fr !important; }
           .audience-grid { grid-template-columns: 1fr !important; }
           .process-steps { grid-template-columns: minmax(0, 1fr) !important; }
+          .about-grid { padding-inline: 0 !important; }
           .about-media {
             aspect-ratio: 4 / 3 !important;
           }
@@ -668,11 +669,22 @@ export default function App() {
           }
           .about-benefits {
             flex-direction: column !important;
-            align-items: center !important;
+            align-items: stretch !important;
+            gap: 0.65rem !important;
+            width: 100% !important;
           }
           .about-benefit-item {
-            width: min(100%, 320px) !important;
-            max-width: 320px !important;
+            width: 100% !important;
+            max-width: none !important;
+            min-width: 0 !important;
+            padding: 0.85rem 1rem !important;
+            border: 1px solid rgba(170,125,72,0.3);
+            border-radius: 3px;
+            background: #ffffff;
+          }
+          .about-benefit-item span {
+            min-width: 0 !important;
+            overflow-wrap: anywhere;
           }
         }
       `}</style>
@@ -842,7 +854,7 @@ export default function App() {
                 </p>
                 <div className="about-benefits" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.75rem 1.5rem", maxWidth: 560, margin: "0 auto", width: "100%" }}>
                   {[
-                    "Portrait data management","Publication cleanup",
+                    "Data merge","Publication cleanup",
                     "Directory organization","Production-ready files",
                     "Commercial print experience","Fast turnaround",
                     "Reliable communication","Quality control",
