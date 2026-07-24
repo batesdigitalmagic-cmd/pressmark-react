@@ -11,6 +11,9 @@ import dataMergeSetupImage from "./assets/data-merge-setup.png";
 import dataMergeResultsImage from "./assets/data-merge-results.png";
 import pressmarkLogo from "./assets/pressmark studio logo main.png";
 
+// This resolves to https://pressmark.studio/bimi/pressmark-bimi.svg in production.
+const PRESSMARK_BIMI_LOGO = "/bimi/pressmark-bimi.svg";
+
 /* ─────────────────────────────────────────────
    DATA
 ───────────────────────────────────────────── */
@@ -615,7 +618,7 @@ export default function App() {
           nav { padding-inline: 1rem !important; }
           .desktop-nav { display: none !important; }
           .hamburger-btn { display: flex !important; }
-          .site-logo-image { width: 145px !important; transform: none; }
+          .site-logo-image { width: 145px !important; height: auto !important; transform: none; }
           .hero-section {
             min-height: 100svh !important;
             align-items: flex-end !important;
@@ -691,7 +694,12 @@ export default function App() {
       {/* ── NAV ── */}
       <nav style={S.nav}>
         <button style={S.logo} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="Pressmark Studio home">
-          <img className="site-logo-image" src={pressmarkLogo} alt="Pressmark Studio" style={S.logoImage} />
+          <img
+            className="site-logo-image"
+            src={pressmarkLogo}
+            alt="Pressmark Studio"
+            style={S.logoImage}
+          />
         </button>
         <ul className="desktop-nav" style={S.navLinks}>
           {NAV_LINKS.map(l => (
@@ -1276,7 +1284,11 @@ export default function App() {
       <footer style={{ background: "#010611", padding: `2.5rem ${PAGE_X}`, borderTop: `1px solid ${PALETTE.border}` }}>
         <div className="footer-inner" style={{ ...S.container, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1.4rem", textAlign: "center" }}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-            <img src={pressmarkLogo} alt="Pressmark Studio" style={{ ...S.logoImage, width: "clamp(160px, 20vw, 220px)", marginBottom: "0.6rem" }} />
+            <img
+              src={PRESSMARK_BIMI_LOGO}
+              alt="Pressmark Studio"
+              style={{ width: "clamp(120px, 14vw, 160px)", height: "auto", display: "block", marginBottom: "0.6rem" }}
+            />
             <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)", letterSpacing: "0.05em", lineHeight: 1.5, textAlign: "center" }}>
               Publication Design • Data Merge • Directory Design • Publication Rescue<br />Serving Schools, Teams & Organizations
             </div>
