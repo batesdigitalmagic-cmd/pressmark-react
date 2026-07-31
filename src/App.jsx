@@ -3,16 +3,20 @@ import spreadsheetHeroImage from "./assets/Spreadsheet flowing into publication 
 import publicationCleanupImage from "./assets/publication-cleanup.png";
 import heroMergePhotosImage from "./assets/hero image merge photos.png";
 import badPageImage from "./assets/bad page.png?url";
-import sunnyImage from "./assets/sunny.png";
+import publicationViewingImage from "./assets/publication-viewing.jpg";
 import yearbookSpreadImage from "./assets/yearbook-spread.png";
 import yearbookOpenImage from "./assets/year book open.png";
 import directoryDesignSpreadImage from "./assets/directory-design-spread-white.png";
 import dataMergeSetupImage from "./assets/data-merge-setup.png";
 import dataMergeResultsImage from "./assets/data-merge-results.png";
 import pressmarkLogo from "./assets/pressmark studio logo main.png";
-
-// This resolves to https://pressmark.studio/bimi/pressmark-bimi.svg in production.
-const PRESSMARK_BIMI_LOGO = "/bimi/pressmark-bimi.svg";
+import footerCreamLogo from "./assets/pressmark-cream-footer-logo.png";
+import redAthleticsImage from "./assets/portfolio/red-athletics.jpg";
+import creativeClubsImage from "./assets/portfolio/creative-clubs.jpg";
+import visualArtsImage from "./assets/portfolio/visual-arts.jpg";
+import traditionalCoverImage from "./assets/portfolio/cover-traditional.jpg";
+import minimalCoverImage from "./assets/portfolio/cover-minimal.jpg";
+import boldCoverImage from "./assets/portfolio/cover-bold.jpg";
 
 /* ─────────────────────────────────────────────
    DATA
@@ -609,6 +613,9 @@ export default function App() {
           .why-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .process-steps { grid-template-columns: repeat(2, minmax(220px, 1fr)) !important; }
           .process-connector { display: none !important; }
+          .portfolio-intro { grid-template-columns: 0.85fr 1.15fr !important; }
+          .portfolio-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+          .cover-study-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
           .cta-grid { grid-template-columns: 1fr !important; text-align: center; }
           .cta-btns { justify-content: center !important; }
           .footer-inner { flex-direction: column !important; gap: 1rem !important; text-align: center; }
@@ -636,6 +643,15 @@ export default function App() {
           .problem-card { min-height: 68px !important; }
           .why-feature-image { aspect-ratio: 4 / 3 !important; }
           .process-title { white-space: normal !important; line-height: 1.25 !important; }
+          .portfolio-intro { grid-template-columns: minmax(0, 1fr) !important; }
+          .portfolio-video { aspect-ratio: 4 / 3 !important; }
+          .portfolio-gallery { grid-template-columns: minmax(0, 1fr) !important; }
+          .portfolio-card-featured { grid-column: auto !important; }
+          .cover-study-grid { grid-template-columns: minmax(0, 1fr) !important; }
+          .cta-fullscreen-media {
+            height: 72svh !important;
+            min-height: 460px !important;
+          }
           .pricing-header { display: none !important; }
           .pricing-row {
             grid-template-columns: minmax(0, 1fr) !important;
@@ -1050,6 +1066,180 @@ export default function App() {
         </div>
       </section>
 
+      {/* ── PORTFOLIO SHOWCASE ── */}
+      <section aria-labelledby="portfolio-heading" style={S.section(PALETTE.white)}>
+        <div style={{ ...S.container, maxWidth: 1240 }}>
+          <div className="portfolio-intro" style={{
+            display: "grid",
+            gridTemplateColumns: "0.72fr 1.28fr",
+            gap: "clamp(2rem, 5vw, 5rem)",
+            alignItems: "center",
+            marginBottom: "clamp(2.5rem, 6vw, 4.5rem)",
+          }}>
+            <FadeIn>
+              <div style={{ textAlign: "left" }}>
+                <div style={S.eyebrow()}>
+                  <span style={S.eyebrowLine} />
+                  From Content To Keepsake
+                </div>
+                <h2 id="portfolio-heading" style={S.h2()}>
+                  See The Process<br /><em style={{ color: PALETTE.accent }}>Come To Life.</em>
+                </h2>
+                <p style={{ ...S.lead(), marginBottom: "1.25rem" }}>
+                  Organized photos and records become thoughtfully designed pages—and thoughtfully designed pages become a finished publication people are proud to keep.
+                </p>
+                <p style={{ ...S.lead(), fontSize: "0.92rem" }}>
+                  From student life and creative clubs to athletics and visual arts, every spread is built to make the story clear, memorable, and ready for print.
+                </p>
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={0.1}>
+              <div className="portfolio-video" style={{
+                aspectRatio: "16 / 10",
+                overflow: "hidden",
+                background: "#020814",
+                border: `1px solid ${PALETTE.border}`,
+                borderRadius: 4,
+                boxShadow: "0 22px 60px rgba(2,8,20,0.18)",
+              }}>
+                <video
+                  controls
+                  playsInline
+                  preload="metadata"
+                  poster={visualArtsImage}
+                  aria-label="Instant yearbook design showcase"
+                  style={{ width: "100%", height: "100%", display: "block", objectFit: "cover" }}
+                >
+                  <source src="/media/instant-yearbook.mov" type="video/quicktime" />
+                  Your browser does not support embedded video.
+                </video>
+              </div>
+            </FadeIn>
+          </div>
+
+          <div className="portfolio-gallery" style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+            gap: "clamp(1rem, 2.5vw, 1.75rem)",
+          }}>
+            {[
+              {
+                image: redAthleticsImage,
+                eyebrow: "Athletics",
+                title: "Energy, Teamwork & Tradition",
+                copy: "Dynamic spreads bring the season’s biggest moments together in one bold, cohesive story.",
+              },
+              {
+                image: creativeClubsImage,
+                eyebrow: "Student Life",
+                title: "Every Interest Has A Place",
+                copy: "Flexible layouts give clubs, classrooms, and creative programs room to show their personality.",
+              },
+              {
+                image: visualArtsImage,
+                eyebrow: "Visual Arts",
+                title: "Creativity, Beautifully Organized",
+                copy: "A clean visual system turns a rich collection of photos into pages that feel polished and easy to explore.",
+              },
+            ].map((item, index) => (
+              <FadeIn key={item.title} delay={index * 0.08} style={{ height: "100%" }}>
+                <article style={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  background: PALETTE.panelSoft,
+                  border: `1px solid ${PALETTE.border}`,
+                  borderRadius: 4,
+                  overflow: "hidden",
+                }}>
+                  <img
+                    src={item.image}
+                    alt={`${item.eyebrow} yearbook spread mockup`}
+                    loading="lazy"
+                    style={{ width: "100%", aspectRatio: "16 / 10", display: "block", objectFit: "cover" }}
+                  />
+                  <div style={{ padding: "clamp(1.25rem, 3vw, 1.8rem)", textAlign: "left", flex: 1 }}>
+                    <div style={{ fontSize: "0.65rem", fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: PALETTE.accent, marginBottom: "0.65rem" }}>
+                      {item.eyebrow}
+                    </div>
+                    <h3 style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.25rem, 2.2vw, 1.65rem)", lineHeight: 1.15, color: PALETTE.text, margin: "0 0 0.7rem" }}>
+                      {item.title}
+                    </h3>
+                    <p style={{ fontSize: "0.88rem", lineHeight: 1.65, color: PALETTE.textMuted, margin: 0 }}>
+                      {item.copy}
+                    </p>
+                  </div>
+                </article>
+              </FadeIn>
+            ))}
+          </div>
+
+          <FadeIn>
+            <aside style={{
+              marginTop: "clamp(3.5rem, 8vw, 6rem)",
+              paddingTop: "clamp(2rem, 5vw, 3.25rem)",
+              borderTop: `1px solid ${PALETTE.border}`,
+            }}>
+              <div style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                maxWidth: 650,
+                margin: "0 auto clamp(1.75rem, 4vw, 2.5rem)",
+                textAlign: "center",
+              }}>
+                <div style={{ fontSize: "0.64rem", fontWeight: 800, letterSpacing: "0.17em", textTransform: "uppercase", color: PALETTE.accent, marginBottom: "0.7rem" }}>
+                  A Closer Look
+                </div>
+                <h3 style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.45rem, 3vw, 2rem)", lineHeight: 1.15, color: PALETTE.text, margin: "0 0 0.65rem" }}>
+                  Different Stories Call For Different Covers
+                </h3>
+                <p style={{ fontSize: "0.88rem", lineHeight: 1.7, color: PALETTE.textMuted, margin: 0 }}>
+                  Cover direction can feel traditional, minimal, or bold while still reflecting the same school identity. These studies show how typography, photography, and color change the first impression.
+                </p>
+              </div>
+
+              <div className="cover-study-grid" style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                gap: "clamp(0.8rem, 2vw, 1.25rem)",
+              }}>
+                {[
+                  [traditionalCoverImage, "Traditional", "Classic school character with photography and refined detailing."],
+                  [minimalCoverImage, "Minimal", "A quieter concept led by typography, space, and material texture."],
+                  [boldCoverImage, "Bold", "High contrast, energetic scale, and a contemporary editorial feel."],
+                ].map(([image, title, copy]) => (
+                  <figure key={title} style={{ margin: 0, minWidth: 0 }}>
+                    <img
+                      src={image}
+                      alt={`${title} yearbook cover design study`}
+                      loading="lazy"
+                      style={{
+                        width: "100%",
+                        aspectRatio: "16 / 10",
+                        display: "block",
+                        objectFit: "cover",
+                        borderRadius: 3,
+                        border: `1px solid ${PALETTE.border}`,
+                      }}
+                    />
+                    <figcaption style={{ padding: "0.9rem 0.25rem 0", textAlign: "left" }}>
+                      <strong style={{ display: "block", fontFamily: FONT_STACK, fontSize: "1rem", color: PALETTE.text, marginBottom: "0.2rem" }}>
+                        {title}
+                      </strong>
+                      <span style={{ display: "block", fontSize: "0.76rem", lineHeight: 1.55, color: PALETTE.textMuted }}>
+                        {copy}
+                      </span>
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            </aside>
+          </FadeIn>
+        </div>
+      </section>
+
       {/* ── AUDIENCES ── */}
       <section style={S.section(PALETTE.panel)}>
         <div style={S.container}>
@@ -1160,21 +1350,36 @@ export default function App() {
               <p style={{ ...S.lead(), margin: "0 auto 2rem", textAlign: "center" }}>
                 Get professional help organizing, designing, and preparing your next publication.
               </p>
-              <img
-                src={sunnyImage}
-                alt="Organized publication project ready for delivery"
+              <div
+                className="cta-fullscreen-media"
                 style={{
-                  display: "block",
-                  width: "100%",
-                  maxWidth: 520,
-                  aspectRatio: "16/10",
-                  objectFit: "cover",
-                  margin: "0 auto 2rem",
-                  border: `1px solid ${PALETTE.border}`,
-                  borderRadius: 4,
-                  boxShadow: "0 18px 48px rgba(0,0,0,0.28)",
+                  width: "100vw",
+                  height: "min(88svh, 920px)",
+                  minHeight: 560,
+                  position: "relative",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  overflow: "hidden",
+                  margin: "0 0 clamp(2rem, 5vw, 3.5rem)",
+                  backgroundImage: `linear-gradient(rgba(2,8,20,0.5), rgba(2,8,20,0.5)), url(${publicationViewingImage})`,
+                  backgroundPosition: "center",
+                  backgroundSize: "cover",
+                  boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
                 }}
-              />
+              >
+                <img
+                  src={publicationViewingImage}
+                  alt="Students viewing and discussing a finished publication together"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    display: "block",
+                    objectFit: "contain",
+                    position: "relative",
+                    zIndex: 1,
+                  }}
+                />
+              </div>
               <div className="cta-btns" style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
                 <button className="btn-primary-hover" style={S.btnPrimary} onClick={() => scrollTo("#contact")}>
                   Request A Quote
@@ -1285,9 +1490,9 @@ export default function App() {
         <div className="footer-inner" style={{ ...S.container, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1.4rem", textAlign: "center" }}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
             <img
-              src={PRESSMARK_BIMI_LOGO}
+              src={footerCreamLogo}
               alt="Pressmark Studio"
-              style={{ width: "clamp(120px, 14vw, 160px)", height: "auto", display: "block", marginBottom: "0.6rem" }}
+              style={{ width: "clamp(100px, 12vw, 145px)", height: "auto", display: "block", marginBottom: "0.75rem" }}
             />
             <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)", letterSpacing: "0.05em", lineHeight: 1.5, textAlign: "center" }}>
               Publication Design • Data Merge • Directory Design • Publication Rescue<br />Serving Schools, Teams & Organizations
