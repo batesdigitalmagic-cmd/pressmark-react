@@ -523,6 +523,12 @@ export default function App() {
         body { overflow-x: hidden; }
         body { background: #ffffff; }
         .pricing-mobile-label { display: none; }
+        .pricing-reveal > summary { list-style: none; }
+        .pricing-reveal > summary::-webkit-details-marker { display: none; }
+        .pricing-reveal-icon { transition: transform 0.25s ease; }
+        .pricing-reveal[open] .pricing-reveal-icon { transform: rotate(45deg); }
+        .pricing-reveal > summary:hover { background: rgba(170,125,72,0.08) !important; }
+        .pricing-reveal > summary:focus-visible { outline: 2px solid #aa7d48; outline-offset: 3px; }
         button:focus-visible, a:focus-visible { outline: 2px solid #aa7d48; outline-offset: 2px; }
         .nav-link-hover:hover { color: #aa7d48 !important; }
         .btn-primary-hover:hover { background: #aa7d48 !important; }
@@ -1306,14 +1312,38 @@ export default function App() {
           </FadeIn>
 
           <FadeIn delay={0.1}>
-            <div style={{
-              maxWidth: 920,
-              margin: "0 auto",
-              border: `1px solid ${PALETTE.border}`,
-              borderTop: `4px solid ${PALETTE.accent}`,
-              background: PALETTE.white,
-              overflow: "hidden",
-            }}>
+            <details className="pricing-reveal" style={{ maxWidth: 920, margin: "0 auto" }}>
+              <summary style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "1rem",
+                padding: "1rem clamp(1rem, 3vw, 1.4rem)",
+                border: `1px solid ${PALETTE.border}`,
+                borderTop: `4px solid ${PALETTE.accent}`,
+                background: PALETTE.white,
+                color: PALETTE.text,
+                cursor: "pointer",
+                fontSize: "0.78rem",
+                fontWeight: 800,
+                letterSpacing: "0.1em",
+                textAlign: "left",
+                textTransform: "uppercase",
+              }}>
+                <span>
+                  View Pricing Ranges
+                  <small style={{ display: "block", marginTop: "0.35rem", color: PALETTE.textMuted, fontSize: "0.7rem", fontWeight: 500, letterSpacing: "0.02em", lineHeight: 1.4, textTransform: "none" }}>
+                    Compare starter, professional, and signature packages
+                  </small>
+                </span>
+                <span className="pricing-reveal-icon" aria-hidden="true" style={{ color: PALETTE.accent, fontSize: "1.7rem", fontWeight: 400, lineHeight: 1 }}>+</span>
+              </summary>
+              <div style={{
+                border: `1px solid ${PALETTE.border}`,
+                borderTop: "none",
+                background: PALETTE.white,
+                overflow: "hidden",
+              }}>
               <div className="pricing-header" style={{ display: "grid", gridTemplateColumns: "1.4fr repeat(3, 1fr)", background: PALETTE.panel, borderBottom: `1px solid ${PALETTE.border}` }}>
                 {["Package", "Starter", "Professional", "Signature"].map((label, index) => (
                   <div key={label} style={{ padding: "1rem", color: PALETTE.accent, fontSize: "0.68rem", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", textAlign: index === 0 ? "left" : index === 2 ? "center" : "right" }}>{label}</div>
@@ -1330,7 +1360,8 @@ export default function App() {
                   ))}
                 </div>
               ))}
-            </div>
+              </div>
+            </details>
           </FadeIn>
         </div>
       </section>
