@@ -1336,10 +1336,9 @@ export default function App() {
       </section>
 
       {/* ── CTA ── */}
-      <section style={S.section(PALETTE.white)}>
-        <div style={S.container}>
-          <div className="cta-grid" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "3rem", alignItems: "center" }}>
-            <FadeIn style={{ maxWidth: 560, width: "100%", justifySelf: "center", textAlign: "center" }}>
+      <section style={{ background: PALETTE.white, padding: "clamp(3.25rem, 10vw, 7rem) 0" }}>
+        <div className="cta-content" style={{ width: "100%", maxWidth: 620, margin: "0 auto", padding: `0 ${PAGE_X}`, boxSizing: "border-box", textAlign: "center" }}>
+          <FadeIn>
               <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
                 <span style={S.eyebrowLine} />
                 Let's Get Your Publication Finished
@@ -1350,57 +1349,59 @@ export default function App() {
               <p style={{ ...S.lead(), margin: "0 auto 2rem", textAlign: "center" }}>
                 Get professional help organizing, designing, and preparing your next publication.
               </p>
-              <div
-                className="cta-fullscreen-media"
-                style={{
-                  width: "100vw",
-                  height: "min(88svh, 920px)",
-                  minHeight: 560,
-                  position: "relative",
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  overflow: "hidden",
-                  margin: "0 0 clamp(2rem, 5vw, 3.5rem)",
-                  backgroundImage: `linear-gradient(rgba(2,8,20,0.5), rgba(2,8,20,0.5)), url(${publicationViewingImage})`,
-                  backgroundPosition: "center",
-                  backgroundSize: "cover",
-                  boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
-                }}
-              >
-                <img
-                  src={publicationViewingImage}
-                  alt="Students viewing and discussing a finished publication together"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    display: "block",
-                    objectFit: "contain",
-                    position: "relative",
-                    zIndex: 1,
-                  }}
-                />
-              </div>
-              <div className="cta-btns" style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
-                <button className="btn-primary-hover" style={S.btnPrimary} onClick={() => scrollTo("#contact")}>
-                  Request A Quote
-                </button>
-                <button className="btn-ghost-hover" style={S.btnGhost()} onClick={emailQuote}>
-                  Email For A Quote
-                </button>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem", width: "fit-content", maxWidth: "100%", minWidth: 220, margin: "2rem auto 0", textAlign: "left" }}>
-                {[["📞","Call or Text","470.344.4864"],["✉️","Email","info@pressmark.studio"],["📍","Location","Serving Nationwide"]].map(([ic,label,val]) => (
-                  <div key={label} style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-                    <div style={{ fontSize: "1.2rem", width: 36, textAlign: "center" }}>{ic}</div>
-                    <div style={{ textAlign: "left" }}>
-                      <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: PALETTE.accent, marginBottom: 2 }}>{label}</div>
-                      <div style={{ fontSize: "0.88rem", color: PALETTE.textMuted }}>{val}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </FadeIn>
+          </FadeIn>
+        </div>
+
+        <FadeIn style={{ width: "100%" }}>
+          <div
+            className="cta-fullscreen-media"
+            style={{
+              width: "100%",
+              height: "min(88svh, 920px)",
+              minHeight: 560,
+              overflow: "hidden",
+              margin: "0 0 clamp(2rem, 5vw, 3.5rem)",
+              backgroundImage: `linear-gradient(rgba(2,8,20,0.5), rgba(2,8,20,0.5)), url(${publicationViewingImage})`,
+              backgroundPosition: "center",
+              backgroundSize: "cover",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+            }}
+          >
+            <img
+              src={publicationViewingImage}
+              alt="Students viewing and discussing a finished publication together"
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "block",
+                objectFit: "contain",
+              }}
+            />
           </div>
+        </FadeIn>
+
+        <div className="cta-content" style={{ width: "100%", maxWidth: 620, margin: "0 auto", padding: `0 ${PAGE_X}`, boxSizing: "border-box", textAlign: "center" }}>
+          <FadeIn>
+            <div className="cta-btns" style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
+              <button className="btn-primary-hover" style={S.btnPrimary} onClick={() => scrollTo("#contact")}>
+                Request A Quote
+              </button>
+              <button className="btn-ghost-hover" style={S.btnGhost()} onClick={emailQuote}>
+                Email For A Quote
+              </button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem", width: "fit-content", maxWidth: "100%", minWidth: 220, margin: "2rem auto 0", textAlign: "left" }}>
+              {[["📞","Call or Text","470.344.4864"],["✉️","Email","info@pressmark.studio"],["📍","Location","Serving Nationwide"]].map(([ic,label,val]) => (
+                <div key={label} style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+                  <div style={{ fontSize: "1.2rem", width: 36, textAlign: "center", flexShrink: 0 }}>{ic}</div>
+                  <div style={{ textAlign: "left", minWidth: 0 }}>
+                    <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: PALETTE.accent, marginBottom: 2 }}>{label}</div>
+                    <div style={{ fontSize: "0.88rem", color: PALETTE.textMuted }}>{val}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </FadeIn>
         </div>
       </section>
 
