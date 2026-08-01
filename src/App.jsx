@@ -1117,6 +1117,7 @@ export default function App() {
                   aria-label="Instant yearbook design showcase"
                   style={{ width: "100%", height: "100%", display: "block", objectFit: "cover" }}
                 >
+                  <source src="/media/instant-yearbook.mp4" type="video/mp4" />
                   <source src="/media/instant-yearbook.mov" type="video/quicktime" />
                   Your browser does not support embedded video.
                 </video>
