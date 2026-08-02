@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Zoho credentials — never commit
+.env
+.env.*
+!.env.example
+.vercel
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

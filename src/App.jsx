@@ -103,6 +103,41 @@ const PRICING = [
   { package: "Print Ready Review", starter: "$250", professional: "$450", signature: "$750" },
 ];
 
+const PUBLICATION_TYPES = [
+  "School Yearbook",
+  "Church Directory",
+  "Association Directory",
+  "Government Publication",
+  "Annual Report",
+  "Program / Event Book",
+  "Data Merge",
+  "Publication Cleanup",
+  "Other / Not Sure",
+];
+
+const BUDGET_RANGES = [
+  "Under $1,000",
+  "$1,000 - $2,500",
+  "$2,500 - $5,000",
+  "$5,000 - $10,000",
+  "$10,000+",
+  "Not sure yet",
+];
+
+const EMPTY_QUOTE_FORM = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  organization: "",
+  publicationType: "",
+  estimatedPageCount: "",
+  deadline: "",
+  budgetRange: "",
+  projectDetails: "",
+  website: "", // honeypot — left blank by real visitors
+};
+
 /* ─────────────────────────────────────────────
    IMAGE PLACEHOLDER COMPONENT
 ───────────────────────────────────────────── */
@@ -153,6 +188,7 @@ const PALETTE = {
   text: "#020814",
   textMuted: "#4b5563",
   border: "rgba(170,125,72,0.3)",
+  danger: "#b3261e",
   black: "#000000",
   white: "#ffffff",
 };
@@ -290,16 +326,9 @@ export default function App() {
   const [formSent, setFormSent] = useState(false);
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
-  const [quoteForm, setQuoteForm] = useState({
-    name: "",
-    email: "",
-    organization: "",
-    publicationType: "",
-    estimatedPageCount: "",
-    deadline: "",
-    projectDetails: "",
-  });
-  const fileInputRef = useRef(null);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [uploadUrl, setUploadUrl] = useState("");
+  const [quoteForm, setQuoteForm] = useState(EMPTY_QUOTE_FORM);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -319,51 +348,55 @@ export default function App() {
 
   const updateQuoteForm = (field, value) => {
     setQuoteForm((current) => ({ ...current, [field]: value }));
+    setFieldErrors((current) => {
+      if (!current[field]) return current;
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const validateQuoteForm = () => {
+    const errors = {};
+    if (!quoteForm.lastName.trim()) errors.lastName = "Last name is required.";
+    if (!quoteForm.email.trim()) {
+      errors.email = "Email address is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(quoteForm.email.trim())) {
+      errors.email = "Enter a valid email address.";
+    }
+    if (!quoteForm.organization.trim()) errors.organization = "Organization is required.";
+
+    return errors;
   };
 
   const sendQuoteRequest = async () => {
+    const errors = validateQuoteForm();
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      setFormError("Please correct the highlighted fields.");
+      return;
+    }
+
     setFormSubmitting(true);
     setFormError("");
 
-    const formData = new FormData();
-    formData.append("_subject", "Pressmark Studio Quote Request");
-    formData.append("Name", quoteForm.name);
-    formData.append("Email Address", quoteForm.email);
-    formData.append("Organization", quoteForm.organization);
-    formData.append("Publication Type", quoteForm.publicationType);
-    formData.append("Estimated Page Count", quoteForm.estimatedPageCount);
-    formData.append("Deadline", quoteForm.deadline);
-    formData.append("Project Details", quoteForm.projectDetails);
-    if (fileInputRef.current?.files?.[0]) {
-      formData.append("Upload Files", fileInputRef.current.files[0]);
-    }
-
     try {
-      const response = await fetch("https://formsubmit.co/ajax/quotes@pressmark.studio", {
+      const response = await fetch("/api/quote", {
         method: "POST",
-        headers: { Accept: "application/json" },
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(quoteForm),
       });
+      const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error("Quote request failed");
+        throw new Error(result.error || "Quote request failed");
       }
 
+      setUploadUrl(result.uploadUrl || "");
       setFormSent(true);
-      setQuoteForm({
-        name: "",
-        email: "",
-        organization: "",
-        publicationType: "",
-        estimatedPageCount: "",
-        deadline: "",
-        projectDetails: "",
-      });
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    } catch {
-      setFormError("Something went wrong. Please email quotes@pressmark.studio directly.");
+      setQuoteForm(EMPTY_QUOTE_FORM);
+    } catch (error) {
+      setFormError(error.message || "Something went wrong. Please email quotes@pressmark.studio directly.");
     } finally {
       setFormSubmitting(false);
     }
@@ -512,7 +545,71 @@ export default function App() {
       cursor: "pointer", transition: "all 0.2s",
       textDecoration: "none", display: "inline-block",
     }),
+
+    // FORM
+    fieldLabel: {
+      display: "block", fontSize: "0.68rem", fontWeight: 700,
+      letterSpacing: "0.1em", textTransform: "uppercase",
+      color: PALETTE.accentSoft, marginBottom: "0.45rem",
+    },
+    fieldInput: {
+      width: "100%", padding: "0.75rem 1rem",
+      border: `1px solid ${PALETTE.border}`,
+      background: PALETTE.white, color: PALETTE.text,
+      fontSize: "0.92rem", fontFamily: FONT_STACK,
+      outline: "none", transition: "border-color 0.2s",
+    },
+    fieldError: {
+      display: "block", marginTop: "0.35rem",
+      fontSize: "0.72rem", color: PALETTE.danger,
+    },
   };
+
+  /* Plain JSX helpers rather than components — a component defined here would
+     remount on every render and drop the focused input. */
+  const fieldLabel = (field, label, required) => (
+    <label htmlFor={`quote-${field}`} style={S.fieldLabel}>
+      {label}{required && <span style={{ color: PALETTE.danger }}> *</span>}
+    </label>
+  );
+
+  const fieldFeedback = (field) =>
+    fieldErrors[field] && <span style={S.fieldError}>{fieldErrors[field]}</span>;
+
+  const textField = ({ field, label, type = "text", placeholder, required }) => (
+    <div key={field}>
+      {fieldLabel(field, label, required)}
+      <input
+        id={`quote-${field}`}
+        className={`quote-input${fieldErrors[field] ? " quote-input-error" : ""}`}
+        type={type}
+        value={quoteForm[field]}
+        placeholder={placeholder}
+        aria-invalid={fieldErrors[field] ? true : undefined}
+        onChange={e => updateQuoteForm(field, e.target.value)}
+        style={S.fieldInput}
+      />
+      {fieldFeedback(field)}
+    </div>
+  );
+
+  const selectField = ({ field, label, placeholder, options, required }) => (
+    <div key={field}>
+      {fieldLabel(field, label, required)}
+      <select
+        id={`quote-${field}`}
+        className={`quote-input${fieldErrors[field] ? " quote-input-error" : ""}`}
+        value={quoteForm[field]}
+        aria-invalid={fieldErrors[field] ? true : undefined}
+        onChange={e => updateQuoteForm(field, e.target.value)}
+        style={{ ...S.fieldInput, appearance: "none", cursor: "pointer" }}
+      >
+        <option value="" disabled>{placeholder}</option>
+        {options.map(option => <option key={option}>{option}</option>)}
+      </select>
+      {fieldFeedback(field)}
+    </div>
+  );
 
   return (
     <div style={S.root}>
@@ -530,6 +627,12 @@ export default function App() {
         .pricing-reveal > summary:hover { background: rgba(170,125,72,0.08) !important; }
         .pricing-reveal > summary:focus-visible { outline: 2px solid #aa7d48; outline-offset: 3px; }
         button:focus-visible, a:focus-visible { outline: 2px solid #aa7d48; outline-offset: 2px; }
+        .quote-input:focus { border-color: #aa7d48 !important; }
+        .quote-input-error { border-color: #b3261e !important; }
+        .quote-honeypot {
+          position: absolute; left: -9999px;
+          width: 1px; height: 1px; overflow: hidden;
+        }
         .nav-link-hover:hover { color: #aa7d48 !important; }
         .btn-primary-hover:hover { background: #aa7d48 !important; }
         .btn-ghost-hover:hover { border-color: #aa7d48 !important; color: #aa7d48 !important; }
@@ -678,7 +781,6 @@ export default function App() {
           .cta-btns button { width: 100% !important; }
           .quote-form { padding: 1.25rem !important; }
           .quote-form-grid { grid-template-columns: minmax(0, 1fr) !important; }
-          .quote-file-input { min-width: 0 !important; padding: 0.7rem !important; }
           .footer-nav { gap: 1rem 1.4rem !important; }
         }
         @media (max-width: 540px) {
@@ -1453,58 +1555,88 @@ export default function App() {
           </FadeIn>
           <FadeIn delay={0.1}>
             {formSent ? (
-              <div style={{ textAlign: "center", padding: "2rem 1rem" }}>
+              <div style={{ textAlign: "center", padding: "2rem 1rem", maxWidth: 620, margin: "0 auto" }}>
                 <div style={{ color: PALETTE.text, fontSize: "clamp(1.35rem, 3vw, 2rem)", fontStyle: "italic", lineHeight: 1.4 }}>
                   We'll be in touch within 24 hours.
                 </div>
+                {uploadUrl ? (
+                  <>
+                    <p style={{ fontSize: "0.95rem", lineHeight: 1.7, color: PALETTE.textMuted, margin: "1.5rem 0 1.25rem" }}>
+                      Have photos, spreadsheets, or an existing publication to send? Upload them straight to your private project folder — there's no file size limit, and the link is yours alone.
+                    </p>
+                    <a
+                      className="btn-primary-hover"
+                      href={uploadUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={S.btnPrimary}
+                    >
+                      Upload Your Files →
+                    </a>
+                    <p style={{ fontSize: "0.75rem", color: PALETTE.textMuted, margin: "1rem 0 0" }}>
+                      This link expires in 30 days. We also emailed it to you.
+                    </p>
+                  </>
+                ) : (
+                  <p style={{ fontSize: "0.95rem", lineHeight: 1.7, color: PALETTE.textMuted, margin: "1.5rem 0 0" }}>
+                    We'll follow up with a secure link for any photos, spreadsheets, or existing files you'd like to send.
+                  </p>
+                )}
               </div>
             ) : (
               <div className="quote-form" style={{ background: PALETTE.white, border: `1px solid ${PALETTE.border}`, padding: "clamp(2rem,5vw,3.5rem)", boxShadow: "0 18px 48px rgba(2,8,20,0.08)" }}>
                 <div className="quote-form-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem" }}>
-                  {[["name","Name","text","Marcus Williams"],["organization","Organization","text","Your organization name"]].map(([field,label,type,ph]) => (
-                    <div key={field}>
-                      <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>{label}</label>
-                      <input type={type} value={quoteForm[field]} placeholder={ph} onChange={e => updateQuoteForm(field, e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
-                    </div>
-                  ))}
+                  {textField({ field: "firstName", label: "First Name", placeholder: "Marcus" })}
+                  {textField({ field: "lastName", label: "Last Name", placeholder: "Williams", required: true })}
                 </div>
                 <div className="quote-form-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem", marginTop: "1.2rem" }}>
-                  {[["email","Email Address","email","you@organization.com"],["estimatedPageCount","Estimated Page Count","text","Example: 80 pages"]].map(([field,label,type,ph]) => (
-                    <div key={field}>
-                      <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>{label}</label>
-                      <input type={type} value={quoteForm[field]} placeholder={ph} onChange={e => updateQuoteForm(field, e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
-                    </div>
-                  ))}
+                  {textField({ field: "email", label: "Email Address", type: "email", placeholder: "you@organization.com", required: true })}
+                  {textField({ field: "phone", label: "Phone", type: "tel", placeholder: "470.344.4864" })}
                 </div>
                 <div className="quote-form-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem", marginTop: "1.2rem" }}>
+                  {textField({ field: "organization", label: "Organization", placeholder: "Your organization name", required: true })}
+                  {selectField({ field: "publicationType", label: "Publication Type", placeholder: "Select your publication type…", options: PUBLICATION_TYPES })}
+                </div>
+                <div className="quote-form-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem", marginTop: "1.2rem" }}>
+                  {textField({ field: "estimatedPageCount", label: "Estimated Page Count", placeholder: "Example: 80 pages" })}
+                  {textField({ field: "deadline", label: "Deadline", placeholder: "Example: May 15" })}
+                </div>
+                <div className="quote-form-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.2rem", marginTop: "1.2rem" }}>
+                  {selectField({ field: "budgetRange", label: "Budget Range", placeholder: "Select a range…", options: BUDGET_RANGES })}
                   <div>
-                    <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Publication Type</label>
-                    <select value={quoteForm.publicationType} onChange={e => updateQuoteForm("publicationType", e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", appearance: "none", cursor: "pointer" }}>
-                      <option value="" disabled>Select your publication type…</option>
-                      <option>School Yearbook</option>
-                      <option>Directory Design</option>
-                      <option>Data Merge</option>
-                      <option>Publication Cleanup</option>
-                      <option>Annual Report</option>
-                      <option>Other / Not Sure</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Deadline</label>
-                    <input type="text" value={quoteForm.deadline} placeholder="Example: May 15" onChange={e => updateQuoteForm("deadline", e.target.value)} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
+                    <span style={S.fieldLabel}>Project Files</span>
+                    <p style={{ fontSize: "0.82rem", lineHeight: 1.6, color: PALETTE.textMuted, margin: 0 }}>
+                      No need to attach anything here. After you submit, we'll give you a private upload link for your photos, spreadsheets, and existing files — any size.
+                    </p>
                   </div>
                 </div>
                 <div style={{ marginTop: "1.2rem" }}>
-                  <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Upload Files</label>
-                  <input className="quote-file-input" ref={fileInputRef} type="file" style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none" }} />
+                  <label htmlFor="quote-projectDetails" style={S.fieldLabel}>Project Details</label>
+                  <textarea
+                    id="quote-projectDetails"
+                    className="quote-input"
+                    value={quoteForm.projectDetails}
+                    onChange={e => updateQuoteForm("projectDetails", e.target.value)}
+                    placeholder="Tell us what you have, what you need, and what would help us understand the publication…"
+                    rows={5}
+                    style={{ ...S.fieldInput, resize: "vertical" }}
+                  />
                 </div>
-                <div style={{ marginTop: "1.2rem" }}>
-                  <label style={{ display: "block", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: PALETTE.accentSoft, marginBottom: "0.45rem" }}>Project Details</label>
-                  <textarea value={quoteForm.projectDetails} onChange={e => updateQuoteForm("projectDetails", e.target.value)} placeholder="Tell us what you have, what you need, and what would help us understand the publication…" rows={5} style={{ width: "100%", padding: "0.75rem 1rem", border: `1px solid ${PALETTE.border}`, background: "#ffffff", color: PALETTE.text, fontSize: "0.92rem", fontFamily: FONT_STACK, outline: "none", resize: "vertical", transition: "border-color 0.2s" }} onFocus={e => e.target.style.borderColor = PALETTE.accent} onBlur={e => e.target.style.borderColor = "rgba(170,125,72,0.24)"} />
+                {/* Honeypot — hidden from real visitors, discards bot submissions. */}
+                <div className="quote-honeypot" aria-hidden="true">
+                  <label htmlFor="quote-website">Website</label>
+                  <input
+                    id="quote-website"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={quoteForm.website}
+                    onChange={e => updateQuoteForm("website", e.target.value)}
+                  />
                 </div>
                 <div style={{ marginTop: "1.8rem" }}>
                   {formError && (
-                    <div style={{ color: PALETTE.text, fontSize: "0.92rem", fontStyle: "italic", textAlign: "center", marginBottom: "1rem" }}>
+                    <div role="alert" style={{ color: PALETTE.danger, fontSize: "0.92rem", fontStyle: "italic", textAlign: "center", marginBottom: "1rem" }}>
                       {formError}
                     </div>
                   )}
