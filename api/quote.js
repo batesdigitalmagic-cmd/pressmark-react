@@ -15,11 +15,20 @@
  * no attachment is still a lead and no form data depends on a file arriving.
  */
 
+import {
+  CLIENT_UPLOAD_FOLDER,
+  createFolderTree,
+  createUploadLink,
+  createWorkDriveFolder,
+  sanitizeFolderName,
+} from "../lib/workdrive.js";
+
+export { createUploadLink, createWorkDriveFolder, sanitizeFolderName };
+
 export const config = { runtime: "edge" };
 
 const ACCOUNTS_DOMAIN = process.env.ZOHO_ACCOUNTS_DOMAIN || "https://accounts.zoho.com";
 const API_DOMAIN = process.env.ZOHO_API_DOMAIN || "https://www.zohoapis.com";
-const WORKDRIVE_DOMAIN = process.env.ZOHO_WORKDRIVE_DOMAIN || "https://workdrive.zoho.com";
 const WORKDRIVE_PARENT_ID = process.env.ZOHO_WORKDRIVE_PARENT_FOLDER_ID;
 
 /* Optional custom CRM fields. Anything left unset still reaches the lead
@@ -31,8 +40,6 @@ const CUSTOM_FIELDS = {
   budgetRange: process.env.ZOHO_CRM_FIELD_BUDGET,
   workdriveLink: process.env.ZOHO_CRM_FIELD_WORKDRIVE_LINK,
 };
-
-const LINK_EXPIRY_DAYS = Number(process.env.ZOHO_UPLOAD_LINK_EXPIRY_DAYS) || 30;
 
 /* Edge isolates are reused between invocations, so caching the access token
    saves a round trip to Zoho accounts on most requests. */
@@ -63,80 +70,6 @@ export async function getAccessToken() {
   return cachedToken.value;
 }
 
-/* WorkDrive rejects \ / : * ? " < > | in names. */
-export function sanitizeFolderName(name) {
-  return name.replace(/[\\/:*?"<>|]/g, " ").replace(/\s+/g, " ").trim().slice(0, 120);
-}
-
-export async function createWorkDriveFolder(token, name) {
-  const response = await fetch(`${API_DOMAIN}/workdrive/api/v1/files`, {
-    method: "POST",
-    headers: {
-      Authorization: `Zoho-oauthtoken ${token}`,
-      "Content-Type": "application/json",
-      Accept: "application/vnd.api+json",
-    },
-    body: JSON.stringify({
-      data: { type: "files", attributes: { name, parent_id: WORKDRIVE_PARENT_ID } },
-    }),
-  });
-
-  const body = await response.json();
-  if (!response.ok) throw new Error(`WorkDrive folder creation failed: ${JSON.stringify(body)}`);
-
-  // The API has returned `data` as both an object and a single-item array.
-  const record = Array.isArray(body.data) ? body.data[0] : body.data;
-  const id = record?.id;
-  if (!id) throw new Error("WorkDrive folder creation returned no id");
-
-  return { id, url: record?.attributes?.permalink || `${WORKDRIVE_DOMAIN}/folder/${id}` };
-}
-
-/*
- * Mints a public upload-only link to a folder, so the customer's files go
- * straight to WorkDrive and never transit this function.
- *
- * role_id 5 = EDIT, 6 = VIEW, 7 = UPLOAD (folders only).
- * allow_download stays false — the link must not expose one client's assets
- * to anyone else who has the URL.
- */
-export async function createUploadLink(token, folderId, linkName) {
-  const expiry = new Date(Date.now() + LINK_EXPIRY_DAYS * 86400000)
-    .toISOString()
-    .slice(0, 10);
-
-  const response = await fetch(`${API_DOMAIN}/workdrive/api/v1/links`, {
-    method: "POST",
-    headers: {
-      Authorization: `Zoho-oauthtoken ${token}`,
-      "Content-Type": "application/json",
-      Accept: "application/vnd.api+json",
-    },
-    body: JSON.stringify({
-      data: {
-        type: "links",
-        attributes: {
-          resource_id: folderId,
-          link_name: linkName,
-          role_id: "7",
-          allow_download: false,
-          request_user_data: false,
-          expiration_date: expiry,
-        },
-      },
-    }),
-  });
-
-  const body = await response.json();
-  if (!response.ok) throw new Error(`WorkDrive link creation failed: ${JSON.stringify(body)}`);
-
-  const record = Array.isArray(body.data) ? body.data[0] : body.data;
-  const link = record?.attributes?.link || record?.attributes?.permalink;
-  if (!link) throw new Error("WorkDrive link creation returned no url");
-
-  return link;
-}
-
 function buildDescription(fields, assets) {
   const lines = [
     `Publication type: ${fields.publicationType || "Not specified"}`,
@@ -148,8 +81,8 @@ function buildDescription(fields, assets) {
     fields.projectDetails || "None provided.",
   ];
 
-  if (assets.folderUrl) lines.push("", `Asset folder: ${assets.folderUrl}`);
-  if (assets.uploadUrl) lines.push(`Customer upload link: ${assets.uploadUrl}`);
+  if (assets.folderUrl) lines.push("", `Project folder: ${assets.folderUrl}`);
+  if (assets.uploadUrl) lines.push(`Customer upload link (${CLIENT_UPLOAD_FOLDER}): ${assets.uploadUrl}`);
   if (assets.note) lines.push("", assets.note);
 
   return lines.join("\n");
@@ -266,10 +199,32 @@ export default async function handler(request) {
       );
       const folder = await createWorkDriveFolder(token, folderName);
       assets.folderUrl = folder.url;
-      assets.uploadUrl = await createUploadLink(token, folder.id, folderName);
+
+      /* Nested tree is best-effort: a failed subfolder must not cost us the
+         project folder or the lead. */
+      const tree = await createFolderTree(token, folder.id, fields.publicationType);
+      if (tree.failed.length) {
+        const detail = tree.failed.map((f) => f.path).join(", ");
+        assets.note = `NOTE: ${tree.failed.length} project subfolder(s) could not be created: ${detail}. Create them by hand in WorkDrive.`;
+      }
+
+      /* The link is scoped to 01 Client Uploads so customers never see proofs,
+         working files, or deliverables. If that folder is missing we issue no
+         link at all rather than falling back to the project root. */
+      const uploadsId = tree.folders[CLIENT_UPLOAD_FOLDER];
+      if (uploadsId) {
+        assets.uploadUrl = await createUploadLink(
+          token,
+          uploadsId,
+          `${folderName} - ${CLIENT_UPLOAD_FOLDER}`
+        );
+      } else {
+        assets.note = `${assets.note} NOTE: "${CLIENT_UPLOAD_FOLDER}" was not created, so no upload link was issued. Request assets from the client.`.trim();
+      }
     } catch (error) {
       console.error(error);
-      assets.note = "NOTE: Could not issue a WorkDrive upload link. Request assets from the client.";
+      // Append — a tree-failure note may already be recorded above.
+      assets.note = `${assets.note} NOTE: Could not issue a WorkDrive upload link. Request assets from the client.`.trim();
     }
   }
 

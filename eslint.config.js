@@ -19,8 +19,8 @@ export default defineConfig([
     },
   },
   {
-    // Vercel serverless functions run on the server, not in the browser.
-    files: ['api/**/*.js'],
+    // Serverless functions and their shared libraries run on the server.
+    files: ['api/**/*.js', 'lib/**/*.js', 'scripts/**/*.mjs'],
     languageOptions: {
       globals: { ...globals.node, ...globals.serviceworker },
     },
