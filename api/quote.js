@@ -22,6 +22,7 @@ import {
   createWorkDriveFolder,
   sanitizeFolderName,
 } from "../lib/workdrive.js";
+import { sendWelcomeEmail } from "../lib/email.js";
 
 export { createUploadLink, createWorkDriveFolder, sanitizeFolderName };
 
@@ -188,7 +189,7 @@ export default async function handler(request) {
     token = await getAccessToken();
   } catch (error) {
     console.error(error);
-    return json({ error: "Could not reach Zoho. Please email quotes@pressmark.studio." }, 502);
+    return json({ error: "Could not reach Zoho. Please email quote@pressmark.studio." }, 502);
   }
 
   /* WorkDrive is best-effort. If the folder or link fails, the lead is still
@@ -236,9 +237,20 @@ export default async function handler(request) {
 
   try {
     const leadId = await createLead(token, fields, assets);
-    return json({ ok: true, leadId, uploadUrl: assets.uploadUrl || null });
+
+    /* Best-effort. The confirmation screen shows the same upload link, so a
+       mail failure never leaves the client without it. */
+    let emailed = false;
+    try {
+      await sendWelcomeEmail(token, fields, assets.uploadUrl);
+      emailed = true;
+    } catch (error) {
+      console.error("Welcome email failed:", error.message);
+    }
+
+    return json({ ok: true, leadId, emailed, uploadUrl: assets.uploadUrl || null });
   } catch (error) {
     console.error(error);
-    return json({ error: "Could not save your request. Please email quotes@pressmark.studio." }, 502);
+    return json({ error: "Could not save your request. Please email quote@pressmark.studio." }, 502);
   }
 }

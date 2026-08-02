@@ -343,7 +343,7 @@ export default function App() {
 
   const emailQuote = () => {
     setMenuOpen(false);
-    window.location.href = "mailto:quotes@pressmark.studio?subject=Quote%20Request";
+    window.location.href = "mailto:quote@pressmark.studio?subject=Quote%20Request";
   };
 
   const updateQuoteForm = (field, value) => {
@@ -396,7 +396,7 @@ export default function App() {
       setFormSent(true);
       setQuoteForm(EMPTY_QUOTE_FORM);
     } catch (error) {
-      setFormError(error.message || "Something went wrong. Please email quotes@pressmark.studio directly.");
+      setFormError(error.message || "Something went wrong. Please email quote@pressmark.studio directly.");
     } finally {
       setFormSubmitting(false);
     }

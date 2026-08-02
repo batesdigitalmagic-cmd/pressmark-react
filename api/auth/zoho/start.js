@@ -13,8 +13,14 @@ export const config = { runtime: "edge" };
 
 const ACCOUNTS_DOMAIN = process.env.ZOHO_ACCOUNTS_DOMAIN || "https://accounts.zoho.com";
 
-export const DEFAULT_SCOPES =
-  "ZohoCRM.modules.leads.CREATE,WorkDrive.files.ALL,WorkDrive.links.ALL";
+export const DEFAULT_SCOPES = [
+  "ZohoCRM.modules.leads.CREATE",
+  "WorkDrive.files.ALL",
+  "WorkDrive.links.ALL",
+  // Welcome email. Adding these later means re-running consent.
+  "ZohoMail.messages.CREATE",
+  "ZohoMail.accounts.READ",
+].join(",");
 
 export const STATE_COOKIE = "zoho_oauth_state";
 
