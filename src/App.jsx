@@ -328,6 +328,8 @@ export default function App() {
   const [formError, setFormError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [uploadUrl, setUploadUrl] = useState("");
+  const [emailed, setEmailed] = useState(false);
+  const [sentTo, setSentTo] = useState("");
   const [quoteForm, setQuoteForm] = useState(EMPTY_QUOTE_FORM);
 
   useEffect(() => {
@@ -393,6 +395,8 @@ export default function App() {
       }
 
       setUploadUrl(result.uploadUrl || "");
+      setEmailed(Boolean(result.emailed));
+      setSentTo(quoteForm.email.trim());
       setFormSent(true);
       setQuoteForm(EMPTY_QUOTE_FORM);
     } catch (error) {
@@ -1557,8 +1561,14 @@ export default function App() {
             {formSent ? (
               <div style={{ textAlign: "center", padding: "2rem 1rem", maxWidth: 620, margin: "0 auto" }}>
                 <div style={{ color: PALETTE.text, fontSize: "clamp(1.35rem, 3vw, 2rem)", fontStyle: "italic", lineHeight: 1.4 }}>
-                  We'll be in touch within 24 hours.
+                  {emailed ? "Check your email." : "We'll be in touch within 24 hours."}
                 </div>
+                {emailed && (
+                  <p style={{ fontSize: "0.95rem", lineHeight: 1.7, color: PALETTE.textMuted, margin: "1rem 0 0" }}>
+                    We've sent your upload link and next steps to{" "}
+                    <strong style={{ color: PALETTE.text }}>{sentTo}</strong>.
+                  </p>
+                )}
                 {uploadUrl ? (
                   <>
                     <p style={{ fontSize: "0.95rem", lineHeight: 1.7, color: PALETTE.textMuted, margin: "1.5rem 0 1.25rem" }}>
@@ -1574,7 +1584,7 @@ export default function App() {
                       Upload Your Files →
                     </a>
                     <p style={{ fontSize: "0.75rem", color: PALETTE.textMuted, margin: "1rem 0 0" }}>
-                      This link expires in 30 days. We also emailed it to you.
+                      This link expires in 30 days.{emailed ? " We also emailed it to you." : ""}
                     </p>
                   </>
                 ) : (
