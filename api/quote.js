@@ -39,6 +39,7 @@ const CUSTOM_FIELDS = {
   deadline: process.env.ZOHO_CRM_FIELD_DEADLINE,
   budgetRange: process.env.ZOHO_CRM_FIELD_BUDGET,
   workdriveLink: process.env.ZOHO_CRM_FIELD_WORKDRIVE_LINK,
+  uploadLink: process.env.ZOHO_CRM_FIELD_UPLOAD_LINK,
 };
 
 /* Edge isolates are reused between invocations, so caching the access token
@@ -114,6 +115,11 @@ export async function createLead(token, fields, assets) {
   }
   if (CUSTOM_FIELDS.workdriveLink && assets.folderUrl) {
     lead[CUSTOM_FIELDS.workdriveLink] = assets.folderUrl;
+  }
+  /* Kept in its own field so Zoho Flow can merge it into the welcome email
+     without parsing it back out of Description. */
+  if (CUSTOM_FIELDS.uploadLink && assets.uploadUrl) {
+    lead[CUSTOM_FIELDS.uploadLink] = assets.uploadUrl;
   }
 
   const response = await fetch(`${API_DOMAIN}/crm/v8/Leads`, {
