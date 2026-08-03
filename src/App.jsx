@@ -1561,15 +1561,18 @@ export default function App() {
             {formSent ? (
               <div style={{ textAlign: "center", padding: "2rem 1rem", maxWidth: 620, margin: "0 auto" }}>
                 <div style={{ color: PALETTE.text, fontSize: "clamp(1.35rem, 3vw, 2rem)", fontStyle: "italic", lineHeight: 1.4 }}>
-                  {emailed
-                    ? "Check your email for more quote info."
-                    : "We'll be in touch within 24 hours."}
+                  {emailed ? "Check Your Email" : "We'll be in touch within 24 hours."}
                 </div>
                 {emailed && (
-                  <p style={{ fontSize: "0.95rem", lineHeight: 1.7, color: PALETTE.textMuted, margin: "1rem 0 0" }}>
-                    We've sent your upload link and next steps to{" "}
-                    <strong style={{ color: PALETTE.text }}>{sentTo}</strong>.
-                  </p>
+                  <>
+                    <p style={{ fontSize: "0.95rem", lineHeight: 1.7, color: PALETTE.textMuted, margin: "1rem 0 0" }}>
+                      We've sent your upload link and next steps to{" "}
+                      <strong style={{ color: PALETTE.text }}>{sentTo}</strong>.
+                    </p>
+                    <p style={{ fontSize: "0.8rem", lineHeight: 1.6, color: PALETTE.textMuted, margin: "0.6rem 0 0" }}>
+                      Don't see it? Please check your spam folder.
+                    </p>
+                  </>
                 )}
                 {uploadUrl ? (
                   <>
