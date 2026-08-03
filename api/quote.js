@@ -189,7 +189,7 @@ export default async function handler(request) {
     token = await getAccessToken();
   } catch (error) {
     console.error(error);
-    return json({ error: "Could not reach Zoho. Please email quote@pressmark.studio." }, 502);
+    return json({ error: "Could not reach Zoho. Please email quotes@pressmark.studio." }, 502);
   }
 
   /* WorkDrive is best-effort. If the folder or link fails, the lead is still
@@ -220,10 +220,12 @@ export default async function handler(request) {
          link at all rather than falling back to the project root. */
       const uploadsId = tree.folders[CLIENT_UPLOAD_FOLDER];
       if (uploadsId) {
+        /* Kept short deliberately — WorkDrive rejects long link names.
+           createUploadLink truncates as a backstop. */
         assets.uploadUrl = await createUploadLink(
           token,
           uploadsId,
-          `${folderName} - ${CLIENT_UPLOAD_FOLDER}`
+          `${fields.organization} uploads`
         );
       } else {
         assets.note = `${assets.note} NOTE: "${CLIENT_UPLOAD_FOLDER}" was not created, so no upload link was issued. Request assets from the client.`.trim();
@@ -251,6 +253,6 @@ export default async function handler(request) {
     return json({ ok: true, leadId, emailed, uploadUrl: assets.uploadUrl || null });
   } catch (error) {
     console.error(error);
-    return json({ error: "Could not save your request. Please email quote@pressmark.studio." }, 502);
+    return json({ error: "Could not save your request. Please email quotes@pressmark.studio." }, 502);
   }
 }
