@@ -92,16 +92,26 @@ const AUDIENCES = [
   "Associations","Community Organizations","Government Agencies","Membership Groups",
 ];
 
-const PRICING = [
-  { package: "Yearbook Design", starter: "$2,500", professional: "$4,500", signature: "$7,500+" },
-  { package: "Church Directory", starter: "$1,200", professional: "$2,400", signature: "$4,000+" },
-  { package: "Association Directory", starter: "$1,500", professional: "$3,000", signature: "$5,000+" },
-  { package: "Government Publication", starter: "$2,500", professional: "$5,000", signature: "Custom" },
-  { package: "Annual Report", starter: "$2,000", professional: "$4,000", signature: "$6,500+" },
-  { package: "Program / Event Book", starter: "$600", professional: "$1,200", signature: "$2,500+" },
-  { package: "Publication Rescue", starter: "$500", professional: "$900", signature: "$1,500+" },
-  { package: "Print Ready Review", starter: "$250", professional: "$450", signature: "$750" },
+/* Page-based pricing. Trim size does not affect the rate — a 5.5x8.5 page and
+   an 8.5x11 page cost the same. Setup covers CSV-driven data merge and
+   automation, which is lighter work on short books. */
+const SMALL_BOOK_MAX_PAGES = 25;
+const SETUP_FEE_SMALL = 250;
+const SETUP_FEE = 350;
+const PER_PAGE_RATE = 25;
+
+const setupFeeFor = (pages) => (pages < SMALL_BOOK_MAX_PAGES ? SETUP_FEE_SMALL : SETUP_FEE);
+
+const PRICING_EXAMPLES = [
+  { label: "Event program", pages: 24 },
+  { label: "Church directory", pages: 40 },
+  { label: "School yearbook", pages: 80 },
+  { label: "Large yearbook", pages: 120 },
+  { label: "Multi-section publication", pages: 200 },
 ];
+
+const money = (amount) => `$${amount.toLocaleString("en-US")}`;
+const estimateTotal = (pages) => setupFeeFor(pages) + pages * PER_PAGE_RATE;
 
 const PUBLICATION_TYPES = [
   "School Yearbook",
@@ -623,11 +633,12 @@ export default function App() {
         html { scroll-behavior: smooth; }
         body { overflow-x: hidden; }
         body { background: #ffffff; }
-        .pricing-mobile-label { display: none; }
         .pricing-reveal > summary { list-style: none; }
         .pricing-reveal > summary::-webkit-details-marker { display: none; }
         .pricing-reveal-icon { transition: transform 0.25s ease; }
-        .pricing-reveal[open] .pricing-reveal-icon { transform: rotate(45deg); }
+        /* Must repeat translateY and win over the inline style, or the icon
+           loses its vertical centring the moment the panel opens. */
+        .pricing-reveal[open] .pricing-reveal-icon { transform: translateY(-50%) rotate(45deg) !important; }
         .pricing-reveal > summary:hover { background: rgba(170,125,72,0.08) !important; }
         .pricing-reveal > summary:focus-visible { outline: 2px solid #aa7d48; outline-offset: 3px; }
         button:focus-visible, a:focus-visible { outline: 2px solid #aa7d48; outline-offset: 2px; }
@@ -765,22 +776,11 @@ export default function App() {
             height: 72svh !important;
             min-height: 460px !important;
           }
-          .pricing-header { display: none !important; }
-          .pricing-row {
-            grid-template-columns: minmax(0, 1fr) !important;
-            gap: 0.25rem !important;
-            text-align: left !important;
+          .pricing-example {
+            grid-template-columns: 1fr auto !important;
+            row-gap: 0.15rem !important;
           }
-          .pricing-row > div { text-align: left !important; }
-          .pricing-mobile-label {
-            display: block !important;
-            margin-bottom: 0.1rem;
-            color: #4b5563;
-            font-size: 0.62rem;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-          }
+          .pricing-example > div:nth-child(2) { grid-row: 2; grid-column: 1; }
           .cta-btns { flex-direction: column !important; }
           .cta-btns button { width: 100% !important; }
           .quote-form { padding: 1.25rem !important; }
@@ -1398,77 +1398,120 @@ export default function App() {
       <section id="pricing" style={S.section(PALETTE.panelSoft)}>
         <div style={S.container}>
           <FadeIn>
-            <div style={{ textAlign: "center", maxWidth: 760, margin: "0 auto 3.5rem", display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto 2.5rem", display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div style={{ ...S.eyebrow(), justifyContent: "center" }}>
                 <span style={S.eyebrowLine} />
                 Pricing Guide
                 <span style={S.eyebrowLine} />
               </div>
-              <h2 style={{ ...S.h2(), marginBottom: "1rem" }}>
-                Typical<br /><em style={{ color: PALETTE.accent }}>Investment</em>
-              </h2>
-              <p style={{ ...S.lead(), margin: "0 auto 1.8rem", textAlign: "center" }}>
-                Pricing depends on publication size, complexity, timeline, data condition, and production requirements.
+              <p style={{ ...S.lead(), margin: "0 auto", maxWidth: 620, textAlign: "center" }}>
+                One simple rate based on how many pages we design — not the trim size.
+                A 5.5&times;8.5 page and an 8.5&times;11 page cost the same.
               </p>
-              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
-                <button className="btn-ghost-hover" style={S.btnGhost()} onClick={emailQuote}>
-                  Request Custom Quote
-                </button>
-              </div>
             </div>
           </FadeIn>
 
           <FadeIn delay={0.1}>
-            <details className="pricing-reveal" style={{ maxWidth: 920, margin: "0 auto" }}>
+            <div className="pricing-rates" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "clamp(1rem, 2.5vw, 1.5rem)", maxWidth: 720, margin: "0 auto 2.5rem" }}>
+              {[
+                [`${money(SETUP_FEE_SMALL)}+`, "Setup Fee", "CSV-driven data merge and automation setup"],
+                [money(PER_PAGE_RATE), "Per Page", "Any trim size"],
+              ].map(([amount, label, note]) => (
+                <div key={label} style={{
+                  background: PALETTE.white,
+                  border: `1px solid ${PALETTE.border}`,
+                  borderTop: `4px solid ${PALETTE.accent}`,
+                  padding: "clamp(1.5rem, 4vw, 2.25rem) 1.25rem",
+                  textAlign: "center",
+                }}>
+                  <div style={{ fontFamily: FONT_STACK, fontSize: "clamp(2.4rem, 7vw, 3.6rem)", fontWeight: 900, color: PALETTE.accent, lineHeight: 1 }}>
+                    {amount}
+                  </div>
+                  <div style={{ fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: PALETTE.text, margin: "0.85rem 0 0.35rem" }}>
+                    {label}
+                  </div>
+                  <div style={{ fontSize: "0.8rem", lineHeight: 1.5, color: PALETTE.textMuted }}>{note}</div>
+                </div>
+              ))}
+            </div>
+            <p style={{ maxWidth: 720, margin: "-1.5rem auto 2.5rem", textAlign: "center", fontSize: "0.82rem", lineHeight: 1.6, color: PALETTE.textMuted }}>
+              Setup is {money(SETUP_FEE_SMALL)} for books under {SMALL_BOOK_MAX_PAGES} pages,
+              and {money(SETUP_FEE)} for {SMALL_BOOK_MAX_PAGES} pages and up.
+            </p>
+          </FadeIn>
+
+          <FadeIn delay={0.15}>
+            <details className="pricing-reveal" style={{ maxWidth: 720, margin: "0 auto" }}>
+              {/* Label centred; the + is positioned rather than laid out, so
+                  centring the text isn't thrown off by the icon's width. */}
               <summary style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: "1rem",
-                padding: "1rem clamp(1rem, 3vw, 1.4rem)",
+                position: "relative",
+                padding: "1rem clamp(2.75rem, 8vw, 3.25rem)",
                 border: `1px solid ${PALETTE.border}`,
                 borderTop: `4px solid ${PALETTE.accent}`,
                 background: PALETTE.white,
                 color: PALETTE.text,
                 cursor: "pointer",
-                fontSize: "0.78rem",
+                fontSize: "0.72rem",
                 fontWeight: 800,
-                letterSpacing: "0.1em",
-                textAlign: "left",
+                letterSpacing: "0.14em",
+                textAlign: "center",
                 textTransform: "uppercase",
               }}>
-                <span>
-                  View Pricing Ranges
-                  <small style={{ display: "block", marginTop: "0.35rem", color: PALETTE.textMuted, fontSize: "0.7rem", fontWeight: 500, letterSpacing: "0.02em", lineHeight: 1.4, textTransform: "none" }}>
-                    Compare starter, professional, and signature packages
-                  </small>
+                What That Looks Like
+                <small style={{ display: "block", marginTop: "0.35rem", color: PALETTE.textMuted, fontSize: "0.72rem", fontWeight: 500, letterSpacing: "0.02em", lineHeight: 1.4, textTransform: "none" }}>
+                  Example totals by page count
+                </small>
+                <span
+                  className="pricing-reveal-icon"
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    right: "clamp(1rem, 3vw, 1.25rem)",
+                    transform: "translateY(-50%)",
+                    color: PALETTE.accent,
+                    fontSize: "1.7rem",
+                    fontWeight: 400,
+                    lineHeight: 1,
+                  }}
+                >
+                  +
                 </span>
-                <span className="pricing-reveal-icon" aria-hidden="true" style={{ color: PALETTE.accent, fontSize: "1.7rem", fontWeight: 400, lineHeight: 1 }}>+</span>
               </summary>
-              <div style={{
-                border: `1px solid ${PALETTE.border}`,
-                borderTop: "none",
-                background: PALETTE.white,
-                overflow: "hidden",
-              }}>
-              <div className="pricing-header" style={{ display: "grid", gridTemplateColumns: "1.4fr repeat(3, 1fr)", background: PALETTE.panel, borderBottom: `1px solid ${PALETTE.border}` }}>
-                {["Package", "Starter", "Professional", "Signature"].map((label, index) => (
-                  <div key={label} style={{ padding: "1rem", color: PALETTE.accent, fontSize: "0.68rem", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", textAlign: index === 0 ? "left" : index === 2 ? "center" : "right" }}>{label}</div>
-                ))}
-              </div>
-              {PRICING.map(item => (
-                <div className="pricing-row" key={item.package} style={{ display: "grid", gridTemplateColumns: "1.4fr repeat(3, 1fr)", gap: "1rem", alignItems: "center", padding: "1.1rem", borderBottom: `1px solid ${PALETTE.border}` }}>
-                  <div style={{ fontFamily: FONT_STACK, fontSize: "clamp(1.05rem, 2vw, 1.3rem)", fontWeight: 800, color: PALETTE.text, textAlign: "left" }}>{item.package}</div>
-                  {[["Starter", item.starter], ["Professional", item.professional], ["Signature", item.signature]].map(([label, price]) => (
-                    <div key={label} style={{ fontSize: "clamp(0.95rem, 2vw, 1.15rem)", fontWeight: 900, color: PALETTE.accent, textAlign: label === "Professional" ? "center" : "right" }}>
-                      <span className="pricing-mobile-label">{label}</span>
-                      {price}
-                    </div>
-                  ))}
+              <div style={{ border: `1px solid ${PALETTE.border}`, borderTop: "none", background: PALETTE.white }}>
+              {PRICING_EXAMPLES.map(({ label, pages }) => (
+                <div className="pricing-example" key={label} style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr auto auto",
+                  gap: "clamp(0.75rem, 3vw, 1.5rem)",
+                  alignItems: "baseline",
+                  padding: "1rem 1.25rem",
+                  borderBottom: `1px solid ${PALETTE.border}`,
+                }}>
+                  {/* Explicit left: #root sets text-align:center globally, so
+                      these inherit centring unless it is overridden here. */}
+                  <div style={{ fontFamily: FONT_STACK, fontSize: "clamp(1rem, 2.4vw, 1.2rem)", fontWeight: 700, color: PALETTE.text, textAlign: "left" }}>{label}</div>
+                  <div style={{ fontSize: "0.82rem", color: PALETTE.textMuted, whiteSpace: "nowrap", textAlign: "left" }}>{pages} pages</div>
+                  <div style={{ fontSize: "clamp(1rem, 2.4vw, 1.2rem)", fontWeight: 900, color: PALETTE.accent, whiteSpace: "nowrap", textAlign: "right", minWidth: "4.5rem" }}>
+                    {money(estimateTotal(pages))}
+                  </div>
                 </div>
               ))}
+              <p style={{ padding: "1rem 1.25rem", margin: 0, fontSize: "0.78rem", lineHeight: 1.6, color: PALETTE.textMuted }}>
+                Estimates only. Data merge volume, file condition, and rush timelines are quoted separately.
+              </p>
               </div>
             </details>
+
+            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center", marginTop: "2.5rem" }}>
+              <button className="btn-primary-hover" style={S.btnPrimary} onClick={() => scrollTo("#contact")}>
+                Get Your Estimate
+              </button>
+              <button className="btn-ghost-hover" style={S.btnGhost()} onClick={emailQuote}>
+                Request Custom Quote
+              </button>
+            </div>
           </FadeIn>
         </div>
       </section>
