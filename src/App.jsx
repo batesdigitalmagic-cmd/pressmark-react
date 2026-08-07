@@ -27,6 +27,9 @@ const NAV_LINKS = [
   { label: "Why Us", href: "#why" },
   { label: "Process", href: "#process" },
   { label: "Pricing", href: "#pricing" },
+  // A real page rather than an anchor — see scrollTo, which routes on the
+  // leading slash. querySelector("/buy") would throw a SyntaxError.
+  { label: "Products", href: "/buy" },
 ];
 
 const SERVICES = [
@@ -350,6 +353,12 @@ export default function App() {
 
   const scrollTo = (href) => {
     setMenuOpen(false);
+    // Page links navigate; anchors scroll. Passing "/buy" to querySelector
+    // throws, so this branch has to come first.
+    if (href.startsWith("/")) {
+      window.location.assign(href);
+      return;
+    }
     document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
   };
 
