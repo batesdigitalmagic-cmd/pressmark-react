@@ -28,6 +28,7 @@ const c = {
 const args = process.argv.slice(2);
 const email = args.find((a) => a.startsWith("--email="))?.split("=")[1];
 const revoked = args.includes("--revoked");
+const sandbox = args.includes("--sandbox");
 
 if (!storeConfigured) {
   console.log(`\n${c.red("Redis is not configured.")}`);
@@ -49,10 +50,11 @@ const { license } = await ensureLicense({
   maxDevices: 2,
   updateMonths: 12,
   sendEmail: false,
+  livemode: !sandbox,
 });
 
 if (revoked) {
-  await updateLicense(license.key, { revoked: 1, revoked_reason: "seed --revoked" });
+  await updateLicense(license.key, { revoked: 1, revoked_reason: "seed --revoked" }, sandbox ? "test" : "live");
 }
 
 const stored = publicLicense({ ...license, revoked: revoked ? 1 : 0 });
@@ -62,10 +64,11 @@ console.log(`  key       ${c.bold(stored.key)}`);
 console.log(`  email     ${email}`);
 console.log(`  status    ${revoked ? c.red("revoked") : c.green("active")}`);
 console.log(`  order id  ${orderId}`);
+console.log(`  namespace ${sandbox ? "sandbox: (isolated)" : "live (production)"}`);
 console.log(`  devices   ${stored.activationCount} of ${stored.maxDevices}`);
 
 console.log(`\n${c.bold("Try it")}`);
-console.log(c.dim("  Portal:    /portal → sign in as " + email));
+console.log(c.dim(`  Portal:    ${sandbox ? "/sandbox-portal" : "/portal"} → sign in as ${email}`));
 console.log(c.dim("  Activate:  curl -s localhost:3000/api/license/activate \\"));
 console.log(c.dim(`               -H 'content-type: application/json' \\`));
 console.log(c.dim(`               -d '{"key":"${stored.key}","device_id":"test-mac-1","device_name":"Studio iMac"}'`));

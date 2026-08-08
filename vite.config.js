@@ -15,6 +15,8 @@ export default defineConfig({
         success: 'success.html',
         portal: 'portal.html',
         health: 'health.html',
+        sandbox: 'sandbox.html',
+        sandboxPortal: 'sandbox-portal.html',
       },
     },
   },

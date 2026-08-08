@@ -27,6 +27,16 @@ const GROUPS = {
     required: ["STRIPE_WEBHOOK_SECRET"],
     optional: [],
   },
+  sandbox: {
+    label: "Stripe sandbox (/sandbox)",
+    // Optional: the live storefront works without any of these.
+    required: [],
+    optional: [
+      "STRIPE_TEST_SECRET_KEY",
+      "STRIPE_TEST_PRICE_ID",
+      "STRIPE_TEST_WEBHOOK_SECRET",
+    ],
+  },
   licenseStore: {
     label: "License storage",
     // Either the Vercel names or the Upstash-native ones satisfy this.
@@ -86,6 +96,27 @@ export default async function handler(request) {
       ready: absent.length === 0,
       variables,
     };
+  }
+
+  /* Sandbox is optional, but a half-configured one is worse than none — and
+     a live key in the test slot is reported as an outright fault, since that
+     is the mistake that would charge real cards from /sandbox. */
+  const sandboxVars = ["STRIPE_TEST_SECRET_KEY", "STRIPE_TEST_PRICE_ID", "STRIPE_TEST_WEBHOOK_SECRET"];
+  const sandboxSet = sandboxVars.filter(isSet).length;
+  const testKeyLooksLive =
+    isSet("STRIPE_TEST_SECRET_KEY") &&
+    !(process.env.STRIPE_TEST_SECRET_KEY || "").trim().startsWith("sk_test_");
+
+  groups.sandbox.ready = sandboxSet === 0 || sandboxSet === sandboxVars.length;
+  groups.sandbox.state =
+    sandboxSet === 0 ? "not configured" : sandboxSet === sandboxVars.length ? "configured" : "partial";
+
+  if (testKeyLooksLive) {
+    groups.sandbox.ready = false;
+    groups.sandbox.state = "STRIPE_TEST_SECRET_KEY is not an sk_test_ key";
+    missing.push("STRIPE_TEST_SECRET_KEY (must start with sk_test_)");
+  } else if (!groups.sandbox.ready) {
+    missing.push(...sandboxVars.filter((name) => !isSet(name)));
   }
 
   /* Storage is satisfied by either naming convention, so it needs its own

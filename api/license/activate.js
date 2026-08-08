@@ -25,7 +25,9 @@ import { clientIp, rateLimit, tooManyRequests } from "../../lib/rate-limit.js";
 
 export const config = { runtime: "edge" };
 
-const KEY_PATTERN = /^PMBC(-[0-9A-Z]{5}){4}$/;
+/* PMBC- live, PMBCT- sandbox. The prefix routes the lookup to the right
+   Redis namespace inside lib/licenses.js. */
+const KEY_PATTERN = /^PMBCT?(-[0-9A-Z]{5}){4}$/;
 
 export default async function handler(request) {
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);

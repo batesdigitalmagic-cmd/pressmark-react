@@ -19,7 +19,12 @@ function formatDate(seconds) {
   });
 }
 
-export default function Portal() {
+/**
+ * @param {{ apiBase?: string, sandbox?: boolean }} props
+ * apiBase decides which Redis namespace the server reads. The live page never
+ * passes it; the sandbox page always does.
+ */
+export default function Portal({ apiBase = "/api/portal", sandbox = false }) {
   const [step, setStep] = useState("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -46,7 +51,7 @@ export default function Portal() {
     setBusy(true);
     setError("");
     try {
-      const { response, body } = await post("/api/portal/request-code", { email });
+      const { response, body } = await post(`${apiBase}/request-code`, { email });
       if (!response.ok) {
         setError(body.error || "We could not send a code just now.");
         return;
@@ -65,7 +70,7 @@ export default function Portal() {
     setBusy(true);
     setError("");
     try {
-      const { response, body } = await post("/api/portal/verify-code", { email, code });
+      const { response, body } = await post(`${apiBase}/verify-code`, { email, code });
       if (!response.ok) {
         setError(body.error || "That code did not work.");
         return;
@@ -87,7 +92,7 @@ export default function Portal() {
     setError("");
     try {
       const { response, body } = await post(
-        "/api/portal/release-device",
+        `${apiBase}/release-device`,
         { key, device_id: deviceId },
         token
       );
@@ -120,8 +125,27 @@ export default function Portal() {
     <div style={S.shell}>
       <style>{GLOBAL_CSS}</style>
       <main style={{ ...S.card, maxWidth: step === "licenses" ? 640 : 460 }}>
+        {sandbox && (
+          <div
+            style={{
+              border: `2px dashed ${PALETTE.accent}`,
+              background: PALETTE.keyBg,
+              padding: "0.85rem 1.1rem",
+              marginBottom: "1.75rem",
+              fontSize: "0.72rem",
+              fontWeight: 800,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: PALETTE.accent,
+              textAlign: "center",
+            }}
+          >
+            Sandbox portal — test licences only
+          </div>
+        )}
+
         <p style={S.eyebrow}>Pressmark Studio</p>
-        <h1 style={S.h1}>Licence portal</h1>
+        <h1 style={S.h1}>{sandbox ? "Sandbox licence portal" : "Licence portal"}</h1>
 
         {step === "email" && (
           <>
@@ -203,8 +227,15 @@ export default function Portal() {
                       <code style={{ fontFamily: MONO_STACK, fontSize: "clamp(0.95rem, 4vw, 1.2rem)", fontWeight: 600, color: PALETTE.text, userSelect: "all", wordBreak: "break-all" }}>
                         {license.key}
                       </code>
-                      <span style={{ fontSize: "0.65rem", fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: status.color, border: `1px solid ${status.color}`, padding: "0.25rem 0.6rem", whiteSpace: "nowrap" }}>
-                        {status.label}
+                      <span style={{ display: "flex", gap: "0.4rem", flexShrink: 0 }}>
+                        {license.livemode === false && (
+                          <span style={{ fontSize: "0.65rem", fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: PALETTE.textMuted, border: `1px dashed ${PALETTE.textMuted}`, padding: "0.25rem 0.6rem", whiteSpace: "nowrap" }}>
+                            Test
+                          </span>
+                        )}
+                        <span style={{ fontSize: "0.65rem", fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: status.color, border: `1px solid ${status.color}`, padding: "0.25rem 0.6rem", whiteSpace: "nowrap" }}>
+                          {status.label}
+                        </span>
                       </span>
                     </div>
                     {status.note && (

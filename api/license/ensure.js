@@ -7,7 +7,7 @@
  * arrives at all, the purchase still completes.
  */
 
-import { getStripe, stripeConfigured } from "../../lib/stripe.js";
+import { LIVE, TEST, getStripe, isConfigured } from "../../lib/stripe.js";
 import { logger } from "../../lib/log.js";
 
 const log = logger("license-ensure");
@@ -20,7 +20,7 @@ export default async function handler(request) {
     return json({ error: "Method not allowed" }, 405);
   }
 
-  if (!stripeConfigured) {
+  if (!isConfigured(LIVE) && !isConfigured(TEST)) {
     return json({ error: "Licensing is not available right now. Please email support@pressmark.studio." }, 503);
   }
 
@@ -31,9 +31,30 @@ export default async function handler(request) {
       return json({ error: "Missing session_id" }, 400);
     }
 
-    // Never trust a session id from the browser — ask Stripe whether it was
-    // actually paid. Without this check anyone could mint keys by guessing.
-    const session = await getStripe().checkout.sessions.retrieve(sessionId);
+    /* Never trust a session id from the browser — ask Stripe whether it was
+       actually paid. Without this check anyone could mint keys by guessing.
+
+       The mode is discovered, not supplied: a live session id resolves only
+       with the live key and a sandbox one only with the test key, so we ask
+       live first and fall back. The browser never chooses which account is
+       queried. */
+    let session = null;
+    let mode = LIVE;
+
+    for (const candidate of [LIVE, TEST]) {
+      if (!isConfigured(candidate)) continue;
+      try {
+        session = await getStripe(candidate).checkout.sessions.retrieve(sessionId);
+        mode = candidate;
+        break;
+      } catch (error) {
+        if (error?.code !== "resource_missing") throw error;
+      }
+    }
+
+    if (!session) {
+      return json({ error: "That order could not be found." }, 404);
+    }
 
     if (session.payment_status !== "paid") {
       return json({ error: "This order has not been paid." }, 402);
@@ -45,6 +66,7 @@ export default async function handler(request) {
       name: session.customer_details?.name ?? null,
       maxDevices: Number(session.metadata?.max_devices) || 2,
       updateMonths: Number(session.metadata?.update_months) || 12,
+      livemode: mode === LIVE,
     });
 
     // Only the key and the address it went to. Never the whole record.
@@ -52,6 +74,7 @@ export default async function handler(request) {
       key: license.key,
       email: license.email,
       maxDevices: license.max_devices,
+      livemode: license.livemode !== false,
     });
   } catch (error) {
     log.error("ensure failed", error);
