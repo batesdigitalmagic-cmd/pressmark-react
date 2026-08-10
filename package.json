@@ -13,7 +13,10 @@
     "diagnose:link": "node --env-file=.env scripts/diagnose-upload-link.mjs",
     "token": "node --env-file=.env scripts/refresh-token.mjs",
     "seed:license": "node --env-file=.env scripts/seed-test-license.mjs",
-    "health": "node --env-file=.env -e \"import('./api/health.js').then(async m=>{const r=await m.default(new Request('https://local/api/health'));console.log(await r.text())})\""
+    "health": "node --env-file=.env -e \"import('./api/health.js').then(async m=>{const r=await m.default(new Request('https://local/api/health'));console.log(await r.text())})\"",
+    "blog:generate": "node scripts/generate-blog-pages.mjs",
+    "prebuild": "node scripts/generate-blog-pages.mjs",
+    "predev": "node scripts/generate-blog-pages.mjs"
   },
   "dependencies": {
     "react": "^19.2.6",

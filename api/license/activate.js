@@ -126,6 +126,32 @@ if (action === "validate") {
   });
 }
 
+    if (action === "deactivate") {
+      /* Releases the seat. Deliberately returns no token: the device no
+         longer holds this licence, and handing back a signed token would let
+         it keep running for the token's full 30-day life. */
+      const result = await deactivateDevice(licenseKey, device);
+
+      if (!result.ok) {
+        const messages = {
+          not_found: "That licence key was not found.",
+          not_activated: "That computer is not currently activated.",
+        };
+        return json(
+          { ok: false, status: result.reason, error: messages[result.reason] || "Could not release that computer." },
+          result.reason === "not_found" ? 404 : 400
+        );
+      }
+
+      return json({
+        ok: true,
+        status: "deactivated",
+        token: null,
+        activations: (result.license.activations || []).length,
+        maxDevices: result.license.max_devices,
+      });
+    }
+
     // default: activate
     const result = await activateDevice(licenseKey, device, deviceName);
 

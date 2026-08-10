@@ -28,3 +28,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Generated blog pages (rebuilt from src/data/blogPosts.js)
+/blog/
+public/sitemap.xml
+public/robots.txt
