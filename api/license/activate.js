@@ -29,6 +29,53 @@ export const config = { runtime: "edge" };
    Redis namespace inside lib/licenses.js. */
 const KEY_PATTERN = /^PMBCT?(-[0-9A-Z]{5}){4}$/;
 
+const LICENSE_TOKEN_SECRET = process.env.LICENSE_SIGNING_SECRET || "";
+const TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60;
+const encoder = new TextEncoder();
+
+function base64url(bytes) {
+  return btoa(String.fromCharCode(...new Uint8Array(bytes)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+async function signLicenseToken(data) {
+  if (!LICENSE_TOKEN_SECRET) {
+    throw new Error("LICENSE_SIGNING_SECRET is not set.");
+  }
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(LICENSE_TOKEN_SECRET),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+
+  return base64url(
+    await crypto.subtle.sign("HMAC", key, encoder.encode(data))
+  );
+}
+
+async function createLicenseToken(deviceId, license) {
+  const now = Math.floor(Date.now() / 1000);
+
+  const payload = base64url(
+    encoder.encode(
+      JSON.stringify({
+        product: "batchcutout",
+        device_id: deviceId,
+        iat: now,
+        exp: now + TOKEN_TTL_SECONDS,
+        max_devices: license.max_devices,
+      })
+    )
+  );
+
+  return `${payload}.${await signLicenseToken(payload)}`;
+}
+
 export default async function handler(request) {
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
@@ -62,28 +109,22 @@ export default async function handler(request) {
   if (!byKey.ok) return tooManyRequests(byKey.resetSeconds);
 
   try {
-    if (action === "validate") {
-      const result = await validateDevice(licenseKey, device);
-      return json({
-        valid: result.valid,
-        status: result.status,
-        updatesExpired: result.license ? updatesExpired(result.license) : null,
-        version: result.license?.version ?? null,
-      });
-    }
+if (action === "validate") {
+  const result = await validateDevice(licenseKey, device);
 
-    if (action === "deactivate") {
-      const result = await deactivateDevice(licenseKey, device);
-      if (!result.ok) {
-        return json({ ok: false, status: result.reason }, result.reason === "not_found" ? 404 : 400);
-      }
-      return json({
-        ok: true,
-        status: "deactivated",
-        activations: (result.license.activations || []).length,
-        maxDevices: result.license.max_devices,
-      });
-    }
+  const token =
+    result.valid && result.license
+      ? await createLicenseToken(device, result.license)
+      : null;
+
+  return json({
+    valid: result.valid,
+    status: result.status,
+    token: token,
+    updatesExpired: result.license ? updatesExpired(result.license) : null,
+    version: result.license?.version ?? null,
+  });
+}
 
     // default: activate
     const result = await activateDevice(licenseKey, device, deviceName);
@@ -101,9 +142,11 @@ export default async function handler(request) {
       );
     }
 
+    const token = await createLicenseToken(device, result.license);
     return json({
       ok: true,
       valid: true,
+      token: token,
       status: licenseStatus(result.license),
       activations: (result.license.activations || []).length,
       maxDevices: result.license.max_devices,
