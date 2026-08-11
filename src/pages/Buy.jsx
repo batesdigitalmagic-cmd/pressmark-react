@@ -163,6 +163,36 @@ export default function Buy() {
           ))}
         </ol>
 
+        {/* The actual panel. Showing the real controls does more for trust than
+            any amount of description — buyers can see exactly what they get. */}
+        <figure style={{ margin: "0 0 2rem" }}>
+          <img
+            src="/batchcutout-panel.png"
+            alt="The Pressmark BatchCutout panel in Photoshop, showing background-type options for mixed, solid-colour, and AI Remove Background modes, plus tolerance, output size, filename suffix, defringe, trim, subfolder, and overwrite settings"
+            width={888}
+            height={966}
+            loading="lazy"
+            style={{
+              display: "block",
+              width: "100%",
+              height: "auto",
+              border: `1px solid ${PALETTE.border}`,
+            }}
+          />
+          <figcaption
+            style={{
+              fontSize: "0.82rem",
+              lineHeight: 1.6,
+              color: PALETTE.textMuted,
+              marginTop: "0.75rem",
+            }}
+          >
+            The BatchCutout panel. Choose how backgrounds are detected — including
+            Photoshop&apos;s AI Remove Background for complex or mixed shots — then point
+            it at a folder.
+          </figcaption>
+        </figure>
+
         <ul style={S.list}>
           {FEATURES.map((feature) => (
             <li key={feature} style={S.listItem}>
