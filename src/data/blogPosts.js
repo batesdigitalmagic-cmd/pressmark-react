@@ -22,6 +22,7 @@
  *   { type: "ul", items: [] }       bullets
  *   { type: "ol", items: [] }       numbered steps
  *   { type: "note", text }          pulled-aside callout
+ *   { type: "pipeline", steps: [] } vertical flow diagram
  *
  * Inline links use [label](/href) inside any text. Keep them purposeful —
  * a link that isn't the natural next step for the reader is keyword stuffing
@@ -777,6 +778,196 @@ export const POSTS = [
       {
         type: "p",
         text: "Once cut out and named to match your roster, portraits can flow into pages automatically — see [automating yearbook pages with Data Merge](/blog/automate-yearbook-pages-indesign-data-merge).",
+      },
+    ],
+  },
+
+  {
+    slug: "ai-batch-background-removal-photoshop",
+    cluster: "photoshop",
+    category: "Photoshop Automation",
+    title:
+      "From 1,000+ Images to Transparent PNGs: Building an AI Batch Background Removal Pipeline in Photoshop",
+    seoTitle: "AI Batch Background Removal in Photoshop | Pressmark",
+    metaDescription:
+      "Turn Photoshop's AI background removal into an automated batch pipeline. Process folders of 1,000+ images into transparent PNGs instead of editing one by one.",
+    excerpt:
+      "AI background removal solved the image problem. It did not solve the production problem. Here is how to turn Photoshop into a folder-level pipeline that takes 1,000+ portraits to transparent PNGs without opening them one at a time.",
+    author: AUTHOR,
+    publishedDate: "2026-08-11",
+    updatedDate: "2026-08-11",
+    readingTime: 8,
+    featuredImage: "/blog/ai-batch-background-removal-photoshop.jpg",
+    featuredImageAlt:
+      "Pipeline diagram showing a folder of portraits flowing through Pressmark BatchCutout and Photoshop AI into transparent PNGs ready for layout",
+    relatedPosts: [
+      "batch-remove-backgrounds-photoshop",
+      "organize-yearbook-photos",
+      "automate-yearbook-pages-indesign-data-merge",
+    ],
+    content: [
+      {
+        type: "p",
+        text: "A folder lands on your desk. Inside are 1,240 portraits from three photo days, and every one of them needs its background removed before layout can start. The deadline is the same as it always was.",
+      },
+      {
+        type: "p",
+        text: "Photoshop will remove any single one of those backgrounds beautifully. That is not the hard part any more. The hard part is the other 1,239.",
+      },
+      { type: "h2", text: "The hidden problem with AI background removal" },
+      {
+        type: "p",
+        text: "Adobe's subject selection and Remove Background have quietly become excellent. On a studio portrait they produce a clean edge in seconds, hair included. If you judge the technology on one image, it looks solved.",
+      },
+      {
+        type: "p",
+        text: "Then you look at what actually happens across a batch. For every single image, an operator repeats the same sequence:",
+      },
+      {
+        type: "ol",
+        items: [
+          "Open the image",
+          "Run Photoshop background removal",
+          "Inspect the result",
+          "Export a transparent PNG",
+          "Name and file it correctly",
+          "Close the document and move to the next one",
+        ],
+      },
+      {
+        type: "p",
+        text: "Six steps, and only one of them is the clever bit. The AI handles the removal. Everything around it is unchanged from a decade ago, and all of it scales linearly with the size of the folder.",
+      },
+      {
+        type: "note",
+        text: "The quality problem is largely solved. The repetition problem is not. Those are different problems, and they need different tools.",
+      },
+      { type: "h2", text: "Why 1,000 images changes everything" },
+      {
+        type: "p",
+        text: "A workflow that is merely tedious at 20 images becomes structurally impractical at 1,000. The arithmetic is unforgiving: at roughly a minute of human handling per image — opening, checking, exporting, naming, closing — a folder of 1,000 represents more than sixteen hours of production work.",
+      },
+      {
+        type: "p",
+        text: "That is two full working days in which nobody is designing anything. And it is two days of the least interesting work in the building, which is exactly where attention drifts and files get misnamed, skipped, or saved to the wrong folder.",
+      },
+      {
+        type: "p",
+        text: "The cost is not only time. It is the errors repetition produces — the student who ends up on the wrong page because their cutout was exported under last year's filename. Once photos are organised and named to match your roster those mistakes largely disappear; our guide on [organising yearbook photos before design begins](/blog/organize-yearbook-photos) covers the conventions that make it hold.",
+      },
+      {
+        type: "p",
+        text: "There is also a scheduling cost that rarely gets counted. Sixteen hours of handling cannot be parallelised across a team without splitting the folder, and splitting the folder introduces exactly the inconsistencies you were trying to avoid. So it usually falls to one person, in sequence, blocking everything downstream until it is finished.",
+      },
+      { type: "h2", text: "Introducing Pressmark BatchCutout" },
+      {
+        type: "p",
+        text: "Pressmark BatchCutout is a Photoshop automation script built to take an entire folder of images through a repeatable background-removal and transparent-PNG export workflow.",
+      },
+      {
+        type: "p",
+        text: "You select the source folder and the output location, start the batch, and Photoshop processes the images through the automated pipeline. You do not open them one by one. You do not export them one by one. You point it at a folder and let it work.",
+      },
+      {
+        type: "p",
+        text: "Photoshop remains the image-processing engine throughout. BatchCutout does not replace it, reimplement it, or route your images through anything else. It automates the repetitive production workflow around it — turning a tool designed for individual edits into a scalable batch-production system.",
+      },
+      { type: "h2", text: "How the automated pipeline works" },
+      {
+        type: "pipeline",
+        steps: [
+          "1,000+ Original Images",
+          "Pressmark BatchCutout",
+          "Photoshop AI Background Removal",
+          "Automatic Processing",
+          "Transparent PNG Export",
+          "Organized Output Folder",
+          "Ready for Layout",
+        ],
+      },
+      {
+        type: "p",
+        text: "The shape of the work changes. Instead of a person shepherding each file through six manual steps, the folder becomes the unit of work. Originals are left untouched and cutouts are written to a separate output location, so a batch that needs rerunning with different settings costs nothing but time.",
+      },
+      {
+        type: "p",
+        text: "A note on speed, because this is where automation tools tend to overpromise: actual throughput depends on your computer, your Photoshop version, image resolution, subject complexity, and how fast Adobe's own processing runs on your hardware. What automation reliably removes is the human interaction between images — the opening, exporting, naming, saving, and closing. That is the part costing you sixteen hours.",
+      },
+      { type: "h2", text: "AI background removal vs AI batch background removal" },
+      {
+        type: "p",
+        text: "The distinction is worth stating plainly, because the two are constantly conflated.",
+      },
+      {
+        type: "ul",
+        items: [
+          "AI background removal solves the image problem. It decides where the subject ends and the backdrop begins, and it does that job well.",
+          "AI batch background removal solves the production problem. It decides how a thousand of those operations get sequenced, exported, named, and filed without a person driving each one.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Buying the first and hoping it addresses the second is the mistake. A perfect cutout engine with a manual workflow wrapped around it still costs two days per folder. Bulk background removal in Photoshop is not a better algorithm — it is a better loop around the algorithm you already have.",
+      },
+      { type: "h2", text: "Who this is built for" },
+      {
+        type: "p",
+        text: "Anyone who receives images by the folder rather than by the file:",
+      },
+      {
+        type: "ul",
+        items: [
+          "School portrait and yearbook photography departments",
+          "Sports team, graduation, and event photographers",
+          "Staff, membership, and church directory producers",
+          "Product photography and ecommerce catalogue teams",
+          "Graphic production departments and high-volume studios",
+        ],
+      },
+      {
+        type: "p",
+        text: "The common thread is volume and repeatability. If your images arrive in the hundreds and need the same treatment applied consistently across all of them, the manual workflow is the bottleneck — not the software doing the cutouts.",
+      },
+      { type: "h2", text: "Why staying inside Photoshop matters" },
+      {
+        type: "p",
+        text: "There are web services that will remove backgrounds in bulk. For production work they carry real costs: your client's portraits leave your machine, per-image pricing scales badly at volume, output quality is whatever the service decides that week, and you inherit an upload-and-download step that eats the time you were trying to save.",
+      },
+      {
+        type: "p",
+        text: "Staying inside Photoshop means the files never leave your system, the results match what your team already produces, colour management and export settings stay under your control, and the output drops straight into the layout tools you already use. It is Photoshop automation for high-volume production, not a detour around Photoshop.",
+      },
+      {
+        type: "p",
+        text: "There is a subtler benefit too: repeatability. A batch processed through the same script with the same settings produces the same edge treatment, the same canvas dimensions, and the same export profile across all 1,240 files. Consistency across a spread is what separates a professional book from one that looks assembled by six different people — and it is far easier to guarantee mechanically than by asking an operator to stay identical through hour fourteen.",
+      },
+      { type: "h2", text: "A production-scale workflow, end to end" },
+      {
+        type: "p",
+        text: "Here is what a yearbook portrait run looks like once the pipeline is in place.",
+      },
+      {
+        type: "ol",
+        items: [
+          "Photo day delivers 1,240 portraits, named to match the school roster",
+          "The folder is checked for coverage and naming before anything is processed",
+          "BatchCutout runs the folder through Photoshop and writes transparent PNGs to an output directory",
+          "The cutouts are spot-checked as contact sheets rather than opened individually",
+          "The PNGs flow into portrait pages automatically via InDesign Data Merge",
+        ],
+      },
+      {
+        type: "p",
+        text: "Step five is where the compounding happens. Cutouts named to match your data can be placed across hundreds of pages without a designer touching a frame — see [automating yearbook pages with Data Merge](/blog/automate-yearbook-pages-indesign-data-merge). Background removal stops being a task and becomes one link in a production chain.",
+      },
+      {
+        type: "p",
+        text: "If you want the manual technique first, our guide to [batch background removal in Photoshop](/blog/batch-remove-backgrounds-photoshop) covers actions and the point at which they stop being enough.",
+      },
+      { type: "h2", text: "Stop processing images one at a time" },
+      {
+        type: "p",
+        text: "AI background removal at production scale is not about a smarter cutout. It is about never opening the file in the first place. Turn Photoshop into a high-volume background-removal pipeline with [Pressmark BatchCutout](/buy).",
       },
     ],
   },

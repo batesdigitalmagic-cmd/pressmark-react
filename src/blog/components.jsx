@@ -455,6 +455,48 @@ export function Prose({ content }) {
               </List>
             );
           }
+          case "pipeline":
+            /* Vertical flow diagram. Ordered list so screen readers announce
+               it as a sequence rather than a wall of arrows. */
+            return (
+              <ol
+                key={index}
+                style={{
+                  listStyle: "none",
+                  margin: "0 0 1.75rem",
+                  padding: "1.75rem 1.25rem",
+                  background: PALETTE.ink,
+                  border: `1px solid ${PALETTE.borderOnDark}`,
+                  textAlign: "center",
+                }}
+              >
+                {block.steps.map((step, i) => (
+                  <li key={step}>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        fontSize: "clamp(0.7rem, 2.2vw, 0.82rem)",
+                        fontWeight: 800,
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                        color: i === 1 ? PALETTE.accent : PALETTE.white,
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {step}
+                    </span>
+                    {i < block.steps.length - 1 && (
+                      <span
+                        aria-hidden="true"
+                        style={{ display: "block", color: PALETTE.accent, fontSize: "1.1rem", lineHeight: 1.6 }}
+                      >
+                        ↓
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            );
           case "note":
             return (
               <aside

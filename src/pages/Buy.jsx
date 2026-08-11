@@ -1,10 +1,30 @@
 import { useState } from "react";
 import { GLOBAL_CSS, PALETTE, S } from "../storefront/theme.js";
 
+/* The production pipeline, stated as a flow. BatchCutout is highlighted
+   because the rest of the chain is Photoshop doing what it already does. */
+const PIPELINE = [
+  "1,000+ Images",
+  "Pressmark BatchCutout",
+  "Photoshop AI",
+  "Background Removed",
+  "Transparent PNGs",
+  "Ready for Production",
+];
+
+/* Two clicks are the whole pitch: which folder to read, where to write. */
+const STEPS = [
+  ["1", "Choose the folder of images", "Point it at 10 or 10,000 — the folder is the unit of work."],
+  ["2", "Choose where the cutouts go", "Originals stay untouched. Transparent PNGs land in your output folder."],
+];
+
 const FEATURES = [
-  "Handles solid studio backdrops and mixed backgrounds alike",
-  "Exports transparent PNGs ready to drop into your layout",
-  "Works on 2 computers — desktop and laptop",
+  "AI-powered background removal inside Photoshop",
+  "Process entire folders automatically",
+  "Export transparent PNGs",
+  "Originals remain untouched",
+  "Built for 100s or 1,000+ images",
+  "Works on 2 computers",
   "12 months of updates included",
 ];
 
@@ -36,12 +56,112 @@ export default function Buy() {
     <div style={S.shell}>
       <style>{GLOBAL_CSS}</style>
       <main style={S.card}>
-        <p style={S.eyebrow}>Pressmark Studio</p>
-        <h1 style={S.h1}>BatchCutout</h1>
-        <p style={S.lead}>
-          Remove backgrounds from an entire folder of photos in Photoshop.
-          Twenty-one portraits in about a minute, originals untouched.
+        <p style={{ ...S.eyebrow, letterSpacing: "0.16em", lineHeight: 1.6 }}>
+          AI Batch Background Removal for Photoshop
         </p>
+        <h1 style={S.h1}>Pressmark BatchCutout</h1>
+
+        <p style={S.lead}>
+          Turn Photoshop's AI background removal into a high-volume production
+          pipeline. Process entire folders of portraits and images instead of
+          opening and removing backgrounds one file at a time.
+        </p>
+
+        {/* The volume claim earns its own rule — it is the whole reason this
+            exists rather than a one-off action. */}
+        <p
+          style={{
+            fontSize: "1.02rem",
+            fontWeight: 600,
+            lineHeight: 1.6,
+            color: PALETTE.text,
+            borderLeft: `3px solid ${PALETTE.accent}`,
+            paddingLeft: "1rem",
+            margin: "0 0 2rem",
+          }}
+        >
+          Built for hundreds or 1,000+ images at a time.
+        </p>
+
+        <ol
+          aria-label="Production pipeline"
+          style={{
+            listStyle: "none",
+            margin: "0 0 2rem",
+            padding: "1.75rem 1.25rem",
+            background: PALETTE.text,
+            textAlign: "center",
+          }}
+        >
+          {PIPELINE.map((step, i) => (
+            <li key={step}>
+              <span
+                style={{
+                  display: "inline-block",
+                  fontSize: "0.72rem",
+                  fontWeight: 800,
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                  lineHeight: 1.4,
+                  color: i === 1 ? PALETTE.accent : PALETTE.white,
+                }}
+              >
+                {step}
+              </span>
+              {i < PIPELINE.length - 1 && (
+                <span
+                  aria-hidden="true"
+                  style={{ display: "block", color: PALETTE.accent, fontSize: "1rem", lineHeight: 1.7 }}
+                >
+                  ↓
+                </span>
+              )}
+            </li>
+          ))}
+        </ol>
+
+        {/* The whole workflow, stated as the two decisions the user actually makes. */}
+        <ol style={{ listStyle: "none", margin: "0 0 2rem", padding: 0 }}>
+          {STEPS.map(([num, title, detail]) => (
+            <li
+              key={num}
+              style={{
+                display: "flex",
+                gap: "0.9rem",
+                alignItems: "flex-start",
+                padding: "1rem 0",
+                borderTop: `1px solid ${PALETTE.border}`,
+              }}
+            >
+              <span
+                aria-hidden="true"
+                style={{
+                  flex: "none",
+                  width: 26,
+                  height: 26,
+                  borderRadius: "50%",
+                  background: PALETTE.accent,
+                  color: PALETTE.black,
+                  fontSize: "0.78rem",
+                  fontWeight: 800,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {num}
+              </span>
+              <span>
+                <span style={{ display: "block", fontSize: "0.98rem", fontWeight: 600, color: PALETTE.text }}>
+                  {title}
+                </span>
+                <span style={{ display: "block", fontSize: "0.88rem", lineHeight: 1.6, color: PALETTE.textMuted, marginTop: "0.2rem" }}>
+                  {detail}
+                </span>
+              </span>
+            </li>
+          ))}
+        </ol>
 
         <ul style={S.list}>
           {FEATURES.map((feature) => (
