@@ -115,14 +115,37 @@ export function landingPath() {
 }
 
 /* Not exported: nothing outside this module may push to dataLayer, because
-   dataLayer must not exist at all before consent. */
-function gtag(...args) {
+   dataLayer must not exist at all before consent.
+ *
+ * This MUST push `arguments`, never an array — and the difference is the whole
+ * bug this function used to have.
+ *
+ * gtag.js walks dataLayer and only treats an array-LIKE `arguments` object as a
+ * command. A genuine Array is read as a GTM-style variable push and silently
+ * discarded. Written as `(...args) => dataLayer.push(args)`, gtag.js downloads
+ * and runs perfectly while every js/config/event call is dropped on the floor —
+ * which presents exactly as "GA4 is installed but Realtime shows zero".
+ *
+ * Do not "modernise" this to rest parameters. */
+function gtag() {
   window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push(args);
+  window.dataLayer.push(arguments);
 }
+
+/* ── TEMPORARY DIAGNOSTICS ──────────────────────────────────────────────────
+   Flip DEBUG to false (or delete this block and every debug()/debugError()
+   call) once GA4 Realtime is confirmed working. Logs carry no personal data —
+   only the scrubbed URL that would be sent to Google anyway. */
+const DEBUG = true;
+const debug = (...args) => DEBUG && console.log("%c[GA4]", "color:#aa7d48", ...args);
+const debugError = (...args) => DEBUG && console.error("[GA4]", ...args);
 
 let started = false;
 let loaded = false;
+let routeListenerInstalled = false;
+/* Path of the most recent page_view, so a route change cannot double-count the
+   automatic page_view that `config` already sent. */
+let lastTrackedPath = null;
 
 /* Events raised before a decision. Held in memory only — never written to
    storage, never sent unless the visitor later accepts. Discarded on decline
@@ -136,8 +159,19 @@ export const isAnalyticsLoaded = () => loaded;
  * unreachable unless consent has been granted.
  */
 function loadAnalytics() {
-  if (loaded || !MEASUREMENT_ID) return false;
+  /* Single-load guard: the flag is set before the <script> is appended, so no
+     re-entrant call can ever inject gtag.js twice. */
+  if (loaded) {
+    debug("initialization skipped — gtag.js already loaded");
+    return false;
+  }
+  if (!MEASUREMENT_ID) {
+    debugError("initialization aborted — VITE_GA4_ID is empty at build time.");
+    return false;
+  }
   loaded = true;
+
+  debug("initialization attempted for", MEASUREMENT_ID);
 
   // Written only now — storing a landing path beforehand would be analytics
   // storage without permission, however small.
@@ -157,44 +191,159 @@ function loadAnalytics() {
   const script = document.createElement("script");
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}`;
+  script.addEventListener("load", () => debug("gtag.js loaded successfully"));
+  script.addEventListener("error", () =>
+    debugError(
+      "gtag.js FAILED to load — almost always an ad blocker, a privacy extension, " +
+        "or a network filter. Commands stay queued in dataLayer and never reach Google."
+    )
+  );
   document.head.appendChild(script);
+
+  const location = safeLocation();
 
   gtag("js", new Date());
   gtag("config", MEASUREMENT_ID, {
     // Scrubbed URL — this is what stops session ids reaching Google.
-    page_location: safeLocation(),
+    page_location: location,
     allow_google_signals: false,
     allow_ad_personalization_signals: false,
   });
+
+  /* `config` sends the first page_view by itself, so no manual page_view is
+     fired here — doing both would double-count the landing page. Subsequent
+     in-app navigations are sent manually by trackPageView(). */
+  lastTrackedPath = window.location.pathname;
+  debug("initial page_view sent:", location);
 
   // Anything queued while awaiting a decision — chiefly a purchase on
   // /success — is sent now that consent exists.
   while (pending.length) gtag(...pending.shift());
 
+  installRouteListener();
+
   return true;
 }
 
-export function initAnalytics() {
-  if (started || !MEASUREMENT_ID) return false;
-  if (typeof window === "undefined" || isExcludedPath()) return false;
-  started = true;
+/**
+ * Sends a page_view for a client-side navigation.
+ *
+ * Exported so a router can call it directly. Returns false before consent —
+ * page views are never queued, because a view that happened before permission
+ * is not one we are entitled to report later.
+ */
+export function trackPageView(url = window.location.href) {
+  if (!loaded) return false;
 
-  const stored = readConsent();
-
-  if (stored === CONSENT_GRANTED) {
-    loadAnalytics();
-    return true;
+  const parsed = new URL(url);
+  if (isExcludedPath(parsed.pathname)) {
+    debug("route page_view suppressed — excluded path:", parsed.pathname);
+    return false;
   }
 
-  // Declined: never load, never ask again.
-  if (stored === CONSENT_DENIED) return false;
+  const location = safeLocation(url);
+  lastTrackedPath = parsed.pathname;
 
-  mountConsentBanner((choice) => {
-    if (choice === CONSENT_GRANTED) loadAnalytics();
-    else pending.length = 0;
+  gtag("event", "page_view", {
+    page_location: location,
+    page_path: parsed.pathname,
+    page_title: document.title,
   });
 
+  debug("route page_view sent:", location);
   return true;
+}
+
+/**
+ * Reports page views for client-side route changes.
+ *
+ * This site is currently multi-page — each link is a real document load that
+ * runs initAnalytics() and sends its own page_view — so this listener is inert
+ * today. It exists so that adding a client-side router later cannot silently
+ * stop page views being reported, which is a failure nobody notices for weeks.
+ *
+ * Only pathname changes count. Hash changes are in-page anchors, not views.
+ */
+function installRouteListener() {
+  if (routeListenerInstalled || typeof window === "undefined") return;
+  routeListenerInstalled = true;
+
+  const onNavigate = () => {
+    try {
+      if (window.location.pathname === lastTrackedPath) return;
+      trackPageView();
+    } catch (error) {
+      debugError("route page_view failed:", error);
+    }
+  };
+
+  /* pushState/replaceState fire no event of their own, so they are wrapped.
+     The original return value is preserved for any caller that reads it. */
+  for (const method of ["pushState", "replaceState"]) {
+    const original = window.history[method];
+    if (typeof original !== "function") continue;
+    window.history[method] = function patched(...args) {
+      const result = original.apply(this, args);
+      onNavigate();
+      return result;
+    };
+  }
+
+  window.addEventListener("popstate", onNavigate);
+  debug("route listener installed");
+}
+
+export function initAnalytics() {
+  try {
+    if (started) {
+      debug("init skipped — already initialised for this document");
+      return false;
+    }
+    if (!MEASUREMENT_ID) {
+      debugError(
+        "init aborted — VITE_GA4_ID was empty when this bundle was built. " +
+          "VITE_* variables are inlined at BUILD time, so setting it in Vercel " +
+          "requires a redeploy to take effect."
+      );
+      return false;
+    }
+    if (typeof window === "undefined") return false;
+    if (isExcludedPath()) {
+      debug("init skipped — excluded path:", window.location.pathname);
+      return false;
+    }
+    started = true;
+
+    const stored = readConsent();
+    debug("consent status detected:", stored ?? "undecided (banner will show)");
+
+    if (stored === CONSENT_GRANTED) {
+      // Returning visitor who already accepted — load immediately, no banner.
+      loadAnalytics();
+      return true;
+    }
+
+    // Declined: never load, never ask again.
+    if (stored === CONSENT_DENIED) {
+      debug("consent previously denied — gtag.js will not be requested");
+      return false;
+    }
+
+    mountConsentBanner((choice) => {
+      try {
+        debug("consent choice made:", choice);
+        if (choice === CONSENT_GRANTED) loadAnalytics();
+        else pending.length = 0;
+      } catch (error) {
+        debugError("failed to initialise after consent:", error);
+      }
+    });
+
+    return true;
+  } catch (error) {
+    debugError("initialisation error:", error);
+    return false;
+  }
 }
 
 /** Clears the stored choice so the banner shows again on next load. */
