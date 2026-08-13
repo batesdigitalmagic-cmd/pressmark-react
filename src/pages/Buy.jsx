@@ -168,9 +168,9 @@ export default function Buy() {
         <figure style={{ margin: "0 0 2rem" }}>
           <img
             src="/batchcutout-panel.png"
-            alt="The Pressmark BatchCutout panel in Photoshop, showing background-type options for mixed, solid-colour, and AI Remove Background modes, plus tolerance, output size, filename suffix, defringe, trim, subfolder, and overwrite settings"
-            width={888}
-            height={966}
+            alt="The Pressmark BatchCutout panel in Photoshop with the Cutout style menu open, listing Clean Transparent PNG, White Sticker, White Sticker + Shadow, Paper Cutout, Floating Shadow, Pop Sticker, Accent Glow, Spray Paint, Torn Paper, Rough Edge, and Distressed Stamp, alongside background-type options, tolerance, output size, filename suffix, edge roughness controls, and output settings"
+            width={1140}
+            height={1683}
             loading="lazy"
             style={{
               display: "block",
