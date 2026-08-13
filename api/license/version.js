@@ -1,3 +1,8 @@
+/* Versions and their storage URLs come from lib/releases.js, which api/download.js
+   reads too. This file used to keep its own copy of the map; the two drifting
+   apart is how a release ends up advertised here but un-downloadable there. */
+import { LATEST, availableVersions, releaseUrl } from '../../lib/releases.js';
+
 export default function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -5,12 +10,7 @@ export default function handler(req, res) {
 
   const { product, current, channel } = req.query;
 
-  const latestVersion = '1.0.0';
-
-  /* Which versions have storage configured. Mirrors api/download.js. */
-  const RELEASES = {
-    '1.0.0': process.env.DOWNLOAD_URL_1_0_0 || ''
-  };
+  const latestVersion = LATEST;
 
   /* Advertise the download through /api/download rather than the raw storage
      URL. That endpoint is a permanent link on our own domain, so the target
@@ -24,7 +24,7 @@ export default function handler(req, res) {
   const proto = req.headers['x-forwarded-proto'] || 'https';
   const baseUrl = host ? `${proto}://${host}` : 'https://pressmark.studio';
 
-  const downloadUrl = RELEASES[latestVersion]
+  const downloadUrl = releaseUrl(latestVersion)
     ? `${baseUrl}/api/download?v=${latestVersion}`
     : null;
 
@@ -36,6 +36,9 @@ export default function handler(req, res) {
     latest: latestVersion,
     update_available:
       !!current && current !== latestVersion,
-    download_url: downloadUrl
+    download_url: downloadUrl,
+    /* Every release still downloadable, newest last. Additive — existing
+       plugin builds read only the fields above and are unaffected. */
+    available: availableVersions()
   });
 }

@@ -2,7 +2,9 @@
  * A stable download URL on our own domain.
  *
  *   https://pressmark.studio/api/download          -> current version
- *   https://pressmark.studio/api/download?v=1.0.0  -> a specific version
+ *   https://pressmark.studio/api/download?v=1.1.0  -> a specific version
+ *   https://pressmark.studio/api/download?v=1.0.0  -> still resolves; old
+ *                                                    purchase emails link here
  *
  * Why not link Zoho WorkDrive directly:
  *
@@ -18,20 +20,15 @@
  * bought and cannot reach their file.
  */
 
+/* Versions and their storage URLs live in lib/releases.js so this route and
+   the plugin's update check can never disagree about what exists. */
+import { CURRENT, releaseUrl } from "../lib/releases.js";
+
 export const config = { runtime: "edge" };
-
-/* version -> direct download URL (must return the file, not a preview page).
-   Keep old versions here; someone reinstalling an older build shouldn't have
-   to email support. */
-const RELEASES = {
-  "1.0.0": process.env.DOWNLOAD_URL_1_0_0 || "",
-};
-
-const CURRENT = process.env.CURRENT_VERSION || "1.0.0";
 
 export default async function handler(request) {
   const requested = new URL(request.url).searchParams.get("v") || CURRENT;
-  const target = RELEASES[requested];
+  const target = releaseUrl(requested);
 
   if (!target) {
     return new Response(

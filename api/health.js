@@ -12,6 +12,11 @@
  * a slow third party look like a misconfiguration.
  */
 
+/* Download variables are derived from the release registry rather than listed
+   again here, so shipping a release cannot leave this check reporting healthy
+   while the new version has no storage configured. */
+import { RELEASE_ENV_VARS } from "../lib/releases.js";
+
 export const config = { runtime: "edge" };
 
 /* Groups map to features, so a missing variable points at what breaks rather
@@ -55,7 +60,9 @@ const GROUPS = {
   },
   downloads: {
     label: "Installer downloads",
-    required: ["DOWNLOAD_URL_1_0_0"],
+    /* Every release needs storage, not just the newest: old purchase emails
+       link to older versions and must keep resolving. */
+    required: RELEASE_ENV_VARS,
     optional: ["CURRENT_VERSION"],
   },
   quoteForm: {
