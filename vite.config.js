@@ -30,6 +30,7 @@ export default defineConfig({
         success: 'success.html',
         portal: 'portal.html',
         health: 'health.html',
+        privacy: 'privacy.html',
         sandbox: 'sandbox.html',
         sandboxPortal: 'sandbox-portal.html',
         ...blogInputs(),

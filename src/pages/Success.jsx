@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { trackPurchase } from "../analytics.js";
 import { GLOBAL_CSS, MONO_STACK, PALETTE, S } from "../storefront/theme.js";
 
 const DOWNLOAD_URL = import.meta.env.VITE_DOWNLOAD_URL || "/api/download";
@@ -12,6 +13,8 @@ export default function Success() {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const attempts = useRef(0);
+  // StrictMode double-invokes effects; a purchase must fire once.
+  const firedPurchase = useRef(false);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -30,7 +33,14 @@ export default function Success() {
         if (cancelled) return;
 
         if (response.ok) {
-          setData(await response.json());
+          const payload = await response.json();
+          setData(payload);
+          /* Only the commercial fields go to GA4. The licence key and email
+             sitting alongside them in `payload` are never passed on. */
+          if (payload.order && !firedPurchase.current) {
+            firedPurchase.current = true;
+            trackPurchase(payload.order);
+          }
           return;
         }
 

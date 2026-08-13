@@ -69,17 +69,40 @@ export default async function handler(request) {
       livemode: mode === LIVE,
     });
 
+    /* Commercial facts for analytics. Deliberately separate from the licence
+       fields above so it is obvious what may be forwarded to a third party.
+
+       transactionId is a SHA-256 prefix of the session id, not the session id
+       itself: stable enough for GA4 to deduplicate a refreshed success page,
+       but not reversible and not usable against the Stripe API. */
+    const order = {
+      transactionId: await hashOrderId(session.id),
+      value: typeof session.amount_total === "number" ? session.amount_total / 100 : null,
+      currency: (session.currency || "").toUpperCase() || null,
+      item: "Pressmark BatchCutout",
+      itemId: "batchcutout",
+    };
+
     // Only the key and the address it went to. Never the whole record.
     return json({
       key: license.key,
       email: license.email,
       maxDevices: license.max_devices,
       livemode: license.livemode !== false,
+      order,
     });
   } catch (error) {
     log.error("ensure failed", error);
     return json({ error: "Could not retrieve your license. Please check your email." }, 500);
   }
+}
+
+/* One-way, stable, and safe to hand to an analytics provider. */
+async function hashOrderId(sessionId) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(sessionId));
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .slice(0, 16);
 }
 
 function json(payload, status = 200) {
