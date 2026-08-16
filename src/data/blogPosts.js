@@ -69,6 +69,189 @@ export const CLUSTERS = {
 
 export const POSTS = [
   {
+    slug: "batch-background-removal-photoshop-batchcutout-v1-2",
+    cluster: "photoshop",
+    category: "Photoshop Automation",
+    title: "Batch Background Removal in Photoshop with BatchCutout v1.2",
+    seoTitle: "Batch Background Removal Photoshop | BatchCutout v1.2",
+    metaDescription:
+      "Remove backgrounds from multiple photos in Photoshop, export transparent PNGs in bulk, and apply eleven cutout styles with BatchCutout v1.2.",
+    excerpt:
+      "One folder in, transparent PNGs out. A practical look at BatchCutout v1.2 for school portraits, yearbook production, sports graphics, and print-shop deadlines.",
+    author: AUTHOR,
+    publishedDate: "2026-08-16",
+    updatedDate: "2026-08-16",
+    readingTime: 10,
+    featuredImage: "/batchcutout-styles.png",
+    featuredImageAlt:
+      "Eleven Pressmark BatchCutout v1.2 cutout styles shown on the Pressmark penguin mascot",
+    relatedPosts: [
+      "batch-remove-backgrounds-photoshop",
+      "ai-batch-background-removal-photoshop",
+      "automate-yearbook-pages-indesign-data-merge",
+    ],
+    content: [
+      {
+        type: "p",
+        text: "It is Friday afternoon. You have 400 portraits from a school or church session, and every background has to be gone before layout starts Monday. If opening, cutting out, exporting, naming, and closing one photo takes three minutes, the folder represents 1,200 minutes of work. That is 20 hours before you place a single portrait on a page.",
+      },
+      {
+        type: "p",
+        text: "The problem is not whether Photoshop can remove one background. It can. The problem is repeating the same production sequence 399 more times while keeping the output consistent and leaving the original files alone.",
+      },
+      {
+        type: "p",
+        text: "Pressmark BatchCutout v1.2 is a Photoshop batch remove background script built for that folder, not for a one-photo demonstration. You choose how the backgrounds should be detected, choose an input folder and an output folder, and let the script work through the set. The results are transparent PNGs. The originals are never modified.",
+      },
+
+      { type: "h2", text: "What BatchCutout does" },
+      {
+        type: "p",
+        text: "BatchCutout runs inside Adobe Photoshop 2021 or newer. Its basic job is deliberately simple: one folder in, transparent PNGs out. That makes it useful when the real requirement is to remove a background from multiple photos without turning every file into a separate manual task.",
+      },
+      {
+        type: "p",
+        text: "Choose the input folder that holds the portraits. Choose a separate output folder. BatchCutout isolates each subject and saves the result as a transparent PNG. Because it does not modify the source, the photographed originals remain available if a crop, colour correction, or different cutout treatment is needed later.",
+      },
+      {
+        type: "p",
+        text: "That separation matters in yearbook and print production. The cutouts can move into a publication layout while the source archive stays intact. It also makes bulk transparent PNG export predictable: the output folder contains the finished assets instead of a mixture of originals, working files, and exports.",
+      },
+      {
+        type: "note",
+        text: "If output PNGs already exist, BatchCutout skips them unless you change the filename suffix, choose an empty output folder, or turn on Overwrite existing PNGs.",
+      },
+
+      { type: "h2", text: "Three ways to detect the background" },
+      {
+        type: "p",
+        text: "The right detection method depends on how the session was photographed. BatchCutout has three background modes so a controlled school setup does not have to be treated like a folder of mixed locations.",
+      },
+      { type: "h3", text: "Different / complex" },
+      {
+        type: "p",
+        text: "This is the recommended mode and uses Photoshop's AI subject detection. It works on any backdrop, so it is the practical default when backgrounds vary, when the folder contains environmental portraits, or when you do not have one repeatable studio colour to target. It is the direct route when you need to automate Photoshop background removal across a set that is visually inconsistent.",
+      },
+      { type: "h3", text: "Mix of everything" },
+      {
+        type: "p",
+        text: "Use Mix of everything when the folder itself is inconsistent. BatchCutout checks each file and picks the method automatically. The customer guide says to leave it here when you are not sure. That makes it suitable for a combined delivery assembled from more than one camera station or shooting day.",
+      },
+      { type: "h3", text: "Consistent solid color" },
+      {
+        type: "p",
+        text: "Use Consistent solid color when every subject was photographed on the same studio backdrop. It is the fastest mode, and its purpose is matching edges across the set. The guide calls it the best choice for yearbook and product work.",
+      },
+      {
+        type: "p",
+        text: "Solid-color mode has one setting you are likely to adjust: Tolerance. Start at 28. If the cut reaches into hair or dark clothing, lower it and try 15. If background speckle survives, raise it and try 40. Those three numbers give you a useful test range without turning setup into another long job.",
+      },
+
+      { type: "h2", text: "Eleven cutout styles, grouped by the job they do" },
+      {
+        type: "p",
+        text: "Background removal is only the first step for many production teams. Yearbook photo cutouts may need a paper edge. Sports graphics cutouts may need a hard shadow or team-colour halo. BatchCutout v1.2 includes eleven presets in three practical families. Each preset loads sensible defaults, but border, colour, shadow, and rough-edge values remain editable.",
+      },
+      { type: "h3", text: "Plain output" },
+      {
+        type: "p",
+        text: "Clean Transparent PNG gives you the isolated subject with no border and no shadow. It is the default and the right choice when the layout, not the export script, will control the final treatment. Use it for portrait directories, clean yearbook grids, product placement, or any workflow that simply needs transparent files ready to place.",
+      },
+      { type: "h3", text: "Borders and shadows" },
+      {
+        type: "ul",
+        items: [
+          "White Sticker adds a white border around the subject. It is intended for collages.",
+          "White Sticker + Shadow adds a soft drop shadow to that white border, lifting the subject off the page.",
+          "Paper Cutout uses a thicker off-white border and a softer shadow for a scrapbook treatment.",
+          "Floating Shadow has no border. A soft shadow underneath makes the subject sit on the page, which suits product shots and clean layouts.",
+          "Pop Sticker combines a white border with a hard offset shadow and no blur. Its bold graphic finish is intended for sports graphics and social posts.",
+          "Accent Glow places a coloured halo around the subject. Set the shadow colour to a team colour; a distance of zero spreads the glow evenly around the cutout.",
+        ],
+      },
+      {
+        type: "p",
+        text: "These presets cover the common handoff between photography and design. A print shop can deliver neutral transparent PNGs. A yearbook designer can use Paper Cutout for a scrapbook spread. A sports designer can use Pop Sticker for a hard graphic edge or Accent Glow to carry a team colour into the portrait treatment.",
+      },
+      { type: "h3", text: "Rough-edge finishes" },
+      {
+        type: "ul",
+        items: [
+          "Spray Paint creates a ragged, tight speckle like spray paint or screen print. Raising Roughness makes the edge wilder.",
+          "Torn Paper creates an irregular off-white edge with a soft shadow. It is the scrapbook look, but hand-torn rather than neatly trimmed.",
+          "Rough Edge creates a subtle hand-cut edge for layouts where the border should look deliberate without becoming the main effect.",
+          "Distressed Stamp breaks and erodes the border like worn ink, with patches removed from the edge.",
+        ],
+      },
+      {
+        type: "p",
+        text: "The rough-edge presets add four controls. Roughness determines how far the ragged edge reaches. Grit controls the amount of noise from 1 to 400. Erosion above 128 eats the border away, while a value below 128 fattens it. Cleanup removes loose specks away from the edge; raise it to remove floating dots, lower it to preserve fine grain, or set it to zero to turn cleanup off.",
+      },
+
+      { type: "h2", text: "What changed in BatchCutout v1.2" },
+      {
+        type: "p",
+        text: "Version 1.2 adds the eleven style presets and keeps the earlier workflow intact. Clean Transparent PNG remains the default, so a team upgrading from 1.0 can replace the script, restart Photoshop, and continue using the same plain-cutout process. The new styles are optional.",
+      },
+      {
+        type: "ul",
+        items: [
+          "A 30-photo free trial with no card, no time limit, no watermark, and no feature limits",
+          "An animated Pressmark penguin that works alongside the batch as each photo is cut",
+          "Editable border width and colour, including White, Paper, Kraft, Black, or a typed hex value",
+          "Editable shadow colour, opacity, blur, and distance, plus Exact colour for hard shadows and glows",
+          "Roughness, Grit, Erosion, and Cleanup controls for the four rough-edge styles",
+          "Automatic canvas padding calculated from border and shadow sizes so effects are not clipped at the frame edge",
+        ],
+      },
+      {
+        type: "p",
+        text: "There is also a useful production safeguard. If a style fails on one image, that image still exports as a plain cutout and the run continues. One effect problem does not have to stop the rest of the folder.",
+      },
+
+      { type: "h2", text: "Worked example: 400 portraits for a yearbook deadline" },
+      {
+        type: "p",
+        text: "Suppose all 400 portraits were photographed on the same studio backdrop and the yearbook layout needs clean transparent subjects. The shortest reliable workflow is:",
+      },
+      {
+        type: "ol",
+        items: [
+          "Open BatchCutout from Photoshop's File > Scripts menu, or use File > Scripts > Browse and select the JSXBIN file.",
+          "Choose Consistent solid color because the backdrop matches across the session.",
+          "Leave Tolerance at the starting value of 28 and test representative portraits, including dark clothing and detailed hair.",
+          "If the selection cuts into hair or clothing, lower Tolerance toward 15. If backdrop speckle remains, raise it toward 40.",
+          "Choose Clean Transparent PNG so the yearbook layout controls the final styling.",
+          "Choose the input folder containing the portraits, then choose a separate output folder.",
+          "Run the folder and wait for the Done summary. The original portraits remain unchanged, and the output folder receives transparent PNGs.",
+        ],
+      },
+      {
+        type: "p",
+        text: "If the creative direction changes, the same source set can be run again with Torn Paper for scrapbook spreads or Accent Glow for team pages. Because the originals were not altered, changing the finish does not require recovering or rebuilding the photography archive.",
+      },
+      {
+        type: "p",
+        text: "For a folder shot against varied locations instead, switch the first decision to Different / complex and let Photoshop's AI subject detection handle the backdrop. For a mixed delivery where some files share a backdrop and others do not, choose Mix of everything and let BatchCutout select the method per file.",
+      },
+
+      { type: "h2", text: "Try the complete workflow on 30 photos" },
+      {
+        type: "p",
+        text: "BatchCutout v1.2 includes 30 free photos with no card and no time limit. The trial is not a reduced demo: all eleven cutout styles are available at full resolution with no watermark. That is enough to test the detection mode, edge quality, naming, output folder, and preferred style on files from your own session.",
+      },
+      {
+        type: "p",
+        text: "After the 30 photos, BatchCutout is $99 as a one-time purchase with no subscription. [Download the trial or buy BatchCutout v1.2](/buy), then test it on the kind of folder that currently consumes your production day.",
+      },
+      {
+        type: "p",
+        text: "If you want more background on the production problem first, read [how to remove backgrounds from hundreds of images in Photoshop](/blog/batch-remove-backgrounds-photoshop) and the deeper guide to [building a folder-level Photoshop background removal pipeline](/blog/ai-batch-background-removal-photoshop).",
+      },
+    ],
+  },
+
+  {
     slug: "automate-yearbook-pages-indesign-data-merge",
     featured: true,
     cluster: "automation",
