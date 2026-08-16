@@ -33,3 +33,4 @@ dist-ssr
 /blog/
 public/sitemap.xml
 public/robots.txt
+.env*
