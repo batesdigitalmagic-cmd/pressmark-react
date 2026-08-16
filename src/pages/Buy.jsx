@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { PALETTE } from "../storefront/theme.js";
-import brandMark from "../assets/pressmark-gold-footer-logo.png";
 import "./Buy.css";
 
 /* ─────────────────────────────────────────────
@@ -21,7 +20,6 @@ const PRICE = "$99";
 /* The Pressmark Penguin. Served from public/ so the original vector artwork
    stays crisp at every screen size. */
 const PENGUIN_SRC = "/pressmark-penguin.svg";
-const ADOBE_LOGO_SRC = "/adobe-logo.png";
 
 /* Lightweight animated walkthrough used in the batch-processing section. */
 const DEMO_GIF = "/media/batchcutout-demo.gif";
@@ -33,6 +31,7 @@ const DEMO_GIF = "/media/batchcutout-demo.gif";
 const TRIAL_URL = "/api/download";
 
 const NAV = [
+  { label: "Home", href: "/" },
   { label: "Overview", href: "#overview" },
   { label: "At Scale", href: "#scale" },
   { label: "Examples", href: "#examples" },
@@ -363,15 +362,9 @@ export default function Buy() {
       {/* ── HEADER ── */}
       <header className="bc-header">
         <div className="bc-shell bc-header-inner">
-          <a className="bc-brand" href="/">
-            <img className="bc-brand-mark" src={brandMark} alt="" width={44} height={44} />
-            <span>
-              <span className="bc-brand-name">Pressmark Studio</span>
-              <span className="bc-brand-tag">
-                Production tools for Adobe
-                <img src={ADOBE_LOGO_SRC} alt="" width={13} height={18} />
-              </span>
-            </span>
+          <a className="bc-product-brand" href="#overview">
+            <img src={PENGUIN_SRC} alt="" width={42} height={42} />
+            Pressmark BatchCutout
           </a>
 
           <nav aria-label="Primary">
@@ -391,20 +384,6 @@ export default function Buy() {
         <section className="bc-hero" id="overview">
           <div className="bc-shell bc-hero-grid">
             <div className="bc-hero-copy">
-              <div className="bc-product-lockup">
-                <img
-                  className="bc-title-mascot"
-                  src={PENGUIN_SRC}
-                  alt=""
-                  width={56}
-                  height={56}
-                />
-                <p className="bc-product-name">
-                  Pressmark BatchCutout
-                  <span className="bc-version-pill">v{VERSION}</span>
-                </p>
-              </div>
-
               <h1 className="bc-h1">
                 Remove Hundreds—or Thousands of Backgrounds Without Leaving Photoshop.
               </h1>

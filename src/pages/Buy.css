@@ -143,49 +143,29 @@ body {
   padding-block: 1.15rem;
 }
 
-.bc-brand {
-  display: flex;
+.bc-product-brand {
+  display: inline-flex;
   align-items: center;
-  gap: 0.85rem;
-  text-decoration: none;
-  color: inherit;
-}
-
-.bc-brand-mark {
-  display: block;
-  width: 44px;
-  height: auto;
-  flex: none;
-}
-
-.bc-brand-name {
-  display: block;
-  font-family: var(--bc-serif);
-  font-size: 1.5rem;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  gap: 0.65rem;
   color: var(--bc-ink, #020814);
+  font-family: var(--bc-sans);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  text-decoration: none;
 }
 
-.bc-brand-tag {
-  display: flex;
-  align-items: center;
-  gap: 0.38rem;
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--bc-accent, #aa7d48);
-  margin-top: 0.3rem;
-}
-
-.bc-brand-tag img {
+.bc-product-brand img {
   display: block;
-  width: 13px;
-  height: auto;
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
   flex: none;
+}
+
+.bc-product-brand:hover {
+  color: var(--bc-accent, #aa7d48);
 }
 
 .bc-nav {
@@ -313,49 +293,11 @@ body {
   gap: 1.35rem;
 }
 
-/* Penguin + product name lockup. */
-.bc-product-lockup {
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-}
-
-.bc-title-mascot {
-  display: block;
-  width: 56px;
-  height: auto;
-  flex: none;
-}
-
 .bc-penguin {
   display: block;
   width: clamp(56px, 8vw, 76px);
   height: auto;
   flex: none;
-}
-
-.bc-product-name {
-  font-family: var(--bc-sans);
-  font-size: clamp(1.15rem, 2vw, 1.4rem);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
-  margin: 0;
-}
-
-.bc-version-pill {
-  display: inline-block;
-  font-family: var(--bc-sans);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--bc-accent, #aa7d48);
-  border: 1px solid var(--bc-border, rgba(170, 125, 72, 0.3));
-  border-radius: 999px;
-  padding: 0.2rem 0.6rem;
-  margin-left: 0.6rem;
-  vertical-align: 0.22em;
 }
 
 .bc-feature-list {
@@ -997,22 +939,6 @@ body {
     padding-block: 0.9rem;
   }
 
-  .bc-brand {
-    gap: 0.65rem;
-  }
-
-  .bc-brand-mark {
-    width: 38px;
-  }
-
-  .bc-brand-name {
-    font-size: 1.25rem;
-  }
-
-  .bc-brand-tag {
-    font-size: 0.62rem;
-  }
-
   .bc-header nav {
     width: 100%;
     overflow-x: auto;
@@ -1058,16 +984,13 @@ body {
     gap: 1.15rem;
   }
 
-  .bc-product-name {
-    font-size: 1.08rem;
+  .bc-product-brand {
+    font-size: 1.05rem;
   }
 
-  .bc-title-mascot {
-    width: 46px;
-  }
-
-  .bc-version-pill {
-    font-size: 0.61rem;
+  .bc-product-brand img {
+    width: 36px;
+    height: 36px;
   }
 
   .bc-carousel-caption {
@@ -1167,14 +1090,6 @@ body {
     --bc-pad: 0.9rem;
   }
 
-  .bc-brand-name {
-    font-size: 1.12rem;
-  }
-
-  .bc-brand-tag {
-    letter-spacing: 0.08em;
-  }
-
   .bc-nav a {
     font-size: 0.76rem;
   }
@@ -1183,12 +1098,10 @@ body {
     align-items: stretch;
   }
 
-  .bc-product-lockup,
   .bc-cta-row {
     width: 100%;
   }
 
-  .bc-product-name,
   .bc-h1,
   .bc-lead {
     overflow-wrap: anywhere;
