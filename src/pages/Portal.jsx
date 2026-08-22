@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { GLOBAL_CSS, MONO_STACK, PALETTE, S } from "../storefront/theme.js";
+import HomeLink from "../components/HomeLink.jsx";
 
 const STATUS_COPY = {
   active: { label: "Active", color: PALETTE.accent },
@@ -124,6 +125,7 @@ export default function Portal({ apiBase = "/api/portal", sandbox = false }) {
   return (
     <div style={S.shell}>
       <style>{GLOBAL_CSS}</style>
+      <HomeLink />
       <main style={{ ...S.card, maxWidth: step === "licenses" ? 640 : 460 }}>
         {sandbox && (
           <div

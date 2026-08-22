@@ -17,6 +17,7 @@ import visualArtsImage from "./assets/portfolio/visual-arts.jpg";
 import traditionalCoverImage from "./assets/portfolio/cover-traditional.jpg";
 import minimalCoverImage from "./assets/portfolio/cover-minimal.jpg";
 import boldCoverImage from "./assets/portfolio/cover-bold.jpg";
+import { POSTS } from "./data/blogPosts.js";
 
 /* ─────────────────────────────────────────────
    DATA
@@ -93,6 +94,15 @@ const PROCESS = [
 const AUDIENCES = [
   "Schools","Athletic Programs","Churches","Nonprofits",
   "Associations","Community Organizations","Government Agencies","Membership Groups",
+];
+
+const RESOURCE_CARDS = [
+  { label: "Yearbooks", service: "#services", slug: "organize-yearbook-photos" },
+  { label: "Directories", service: "#services", slug: "create-photo-directory-from-csv" },
+  { label: "Data Merge", service: "#services", slug: "what-is-indesign-data-merge" },
+  { label: "Print Ready", service: "#services", slug: "yearbook-print-ready-pdf-checklist" },
+  { label: "Photo Automation", service: "/buy", slug: "batch-remove-backgrounds-photoshop" },
+  { label: "Publication Design", service: "#portfolio", slug: "bleed-trim-safe-area" },
 ];
 
 /* Page-based pricing. Trim size does not affect the rate — a 5.5x8.5 page and
@@ -344,11 +354,23 @@ export default function App() {
   const [emailed, setEmailed] = useState(false);
   const [sentTo, setSentTo] = useState("");
   const [quoteForm, setQuoteForm] = useState(EMPTY_QUOTE_FORM);
+  const resourceRailRef = useRef(null);
+  const resourceStripRef = useRef(null);
+  const [resourceStripHeight, setResourceStripHeight] = useState(200);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!resourceStripRef.current) return undefined;
+    const updateHeight = () => setResourceStripHeight(resourceStripRef.current.offsetHeight);
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(resourceStripRef.current);
+    return () => observer.disconnect();
   }, []);
 
   const scrollTo = (href) => {
@@ -366,6 +388,18 @@ export default function App() {
     setMenuOpen(false);
     window.location.href = "mailto:quotes@pressmark.studio?subject=Quote%20Request";
   };
+
+  const scrollResources = (direction) => {
+    resourceRailRef.current?.scrollBy({
+      left: direction * Math.min(resourceRailRef.current.clientWidth * 0.78, 760),
+      behavior: "smooth",
+    });
+  };
+
+  const resourceItems = RESOURCE_CARDS.map((item) => ({
+    ...item,
+    article: POSTS.find((post) => post.slug === item.slug),
+  })).filter((item) => item.article);
 
   const updateQuoteForm = (field, value) => {
     setQuoteForm((current) => ({ ...current, [field]: value }));
@@ -433,7 +467,7 @@ export default function App() {
       color: PALETTE.text,
       margin: 0,
       padding: 0,
-      overflowX: "hidden",
+      overflowX: "clip",
     },
     // NAV
     nav: {
@@ -640,7 +674,7 @@ export default function App() {
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600;1,700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
-        body { overflow-x: hidden; }
+        body { overflow-x: clip; }
         body { background: #ffffff; }
         .pricing-reveal > summary { list-style: none; }
         .pricing-reveal > summary::-webkit-details-marker { display: none; }
@@ -678,6 +712,28 @@ export default function App() {
         }
         .about-benefits {
           justify-items: start;
+        }
+        .resource-rail {
+          scrollbar-width: thin;
+          scrollbar-color: #aa7d48 rgba(2,8,20,0.08);
+        }
+        .resource-rail::-webkit-scrollbar { height: 7px; }
+        .resource-rail::-webkit-scrollbar-track { background: rgba(2,8,20,0.08); border-radius: 99px; }
+        .resource-rail::-webkit-scrollbar-thumb { background: #aa7d48; border-radius: 99px; }
+        .resource-card { transition: transform .25s ease, box-shadow .25s ease; }
+        .resource-card:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(2,8,20,.16) !important; }
+        .resource-card-link:hover { color: #aa7d48 !important; }
+        .desktop-side-rail { display: block; }
+        .side-resource-link:hover { color: #aa7d48 !important; background: rgba(170,125,72,.09) !important; }
+        @media (min-width: 1181px) {
+          .buy-side-rail ~ section,
+          .buy-side-rail ~ footer {
+            margin-right: 249px;
+            width: auto;
+          }
+        }
+        @media (max-width: 1180px) {
+          .desktop-side-rail { display: none !important; }
         }
         @media (max-width: 900px) {
           .hero-section {
@@ -755,6 +811,7 @@ export default function App() {
           .audience-grid { grid-template-columns: repeat(2, 1fr) !important; }
         }
         @media (max-width: 640px) {
+          body { padding-bottom: 68px; }
           nav { padding-inline: 1rem !important; }
           .desktop-nav { display: none !important; }
           .hamburger-btn { display: flex !important; }
@@ -795,6 +852,24 @@ export default function App() {
           .quote-form { padding: 1.25rem !important; }
           .quote-form-grid { grid-template-columns: minmax(0, 1fr) !important; }
           .footer-nav { gap: 1rem 1.4rem !important; }
+          .resource-strip { padding: .45rem .5rem .5rem !important; }
+          .resource-strip {
+            position: relative !important;
+            top: auto !important;
+            left: auto !important;
+            right: auto !important;
+            margin-top: 68px !important;
+          }
+          .resource-strip-spacer { height: 0 !important; }
+          .resource-card { flex-basis: 31vw !important; min-width: 118px !important; }
+          .resource-card button { display: none !important; }
+          .resource-card-link { font-size: .64rem !important; }
+          .resource-rail { gap: .45rem !important; }
+          .resource-arrow { display: none !important; }
+          .mobile-bottom-nav { display: flex !important; }
+          nav.mobile-bottom-nav { padding-inline: 0 !important; }
+          .hero-section { margin-inline: 0 !important; }
+          .hero-section > div { padding-inline: 1rem !important; }
         }
         @media (max-width: 540px) {
           .why-grid { grid-template-columns: 1fr !important; }
@@ -865,11 +940,93 @@ export default function App() {
         </button>
       </div>
 
+      <nav className="mobile-bottom-nav" aria-label="Mobile shortcuts" style={{
+        display: "none",
+        position: "fixed",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 260,
+        height: 68,
+        alignItems: "stretch",
+        justifyContent: "space-around",
+        background: "rgba(255,255,255,.97)",
+        backdropFilter: "blur(14px)",
+        borderTop: `1px solid ${PALETTE.border}`,
+        boxShadow: "0 -8px 24px rgba(2,8,20,.1)",
+      }}>
+        {[
+          { icon: "⌂", label: "Home", href: "#about", home: true },
+          { icon: "▦", label: "Services", href: "#services" },
+          { icon: "☰", label: "Guides", href: "/blog" },
+          { icon: "◈", label: "Shop", href: "/buy" },
+        ].map(item => (
+          <button key={item.label} type="button" onClick={() => item.home ? window.scrollTo({ top: 0, behavior: "smooth" }) : scrollTo(item.href)} style={{ flex: 1, border: 0, background: "transparent", color: item.home ? PALETTE.accent : PALETTE.text, fontSize: ".62rem", fontWeight: 850, cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2 }}>
+            <span aria-hidden="true" style={{ fontSize: "1.3rem", lineHeight: 1 }}>{item.icon}</span>{item.label}
+          </button>
+        ))}
+        <button type="button" onClick={emailQuote} style={{ flex: 1, border: 0, background: "transparent", color: PALETTE.text, fontSize: ".62rem", fontWeight: 850, cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2 }}>
+          <span aria-hidden="true" style={{ fontSize: "1.3rem", lineHeight: 1 }}>✉</span>Quote
+        </button>
+      </nav>
+
+      {/* ── SCROLLABLE RESOURCE RAIL ── */}
+      <section ref={resourceStripRef} className="resource-strip" aria-label="Services and resources" style={{
+        position: "fixed",
+        top: 68,
+        left: 0,
+        right: 0,
+        zIndex: 150,
+        padding: `.65rem ${PAGE_X} .7rem`,
+        background: "#f7f4ee",
+        borderBottom: `1px solid ${PALETTE.border}`,
+        boxShadow: "0 10px 28px rgba(2,8,20,.1)",
+      }}>
+        <div style={{ ...S.container, position: "relative" }}>
+          <nav aria-label="Article resources" style={{ display: "flex", alignItems: "center", gap: ".35rem", overflowX: "auto", padding: "0 0 .45rem", whiteSpace: "nowrap", scrollbarWidth: "none" }}>
+            <span style={{ color: PALETTE.textMuted, fontSize: ".65rem", fontWeight: 900, letterSpacing: ".1em", textTransform: "uppercase", marginRight: ".25rem" }}>Guides:</span>
+            {resourceItems.map(({ label, article }) => (
+              <a className="side-resource-link" key={article.slug} href={`/blog/${article.slug}`} style={{ display: "inline-block", padding: ".32rem .55rem", borderRadius: 99, border: `1px solid ${PALETTE.border}`, color: PALETTE.text, background: PALETTE.white, fontSize: ".67rem", fontWeight: 800, textDecoration: "none" }}>{label}</a>
+            ))}
+            <a href="/blog" style={{ color: PALETTE.accent, fontSize: ".67rem", fontWeight: 900, textDecoration: "none", marginLeft: ".35rem" }}>View all →</a>
+          </nav>
+          <button className="resource-arrow" type="button" onClick={() => scrollResources(-1)} aria-label="Previous resources" style={{ position: "absolute", zIndex: 2, left: -18, top: "58%", width: 36, height: 36, borderRadius: "50%", border: `1px solid ${PALETTE.border}`, background: PALETTE.white, color: PALETTE.text, fontSize: "1.2rem", cursor: "pointer", boxShadow: "0 5px 16px rgba(2,8,20,.14)" }}>‹</button>
+          <div ref={resourceRailRef} className="resource-rail" style={{ display: "flex", gap: ".7rem", overflowX: "auto", scrollSnapType: "x mandatory", padding: ".1rem .15rem .55rem" }}>
+            {resourceItems.map(({ label, service, article }) => (
+              <article className="resource-card" key={label} style={{ position: "relative", flex: "0 0 clamp(190px,19vw,255px)", minHeight: 112, overflow: "hidden", borderRadius: 8, scrollSnapAlign: "start", background: PALETTE.text, boxShadow: "0 6px 16px rgba(2,8,20,.12)" }}>
+                <img src={article.featuredImage} alt="" style={{ width: "100%", height: "100%", position: "absolute", inset: 0, objectFit: "cover", opacity: .64 }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(2,8,20,.04) 18%,rgba(2,8,20,.94) 100%)" }} />
+                <div style={{ position: "relative", minHeight: 112, padding: ".7rem", display: "flex", flexDirection: "column", justifyContent: "flex-end", textAlign: "left", color: PALETTE.white }}>
+                  <div style={{ fontSize: ".95rem", fontWeight: 800, marginBottom: ".35rem" }}>{label}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: ".55rem", flexWrap: "wrap" }}>
+                    <button onClick={() => scrollTo(service)} style={{ border: 0, background: PALETTE.accent, color: PALETTE.black, fontSize: ".67rem", fontWeight: 800, padding: ".38rem .55rem", cursor: "pointer", borderRadius: 3 }}>View service</button>
+                    <a className="resource-card-link" href={`/blog/${article.slug}`} style={{ color: PALETTE.white, fontSize: ".67rem", fontWeight: 800, textDecoration: "none" }}>Read guide →</a>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+          <button className="resource-arrow" type="button" onClick={() => scrollResources(1)} aria-label="Next resources" style={{ position: "absolute", zIndex: 2, right: -18, top: "58%", width: 36, height: 36, borderRadius: "50%", border: `1px solid ${PALETTE.border}`, background: PALETTE.white, color: PALETTE.text, fontSize: "1.2rem", cursor: "pointer", boxShadow: "0 5px 16px rgba(2,8,20,.14)" }}>›</button>
+        </div>
+      </section>
+      <div className="resource-strip-spacer" aria-hidden="true" style={{ height: resourceStripHeight }} />
+
+      {/* ── DESKTOP PRODUCT SIDEBAR ── */}
+      <aside className="desktop-side-rail buy-side-rail" aria-label="Pressmark products" style={{ position: "fixed", zIndex: 120, top: resourceStripHeight + 84, right: 16, width: 225, overflow: "hidden", border: `1px solid ${PALETTE.border}`, borderRadius: 10, background: PALETTE.white, boxShadow: "0 10px 30px rgba(2,8,20,.14)", textAlign: "left" }}>
+        <img src="/batchcutout-styles.png" alt="Pressmark BatchCutout Photoshop tool styles" style={{ display: "block", width: "100%", height: 112, objectFit: "cover", background: PALETTE.text }} />
+        <div style={{ padding: "1rem" }}>
+          <div style={{ color: PALETTE.accent, fontSize: ".64rem", fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase" }}>Pressmark Products</div>
+          <div style={{ color: PALETTE.text, fontSize: "1rem", lineHeight: 1.15, fontWeight: 850, margin: ".35rem 0" }}>Automate the repetitive work.</div>
+          <p style={{ color: PALETTE.textMuted, fontSize: ".72rem", lineHeight: 1.45, marginBottom: ".8rem" }}>Explore production tools built for designers, photographers, and publication teams.</p>
+          <a href="/buy" style={{ display: "block", padding: ".65rem .8rem", borderRadius: 4, background: PALETTE.accent, color: PALETTE.black, fontSize: ".72rem", fontWeight: 900, textAlign: "center", textDecoration: "none", textTransform: "uppercase", letterSpacing: ".05em" }}>Shop Pressmark Tools →</a>
+        </div>
+      </aside>
+
       {/* ── HERO ── */}
       <section className="hero-section" style={{
         position: "relative",
         minHeight: "86vh",
-        paddingTop: 68,
+        paddingTop: 0,
         display: "flex",
         alignItems: "center",
         backgroundImage: `linear-gradient(90deg, rgba(2,8,20,0.96) 0%, rgba(2,8,20,0.78) 43%, rgba(2,8,20,0.28) 72%, rgba(2,8,20,0.7) 100%), url(${heroMergePhotosImage})`,
@@ -918,6 +1075,15 @@ export default function App() {
                 borderColor: "rgba(255,255,255,0.58)",
               }} onClick={() => scrollTo("#services")}>
                 VIEW SERVICES
+              </button>
+              <button className="btn-ghost-hover" style={{
+                ...S.btnGhost(true),
+                borderRadius: 999,
+                padding: "0.95rem 2rem",
+                background: "rgba(170,125,72,.16)",
+                borderColor: PALETTE.accent,
+              }} onClick={() => scrollTo("/buy")}>
+                SHOP PRESSMARK TOOLS
               </button>
             </div>
           </div>
@@ -1188,7 +1354,7 @@ export default function App() {
       </section>
 
       {/* ── PORTFOLIO SHOWCASE ── */}
-      <section aria-labelledby="portfolio-heading" style={S.section(PALETTE.white)}>
+      <section id="portfolio" aria-labelledby="portfolio-heading" style={S.section(PALETTE.white)}>
         <div style={{ ...S.container, maxWidth: 1240 }}>
           <div className="portfolio-intro" style={{
             display: "grid",

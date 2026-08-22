@@ -548,7 +548,7 @@ export const POSTS = [
     content: [
       {
         type: "p",
-        text: "A yearbook committee usually gathers photographs from a dozen sources: the portrait studio, three staff phones, a shared drive, the athletics department, and a parent who took better shots than anyone else. Design cannot start until those become one organised set.",
+        text: "A yearbook committee usually gathers photographs from a dozen sources: the portrait studio, students who take photos at games and events, three staff phones, a shared drive, the athletics department, and a parent who took better shots than anyone else. Design cannot start until those become one organised set.",
       },
       { type: "h2", text: "Name files so they sort themselves" },
       {

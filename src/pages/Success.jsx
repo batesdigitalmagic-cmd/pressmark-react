@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { trackPurchase } from "../analytics.js";
 import { GLOBAL_CSS, MONO_STACK, PALETTE, S } from "../storefront/theme.js";
+import HomeLink from "../components/HomeLink.jsx";
 
 const DOWNLOAD_URL = import.meta.env.VITE_DOWNLOAD_URL || "/api/download";
 const MAX_ATTEMPTS = 5;
@@ -87,6 +88,7 @@ export default function Success() {
   const shell = (children) => (
     <div style={S.shell}>
       <style>{GLOBAL_CSS}</style>
+      <HomeLink />
       <main style={S.card}>{children}</main>
     </div>
   );

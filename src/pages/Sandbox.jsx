@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { GLOBAL_CSS, MONO_STACK, PALETTE, S } from "../storefront/theme.js";
+import HomeLink from "../components/HomeLink.jsx";
 
 /*
  * Sandbox checkout. Posts only to /api/checkout-test, which cannot reach live
@@ -32,6 +33,7 @@ export default function Sandbox() {
   return (
     <div style={S.shell}>
       <style>{GLOBAL_CSS}</style>
+      <HomeLink />
       <main style={S.card}>
         <div
           style={{

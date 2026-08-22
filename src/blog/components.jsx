@@ -36,6 +36,7 @@ import logo from "../assets/pressmark studio logo main.png";
 import footerLogo from "../assets/pressmark-cream-footer-logo.png";
 
 const NAV_LINKS = [
+  { label: "Home", href: "/" },
   { label: "About", href: "/#about" },
   { label: "Services", href: "/#services" },
   { label: "Why Us", href: "/#why" },

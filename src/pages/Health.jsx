@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { GLOBAL_CSS, MONO_STACK, PALETTE, S } from "../storefront/theme.js";
+import HomeLink from "../components/HomeLink.jsx";
 
 /*
  * Renders /api/health. Shows only whether each variable is present — the API
@@ -49,6 +50,7 @@ export default function Health() {
   return (
     <div style={S.shell}>
       <style>{GLOBAL_CSS}</style>
+      <HomeLink />
       <main style={{ ...S.card, maxWidth: 620 }}>
         <p style={S.eyebrow}>Pressmark Studio</p>
         <h1 style={S.h1}>Configuration</h1>
