@@ -403,14 +403,6 @@ export default function Buy() {
                 ))}
               </ul>
 
-              <div className="bc-price">
-                <span className="bc-price-amount">{PRICE}</span>
-                <span className="bc-price-term">One-Time Purchase</span>
-                <span className="bc-price-note">
-                  Pay once. No subscription, ever.
-                </span>
-              </div>
-
               {/* A cancelled checkout returns here rather than to a dead end —
                   the thing they were buying stays in front of them. */}
               {cancelled && (
