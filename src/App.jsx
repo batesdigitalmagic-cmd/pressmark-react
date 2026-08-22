@@ -822,7 +822,22 @@ export default function App() {
             min-height: 100svh !important;
             align-items: flex-start !important;
           }
-          .hero-section > div { padding-top: clamp(2.25rem, 9vw, 3.5rem) !important; }
+          .hero-section > div {
+            min-height: 100svh !important;
+            padding-top: clamp(2.25rem, 9vw, 3.5rem) !important;
+            padding-bottom: 2.5rem !important;
+            display: flex !important;
+          }
+          .hero-copy {
+            width: 100% !important;
+            min-height: calc(100svh - clamp(4.75rem, 14vw, 6rem)) !important;
+            display: flex !important;
+            flex-direction: column !important;
+          }
+          .hero-copy .hero-buttons {
+            margin-top: auto !important;
+            padding-top: clamp(12rem, 34vh, 22rem) !important;
+          }
           .hero-copy h1 {
             font-size: clamp(2.55rem, 13vw, 3.5rem) !important;
             line-height: 0.98 !important;
