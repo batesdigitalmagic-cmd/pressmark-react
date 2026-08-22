@@ -420,11 +420,11 @@ export default function Buy() {
               )}
 
               <div className="bc-cta-row">
-                {buyButton}
-                <a className="bc-btn bc-btn-secondary" href={TRIAL_URL}>
-                  Try Free — 30 Photos
+                <a className="bc-btn bc-btn-secondary bc-btn-free-featured" href={TRIAL_URL}>
+                  Download Free Trial
                   <span className="bc-btn-sub">No card required</span>
                 </a>
+                {buyButton}
               </div>
 
               {error && (
@@ -550,11 +550,7 @@ export default function Buy() {
 
             <div className="bc-purchase">
               <div className="bc-purchase-side">
-                <p className="bc-eyebrow">Pressmark BatchCutout v{VERSION}</p>
-                <div className="bc-price">
-                  <span className="bc-price-amount">{PRICE}</span>
-                  <span className="bc-price-term">One-Time Purchase</span>
-                </div>
+                <p className="bc-h2 bc-product-version">Pressmark BatchCutout v{VERSION}</p>
                 <ul className="bc-feature-list">
                   {INCLUDED.map((item) => (
                     <li key={item}>
@@ -571,24 +567,22 @@ export default function Buy() {
                   export + Torn Paper + Rough Edge + Sticker styles + Version 1.x updates.
                 </p>
 
-                <button
-                  type="button"
-                  className="bc-btn bc-btn-primary"
-                  onClick={checkout}
-                  disabled={busy}
-                  style={{ alignSelf: "stretch" }}
-                >
-                  {busy ? "Opening checkout…" : `Get BatchCutout — ${PRICE}`}
-                  {!busy && <span className="bc-btn-sub">Secure checkout via Stripe</span>}
-                </button>
+                <div className="bc-cta-row bc-purchase-cta">
+                  <a className="bc-btn bc-btn-secondary bc-btn-free-featured" href={TRIAL_URL}>
+                    Download Free Trial
+                    <span className="bc-btn-sub">No card required</span>
+                  </a>
 
-                <a
-                  className="bc-btn bc-btn-secondary"
-                  href={TRIAL_URL}
-                  style={{ alignSelf: "stretch" }}
-                >
-                  Try Free — 30 Photos
-                </a>
+                  <button
+                    type="button"
+                    className="bc-btn bc-btn-primary"
+                    onClick={checkout}
+                    disabled={busy}
+                  >
+                    {busy ? "Opening checkout…" : `Get BatchCutout — ${PRICE}`}
+                    {!busy && <span className="bc-btn-sub">Secure checkout via Stripe</span>}
+                  </button>
+                </div>
 
                 {error && (
                   <p role="alert" className="bc-error">

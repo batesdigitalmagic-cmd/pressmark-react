@@ -738,11 +738,13 @@ export default function App() {
         @media (max-width: 900px) {
           .hero-section {
             min-height: 78vh !important;
-            background-position: center top !important;
-            background-image: linear-gradient(180deg, rgba(2,8,20,0.72) 0%, rgba(2,8,20,0.86) 42%, rgba(2,8,20,0.98) 100%), url(${heroMergePhotosImage}) !important;
+            background-position: 62% center !important;
+            background-image: linear-gradient(180deg, rgba(2,8,20,0.18) 0%, rgba(2,8,20,0.34) 42%, rgba(2,8,20,0.88) 78%, rgba(2,8,20,0.97) 100%), url(${heroMergePhotosImage}) !important;
           }
           .hero-copy h1,
           .hero-copy p { text-align: center !important; }
+          .hero-copy h1 { text-shadow: 0 3px 22px rgba(2,8,20,.85); }
+          .hero-copy p { text-shadow: 0 2px 12px rgba(2,8,20,.95); }
           .hero-copy { margin: 0 auto !important; }
           .hero-copy .hero-buttons { justify-content: center !important; }
           .about-grid {
