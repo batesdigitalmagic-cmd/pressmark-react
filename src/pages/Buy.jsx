@@ -59,6 +59,14 @@ const SHOTS = [
     caption: "Choose detection, select a cutout style, and point BatchCutout at a folder.",
   },
   {
+    id: "batch-example",
+    label: "A complete folder transformed",
+    src: "/batchcutout-example.png",
+    alt:
+      "Two file-browser windows showing a full folder of portrait photographs before BatchCutout and the matching transparent PNG cutouts after processing.",
+    caption: "Turn a complete portrait folder into transparent PNGs in one batch.",
+  },
+  {
     id: "progress",
     label: "Batch processing and progress",
     src: "/batchcutout-progress.png",
@@ -340,8 +348,8 @@ export default function Buy() {
 
   const buyButton = (
     <button type="button" className="bc-btn bc-btn-primary" onClick={checkout} disabled={busy}>
-      {busy ? "Opening checkout…" : `Buy BatchCutout — ${PRICE}`}
-      {!busy && <span className="bc-btn-sub">One-time purchase · instant download</span>}
+      {busy ? "Opening checkout…" : "Buy BatchCutout"}
+      {!busy && <span className="bc-btn-sub">One-time purchase · instant download · {PRICE}</span>}
     </button>
   );
 
@@ -579,8 +587,8 @@ export default function Buy() {
                     onClick={checkout}
                     disabled={busy}
                   >
-                    {busy ? "Opening checkout…" : `Get BatchCutout — ${PRICE}`}
-                    {!busy && <span className="bc-btn-sub">Secure checkout via Stripe</span>}
+                    {busy ? "Opening checkout…" : "Buy BatchCutout"}
+                    {!busy && <span className="bc-btn-sub">One-time purchase · instant download · {PRICE}</span>}
                   </button>
                 </div>
 

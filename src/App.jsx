@@ -820,8 +820,9 @@ export default function App() {
           .site-logo-image { width: 145px !important; height: auto !important; transform: none; }
           .hero-section {
             min-height: 100svh !important;
-            align-items: flex-end !important;
+            align-items: flex-start !important;
           }
+          .hero-section > div { padding-top: clamp(2.25rem, 9vw, 3.5rem) !important; }
           .hero-copy h1 {
             font-size: clamp(2.55rem, 13vw, 3.5rem) !important;
             line-height: 0.98 !important;

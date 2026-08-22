@@ -317,13 +317,6 @@ body {
 
 .bc-purchase-cta {
   width: 100%;
-  flex-direction: column;
-  flex-wrap: nowrap;
-}
-
-.bc-purchase-cta .bc-btn {
-  width: 100%;
-  flex: 0 0 auto;
 }
 
 /* ─────────────────────────────────────────────
