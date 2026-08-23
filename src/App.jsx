@@ -5,6 +5,7 @@ import heroMergePhotosImage from "./assets/hero image merge photos.png";
 import badPageImage from "./assets/bad page.png?url";
 import publicationViewingImage from "./assets/publication-viewing.jpg";
 import yearbookSpreadImage from "./assets/yearbook-spread.png";
+import yearbookAutomationImage from "./assets/yearbook-automation-example.png";
 import yearbookOpenImage from "./assets/year book open.png";
 import directoryDesignSpreadImage from "./assets/directory-design-spread-white.png";
 import dataMergeSetupImage from "./assets/data-merge-setup.png";
@@ -37,7 +38,7 @@ const SERVICES = [
   {
     num: "01",
     icon: "📚",
-    title: "Yearbook Design",
+    title: "Yearbook Automation",
     flagship: true,
     desc: "Beautiful, organized yearbooks that celebrate students, teams, activities, achievements, and the moments people want to remember.",
     img: "yearbook",
@@ -45,7 +46,7 @@ const SERVICES = [
   {
     num: "02",
     icon: "📇",
-    title: "Directory Design",
+    title: "Directory Automation",
     flagship: false,
     desc: "Professional directories designed for schools, churches, associations, nonprofits, membership groups, and community organizations.",
     img: "directory",
@@ -69,7 +70,7 @@ const SERVICES = [
   {
     num: "05",
     icon: "🖨️",
-    title: "Print Production",
+    title: "Print Ready Prepress",
     flagship: false,
     desc: "Production-ready PDFs, bleeds, margins, image checks, file packaging, and commercial print preparation for confident delivery.",
     img: "print",
@@ -178,8 +179,8 @@ const IMG_ASSETS = {
   hero: { src: spreadsheetHeroImage, alt: "Spreadsheet data flowing into finished publication pages" },
   about: { src: dataMergeResultsImage, alt: "Completed directory records generated with Adobe InDesign Data Merge" },
   yearbook: {
-    src: yearbookSpreadImage,
-    alt: "Class of 2027 sophomore yearbook portrait spread",
+    src: yearbookAutomationImage,
+    alt: "Automated Visual Arts and Maker Space yearbook spread",
     containerStyle: { background: "#ffffff" },
     imgStyle: { objectFit: "contain", objectPosition: "center" },
   },
@@ -1426,7 +1427,7 @@ export default function App() {
 
           <div className="portfolio-gallery" style={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
             gap: "clamp(1rem, 2.5vw, 1.75rem)",
           }}>
             {[
@@ -1447,6 +1448,12 @@ export default function App() {
                 eyebrow: "Visual Arts",
                 title: "Creativity, Beautifully Organized",
                 copy: "A clean visual system turns a rich collection of photos into pages that feel polished and easy to explore.",
+              },
+              {
+                image: yearbookSpreadImage,
+                eyebrow: "Portrait Automation",
+                title: "Portraits Placed With Precision",
+                copy: "Structured portrait data becomes a consistent, production-ready spread without placing every student by hand.",
               },
             ].map((item, index) => (
               <FadeIn key={item.title} delay={index * 0.08} style={{ height: "100%" }}>
