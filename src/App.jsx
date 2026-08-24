@@ -39,7 +39,7 @@ const SERVICES = [
     num: "01",
     icon: "📚",
     title: "Yearbook Automation",
-    flagship: true,
+    flagship: false,
     desc: "Beautiful, organized yearbooks that celebrate students, teams, activities, achievements, and the moments people want to remember.",
     img: "yearbook",
   },
@@ -1138,7 +1138,7 @@ export default function App() {
               <img src={badPageImage} alt="Disorganized publication page needing cleanup" style={{ display: "block", width: "100%", aspectRatio: "5.5 / 8.5", objectFit: "contain", background: PALETTE.white }} />
             </div>
             <div className="problem-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.8rem", margin: "0 auto 1.6rem", maxWidth: 900 }}>
-              {["Portraits are missing.", "Spreadsheets don't match.", "Names are incorrect.", "Layouts become difficult to manage.", "Deadlines get closer."].map(item => (
+              {["Deadlines get closer.", "Portraits are missing.", "Spreadsheets don't match.", "Names are incorrect.", "Layouts become difficult to manage."].map(item => (
                 <div className="problem-card" key={item} style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 86, border: `1px solid ${PALETTE.border}`, background: PALETTE.white, padding: "1rem", color: PALETTE.text, fontWeight: 700, lineHeight: 1.35 }}>
                   {item}
                 </div>
