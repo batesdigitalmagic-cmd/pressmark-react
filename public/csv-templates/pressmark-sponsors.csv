@@ -1,0 +1,4 @@
+sponsor_id,organization_name,sponsor_level,headline,description,website,logo_filename,ad_image_filename,sort_order
+6001,Northgate Partners,Platinum,"Proud to support our community","Northgate Partners has backed local programs for eighteen years and counting.",https://example.com,northgate-logo.png,northgate-full-page.jpg,1
+6002,Brightwater Foundation,Gold,"Investing in what lasts","Supporting education and the arts across the region since 1994.",https://example.org,brightwater-logo.png,,2
+6003,Halloran & Vance,Silver,"Here when it matters",,https://example.net,halloran-vance-logo.png,,3

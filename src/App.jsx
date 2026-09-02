@@ -19,6 +19,7 @@ import traditionalCoverImage from "./assets/portfolio/cover-traditional.jpg";
 import minimalCoverImage from "./assets/portfolio/cover-minimal.jpg";
 import boldCoverImage from "./assets/portfolio/cover-bold.jpg";
 import { POSTS } from "./data/blogPosts.js";
+import { takeQuoteHandoff } from "./instant-proof/quoteHandoff.js";
 
 /* ─────────────────────────────────────────────
    DATA
@@ -32,6 +33,7 @@ const NAV_LINKS = [
   // A real page rather than an anchor — see scrollTo, which routes on the
   // leading slash. querySelector("/buy") would throw a SyntaxError.
   { label: "Products", href: "/buy" },
+  { label: "Instant Proof", href: "/instant-proof" },
 ];
 
 const SERVICES = [
@@ -147,6 +149,12 @@ const BUDGET_RANGES = [
   "$10,000+",
   "Not sure yet",
 ];
+
+/* A visitor who just generated an Instant Proof arrives with their answers
+   waiting in sessionStorage. Read once, at module load: this runs exactly once
+   per page load, before React renders, so StrictMode's double-invoked render
+   and effect bodies cannot consume the value twice. */
+const QUOTE_HANDOFF = takeQuoteHandoff();
 
 const EMPTY_QUOTE_FORM = {
   firstName: "",
@@ -354,10 +362,19 @@ export default function App() {
   const [uploadUrl, setUploadUrl] = useState("");
   const [emailed, setEmailed] = useState(false);
   const [sentTo, setSentTo] = useState("");
-  const [quoteForm, setQuoteForm] = useState(EMPTY_QUOTE_FORM);
+  const [quoteForm, setQuoteForm] = useState(() => ({ ...EMPTY_QUOTE_FORM, ...QUOTE_HANDOFF }));
   const resourceRailRef = useRef(null);
   const resourceStripRef = useRef(null);
   const [resourceStripHeight, setResourceStripHeight] = useState(200);
+
+  /* Scroll a visitor arriving from /instant-proof down to the prefilled form.
+     Reading the handoff itself happens at module load (see QUOTE_HANDOFF), not
+     here — a read-and-clear inside an effect or a render body would misbehave
+     under StrictMode's double invocation. */
+  useEffect(() => {
+    if (!QUOTE_HANDOFF) return;
+    document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -811,6 +828,9 @@ export default function App() {
           .cta-grid { grid-template-columns: 1fr !important; text-align: center; }
           .cta-btns { justify-content: center !important; }
           .footer-inner { flex-direction: column !important; gap: 1rem !important; text-align: center; }
+          .instant-proof-band { flex-direction: column !important; align-items: stretch !important; text-align: center !important; }
+          .instant-proof-band p { max-width: none !important; }
+          .instant-proof-band a { width: 100%; }
           .audience-grid { grid-template-columns: repeat(2, 1fr) !important; }
         }
         @media (max-width: 640px) {
@@ -1011,14 +1031,13 @@ export default function App() {
           </nav>
           <button className="resource-arrow" type="button" onClick={() => scrollResources(-1)} aria-label="Previous resources" style={{ position: "absolute", zIndex: 2, left: -18, top: "58%", width: 36, height: 36, borderRadius: "50%", border: `1px solid ${PALETTE.border}`, background: PALETTE.white, color: PALETTE.text, fontSize: "1.2rem", cursor: "pointer", boxShadow: "0 5px 16px rgba(2,8,20,.14)" }}>‹</button>
           <div ref={resourceRailRef} className="resource-rail" style={{ display: "flex", gap: ".7rem", overflowX: "auto", scrollSnapType: "x mandatory", padding: ".1rem .15rem .55rem" }}>
-            {resourceItems.map(({ label, service, article }) => (
+            {resourceItems.map(({ label, article }) => (
               <article className="resource-card" key={label} style={{ position: "relative", flex: "0 0 clamp(190px,19vw,255px)", minHeight: 112, overflow: "hidden", borderRadius: 8, scrollSnapAlign: "start", background: PALETTE.text, boxShadow: "0 6px 16px rgba(2,8,20,.12)" }}>
                 <img src={article.featuredImage} alt="" style={{ width: "100%", height: "100%", position: "absolute", inset: 0, objectFit: "cover", opacity: .64 }} />
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(2,8,20,.04) 18%,rgba(2,8,20,.94) 100%)" }} />
                 <div style={{ position: "relative", minHeight: 112, padding: ".7rem", display: "flex", flexDirection: "column", justifyContent: "flex-end", textAlign: "left", color: PALETTE.white }}>
                   <div style={{ fontSize: ".95rem", fontWeight: 800, marginBottom: ".35rem" }}>{label}</div>
                   <div style={{ display: "flex", alignItems: "center", gap: ".55rem", flexWrap: "wrap" }}>
-                    <button onClick={() => scrollTo(service)} style={{ border: 0, background: PALETTE.accent, color: PALETTE.black, fontSize: ".67rem", fontWeight: 800, padding: ".38rem .55rem", cursor: "pointer", borderRadius: 3 }}>View service</button>
                     <a className="resource-card-link" href={`/blog/${article.slug}`} style={{ color: PALETTE.white, fontSize: ".67rem", fontWeight: 800, textDecoration: "none" }}>Read guide →</a>
                   </div>
                 </div>
@@ -1118,6 +1137,26 @@ export default function App() {
           <div style={{ color: PALETTE.accent, fontSize: "0.95rem", fontWeight: 700, letterSpacing: "0.04em", lineHeight: 1.8 }}>
             Schools • Athletic Programs • Churches • Nonprofits • Associations • Community Organizations • Government Agencies
           </div>
+        </div>
+      </section>
+
+      {/* ── INSTANT PROOF CTA ── */}
+      <section aria-labelledby="instant-proof-heading" style={{ background: PALETTE.base, padding: `clamp(2.5rem, 6vw, 4rem) ${PAGE_X}`, borderBottom: `1px solid ${PALETTE.border}` }}>
+        <div className="instant-proof-band" style={{ ...S.container, display: "flex", alignItems: "center", justifyContent: "space-between", gap: "2rem", maxWidth: 1100, margin: "0 auto", padding: "clamp(1.5rem, 4vw, 2.5rem)", background: "#020814", borderRadius: 4, textAlign: "left" }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ color: PALETTE.accent, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "0.7rem" }}>
+              Pressmark Instant Proof
+            </div>
+            <h2 id="instant-proof-heading" style={{ ...S.h2(true), fontSize: "clamp(1.6rem, 3.4vw, 2.4rem)", marginBottom: "0.8rem" }}>
+              See Your Publication <em style={{ color: PALETTE.accent }}>Before You Hire Us.</em>
+            </h2>
+            <p style={{ fontSize: "clamp(0.92rem, 2vw, 1.02rem)", lineHeight: 1.75, color: "rgba(255,255,255,0.78)", margin: 0, maxWidth: 560 }}>
+              Upload a small portion of your content and our automated production system turns it into a professionally designed publication proof. Free, private and built from your own content.
+            </p>
+          </div>
+          <a className="btn-primary-hover" href="/instant-proof" style={{ ...S.btnPrimary, flexShrink: 0, borderRadius: 999, padding: "1rem 2rem", textAlign: "center" }}>
+            Create My Free Proof →
+          </a>
         </div>
       </section>
 

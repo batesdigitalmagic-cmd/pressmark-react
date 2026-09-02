@@ -1,0 +1,4 @@
+item_id,event_date,start_time,end_time,title,speaker,speaker_title,location,description,image_filename,sponsor_name,sort_order
+4001,2026-04-18,9:00 AM,9:45 AM,"Opening Remarks and Welcome",Dr. Helena Vasquez,Executive Director,Grand Ballroom,"An overview of the year's work and a look at what comes next.",vasquez-helena.jpg,Northgate Partners,1
+4002,2026-04-18,10:00 AM,11:15 AM,"Designing for Accessibility",Samuel Oyelaran,Principal Designer,Studio Hall B,"A working session on inclusive design practice, with live critique of attendee submissions.",oyelaran-samuel.jpg,,2
+4003,2026-04-18,11:30 AM,12:30 PM,"Panel: The Next Ten Years",Multiple Speakers,,Grand Ballroom,"Four practitioners discuss where the field is heading and what it will demand.",,Brightwater Foundation,3

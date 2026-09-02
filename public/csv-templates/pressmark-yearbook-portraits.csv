@@ -1,0 +1,4 @@
+record_id,first_name,last_name,display_name,grade,homeroom,teacher,group_name,student_title,quote,photo_filename,sort_order
+2001,Jordan,Ellsworth,Jordan Ellsworth,11,204,Ms. Hartley,Varsity Track,Team Captain,"Run your own race.",ellsworth-jordan.jpg,1
+2002,Priya,Raghunathan,Priya Raghunathan,12,118,Mr. Delgado,Robotics Club,Club President,"Build something that outlasts you.",raghunathan-priya.jpg,2
+2003,Tobias,Nwachukwu,Tobias Nwachukwu,10,204,Ms. Hartley,Concert Band,,"Practice beats talent when talent doesn't practice.",nwachukwu-tobias.jpg,3

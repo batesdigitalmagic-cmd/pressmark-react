@@ -124,6 +124,11 @@ export default function Article() {
               <Prose content={post.content} />
               <BlogCTA />
               <RelatedPosts posts={related} />
+              <nav aria-label="Back to blog" style={{ marginTop: "2.5rem" }}>
+                <a href={BLOG_BASE} style={{ fontSize: "0.75rem", fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: PALETTE.accent, textDecoration: "none" }}>
+                  ← Back to Blog
+                </a>
+              </nav>
             </article>
 
             <aside className="article-toc" style={{ position: "sticky", top: "6rem" }}>

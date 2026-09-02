@@ -45,6 +45,7 @@ export const BLOG_META = {
 /* Order matters — this is the filter bar, left to right. */
 export const CATEGORIES = [
   "All",
+  "Publication Production",
   "Yearbooks",
   "InDesign Automation",
   "Publication Design",
@@ -68,6 +69,227 @@ export const CLUSTERS = {
 };
 
 export const POSTS = [
+  {
+    slug: "microsoft-publisher-retiring-october-2026",
+    featured: true,
+    cluster: "production",
+    category: "Publication Production",
+    title: "Microsoft Publisher Is Retiring: How to Save Your Publications Before October 2026",
+    seoTitle: "Microsoft Publisher Retiring in 2026: What to Do Now",
+    metaDescription:
+      "Microsoft Publisher retires in October 2026. Learn how to preserve your .pub files, choose a replacement and migrate important publications before access ends.",
+    excerpt:
+      "Publisher access is ending for Microsoft 365 customers. Here is a practical plan for finding, preserving, and rebuilding the publications your organization still depends on.",
+    author: AUTHOR,
+    publishedDate: "2026-08-28",
+    updatedDate: "2026-08-28",
+    readingTime: 9,
+    featuredImage: "/publisher-retirement-2026.svg",
+    featuredImageAlt:
+      "Publisher Retirement 2026 graphic showing a PUB file moving to PDF and InDesign formats before an October deadline",
+    relatedPosts: [
+      "yearbook-print-ready-pdf-checklist",
+      "what-is-indesign-data-merge",
+      "bleed-trim-safe-area",
+    ],
+    content: [
+      {
+        type: "p",
+        text: "For years, Microsoft Publisher has been the quiet production tool behind newsletters, church bulletins, school programs, directories, event flyers, certificates, menus, and other documents that have to be updated and printed again and again. In October 2026, that familiar workflow changes.",
+      },
+      {
+        type: "p",
+        text: "Microsoft has announced that Publisher will reach end of life in October 2026. Microsoft 365 subscribers will lose access to Publisher after October 1, 2026, which means they will no longer be able to open or edit Publisher files in the app. Support for perpetual Publisher 2021 installations ends October 13, 2026. The files do not erase themselves, but access to the software that understands them can become the problem.",
+      },
+      {
+        type: "note",
+        text: "The safest deadline is October 1, 2026. Finish your inventory, exports, and migration tests before that date—not during the final week.",
+      },
+
+      { type: "h2", text: "What Microsoft Publisher's retirement means" },
+      {
+        type: "p",
+        text: "According to [Microsoft's official Publisher retirement guidance](https://support.microsoft.com/en-us/publisher/microsoft-publisher-will-no-longer-be-supported-after-october-2026), Publisher will no longer be included with Microsoft 365 after October 1. Subscribers will not be able to install, download, open, or edit publications with Publisher through that subscription. Organizations using a perpetual copy may still be able to run the installed application, but it will be outside support and will not receive security updates, bug fixes, or technical assistance after its support date.",
+      },
+      {
+        type: "p",
+        text: "That distinction matters. A PDF exported today will remain viewable in common PDF software. A native .pub file depends on Publisher or a conversion workflow that can interpret it. If the only useful copy of an annual booklet, membership directory, or branded template remains in .pub format, future access is tied to aging software and the computer where it still runs.",
+      },
+      {
+        type: "p",
+        text: "Retirement is therefore less about replacing an icon on the desktop and more about preserving institutional knowledge. The important assets may be page dimensions, master-page logic, text styles, linked pictures, mail-merge fields, print settings, or years of corrections that exist nowhere else.",
+      },
+
+      { type: "h2", text: "Start with a complete .pub file inventory" },
+      {
+        type: "p",
+        text: "Do not begin by opening the first file you remember. Begin with an inventory. Search local computers, shared drives, OneDrive, SharePoint, archived project folders, removable drives, and old staff accounts for files ending in .pub. Microsoft specifically recommends searching for the .pub extension to locate Publisher documents.",
+      },
+      {
+        type: "p",
+        text: "Record enough information to make a migration decision instead of creating one large conversion pile:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Filename, folder location, owner, and the department that uses it",
+          "Publication type, such as newsletter, directory, program, certificate, label, or brochure",
+          "How often it is reused and the next known deadline",
+          "Whether the file must remain editable or only needs to be preserved for reference",
+          "Whether it uses linked images, custom fonts, mail merge, unusual page sizes, folds, bleeds, or commercial-print settings",
+          "Whether the current file opens correctly and whether any links or fonts are already missing",
+        ],
+      },
+      {
+        type: "p",
+        text: "Then sort the inventory into three groups: archive, recreate, and retire. Archive files only need a trustworthy visual record. Recreate files are active publications that must remain editable. Retire files are duplicates, obsolete drafts, and materials nobody should carry into the next system.",
+      },
+
+      { type: "h2", text: "Preserve every important publication before you migrate it" },
+      {
+        type: "p",
+        text: "Before rebuilding anything, protect the source. Keep an untouched copy of each important .pub file and export a PDF that records how the publication looked while Publisher could still render it. The native file preserves the original structure; the PDF becomes the durable visual reference.",
+      },
+      {
+        type: "ol",
+        items: [
+          "Open the original .pub file and confirm that every page displays correctly.",
+          "Resolve missing fonts and linked images while the original production environment is still available.",
+          "Export a PDF using Publisher's File > Export > Create PDF/XPS workflow, selecting an appropriate quality for print or screen use.",
+          "Inspect the PDF page by page for overset text, substituted fonts, low-resolution pictures, transparency changes, missing objects, and incorrect page order.",
+          "Package the .pub file, verified PDF, linked images, fonts you are licensed to retain, and a short notes file in one clearly named archive folder.",
+          "Back up that archive in at least two managed locations and record who owns it.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Microsoft's [PDF and XPS export instructions](https://support.microsoft.com/en-us/publisher/save-as-or-convert-a-publication-to-pdf-or-xps-using-publisher) explain the built-in export process. For a large archive, Microsoft also points to PowerShell or other automation for bulk PDF conversion. Automation can save time, but a batch is not finished until representative files and every high-value publication have been visually checked.",
+      },
+
+      { type: "h2", text: "A PDF preserves appearance, not editability" },
+      {
+        type: "p",
+        text: "PDF is the right preservation format when the goal is to view, approve, share, or reprint a finished publication. It is not a complete replacement for an editable layout. Text may be difficult to reflow, image crops may be flattened, master pages and style definitions are lost, and mail-merge logic does not survive as a reusable production system.",
+      },
+      {
+        type: "p",
+        text: "For an annual directory or weekly program, exporting a PDF solves only half the problem. The organization also needs a new source template that staff can update safely. Treat the PDF as the visual specification for that rebuild: it records size, margins, typography, page order, recurring elements, and the relationship between content and images.",
+      },
+
+      { type: "h2", text: "Choose the replacement by publication type" },
+      {
+        type: "p",
+        text: "There is no universal one-click successor to Publisher. The best destination depends on who edits the document, how complex the pages are, whether data changes frequently, and how the finished piece is produced.",
+      },
+      { type: "h3", text: "Word or PowerPoint for simple office publications" },
+      {
+        type: "p",
+        text: "Microsoft recommends Word or PowerPoint as starting points for many common Publisher projects. Word can work well for letters, labels, envelopes, forms, and text-forward newsletters. PowerPoint can be practical for posters, signs, certificates, cards, and simple one-page pieces where free placement matters more than long-document tools.",
+      },
+      {
+        type: "p",
+        text: "These options are familiar and widely available, but test them against the real job. A file that merely resembles the old layout is not successful if page breaks shift every month, volunteers cannot update it reliably, or the commercial printer cannot use the output.",
+      },
+      { type: "h3", text: "Adobe InDesign for production publications" },
+      {
+        type: "p",
+        text: "InDesign is usually the stronger destination for multi-page publications, precise typography, reusable parent pages, linked images, professional PDF output, bleeds, spot colors, directories, catalogs, and data-driven layouts. It has a steeper learning curve than Publisher, but it provides a durable production system rather than a visual approximation.",
+      },
+      {
+        type: "p",
+        text: "Repeated rosters, staff listings, donor pages, product records, or membership directories may also benefit from [InDesign Data Merge](/blog/what-is-indesign-data-merge). Rebuilding the publication is an opportunity to separate content from layout so the next update is imported instead of manually retyped.",
+      },
+      { type: "h3", text: "A managed template for distributed teams" },
+      {
+        type: "p",
+        text: "When many non-designers create local versions, the best answer may be a controlled template in an approved web-based design platform. Evaluate brand controls, accessibility, export quality, account ownership, privacy, archival access, and the cost of maintaining many users. Convenience alone is not a migration plan.",
+      },
+
+      { type: "h2", text: "Rebuild the system, not just the pages" },
+      {
+        type: "p",
+        text: "A rushed migration often produces an editable copy that carries every weakness of the old file into a new application. A better rebuild identifies what should remain fixed and what should be easy to change. Logos, margins, typography, colors, page furniture, and print settings belong in the template. Dates, names, photographs, schedules, and issue-specific copy belong in a clear update workflow.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Create named paragraph, character, and object styles instead of formatting items one at a time.",
+          "Use parent or master pages for recurring headers, folios, backgrounds, and guides.",
+          "Store approved logos and images in a managed asset folder rather than embedding mystery copies.",
+          "Document page size, bleed, color space, export presets, and printer requirements.",
+          "Test the template with the staff member who will actually update it.",
+          "Produce a short operating guide and name a responsible owner before handoff.",
+        ],
+      },
+      {
+        type: "p",
+        text: "If the current document already has inconsistent styles, damaged links, improvised margins, or print problems, migration and [publication cleanup](/#services) should happen together. Recreating a broken workflow perfectly only preserves the breakage.",
+      },
+
+      { type: "h2", text: "A practical migration timeline" },
+      {
+        type: "h3",
+        text: "Now: discover and prioritize",
+      },
+      {
+        type: "p",
+        text: "Find every .pub file, identify owners, mark active publications, and move the highest-risk recurring documents to the top. Confirm which Publisher license each workstation uses and whether the organization depends on Microsoft 365 access.",
+      },
+      { type: "h3", text: "Next: archive and test" },
+      {
+        type: "p",
+        text: "Create verified PDFs and protected source archives. Select one representative document from each publication type and test the proposed replacement. Include real editors, real content, and the actual print or distribution process.",
+      },
+      { type: "h3", text: "Before October: rebuild and hand off" },
+      {
+        type: "p",
+        text: "Rebuild active templates, validate output, train users, and document the workflow. Complete final Publisher exports while the application is still supported and accessible. Leave time for corrections; an October 1 deadline is not the day to discover that a ten-year archive uses a missing font.",
+      },
+
+      { type: "h2", text: "Microsoft Publisher retirement FAQ" },
+      { type: "h3", text: "When does Microsoft Publisher retire?" },
+      {
+        type: "p",
+        text: "Publisher for Microsoft 365 is available with its current functionality until October 1, 2026. Microsoft says subscribers will not be able to access Publisher after that date. Support for the perpetual Publisher version in Office LTSC 2021 and Consumer Office 2021 ends October 13, 2026.",
+      },
+      { type: "h3", text: "Will my .pub files disappear?" },
+      {
+        type: "p",
+        text: "No. Retirement does not automatically delete files. The risk is losing a supported application that can open and edit them. Preserve the native files and export verified PDFs before access changes.",
+      },
+      { type: "h3", text: "Can I keep using a perpetual copy of Publisher?" },
+      {
+        type: "p",
+        text: "Microsoft says a perpetual version may still be installed and used after support ends, but it will be unsupported. That can create security, compatibility, staffing, and hardware risks, so it should not be the only long-term access plan for important publications.",
+      },
+      { type: "h3", text: "Can PDF or InDesign open a .pub file directly?" },
+      {
+        type: "p",
+        text: "A PDF reader cannot open a .pub file, and InDesign does not provide a dependable native .pub import workflow. Export a reference PDF from Publisher first, then rebuild important editable documents in the chosen destination. Conversion utilities may help recover content, but complex publications still require inspection and cleanup.",
+      },
+      { type: "h3", text: "What should we migrate first?" },
+      {
+        type: "p",
+        text: "Start with documents that are business-critical, frequently reused, difficult to reconstruct, tied to an upcoming deadline, or dependent on special fonts, linked artwork, merge data, or commercial printing. Low-value duplicates can wait or be retired.",
+      },
+
+      { type: "h2", text: "Do not wait for the file you need to become the file you cannot open" },
+      {
+        type: "p",
+        text: "Publisher's retirement is manageable when the work begins with enough time to inventory, preserve, test, and rebuild. It becomes expensive when an urgent program, directory, or newsletter is trapped in a format nobody prepared to replace.",
+      },
+      {
+        type: "p",
+        text: "Pressmark Studio can review your Publisher archive, identify high-risk files, create preservation PDFs, and rebuild priority publications as clean, reusable production templates.",
+      },
+      {
+        type: "cta",
+        label: "Request a Publisher Rescue Review",
+        href: "/#contact",
+      },
+    ],
+  },
+
   {
     slug: "batch-background-removal-photoshop-batchcutout-v1-2",
     cluster: "photoshop",

@@ -352,6 +352,28 @@ export function revokeAnalyticsConsent() {
 }
 
 /**
+ * Fires a named GA4 event.
+ *
+ * `params` must already be free of personal information — this function does
+ * not inspect it. Callers that handle customer content are expected to filter
+ * first; src/instant-proof/analytics.js does exactly that with an allow-list,
+ * because that is the one part of the site where names, email addresses,
+ * filenames and photographs are in scope.
+ *
+ * Consent is respected the same way trackPurchase does it: queued while the
+ * banner is undecided, sent on acceptance, discarded on refusal.
+ */
+export function trackEvent(name, params = {}) {
+  if (!MEASUREMENT_ID || isExcludedPath() || !name) return false;
+
+  const event = ["event", name, { ...params, landing_page: landingPath() }];
+  if (loaded) gtag(...event);
+  else pending.push(event);
+
+  return true;
+}
+
+/**
  * Fires the GA4 purchase event.
  *
  * `order` comes from /api/license/ensure and contains only non-identifying

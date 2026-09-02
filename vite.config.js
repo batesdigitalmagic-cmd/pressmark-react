@@ -31,6 +31,7 @@ export default defineConfig({
         portal: 'portal.html',
         health: 'health.html',
         privacy: 'privacy.html',
+        instantProof: 'instant-proof.html',
         sandbox: 'sandbox.html',
         sandboxPortal: 'sandbox-portal.html',
         ...blogInputs(),

@@ -68,7 +68,13 @@ function InlineText({ text }) {
         typeof part === "string" ? (
           part
         ) : (
-          <a key={index} href={part.href}>
+          <a
+            key={index}
+            href={part.href}
+            {...(/^https?:\/\//i.test(part.href)
+              ? { target: "_blank", rel: "noopener noreferrer" }
+              : {})}
+          >
             {part.label}
           </a>
         )
@@ -320,7 +326,7 @@ export function BlogCard({ post, featured = false }) {
           overflow: "hidden",
         }}
       >
-        <div style={{ aspectRatio: "4 / 3", overflow: "hidden" }}>{image}</div>
+        <a href={postUrl(post)} aria-label={`Read ${post.title}`} style={{ aspectRatio: "4 / 3", overflow: "hidden" }}>{image}</a>
         <div style={{ padding: "clamp(1.75rem, 4vw, 3rem)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
           <div style={{ fontSize: "0.65rem", fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: PALETTE.accent, marginBottom: "0.9rem" }}>
             Featured · {post.category}
@@ -352,7 +358,7 @@ export function BlogCard({ post, featured = false }) {
         overflow: "hidden",
       }}
     >
-      <div style={{ aspectRatio: "16 / 10", overflow: "hidden" }}>{image}</div>
+      <a href={postUrl(post)} aria-label={`Read ${post.title}`} style={{ aspectRatio: "16 / 10", overflow: "hidden" }}>{image}</a>
       <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", flex: 1 }}>
         <div style={{ fontSize: "0.62rem", fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: PALETTE.accent, marginBottom: "0.7rem" }}>
           {post.category}
@@ -514,6 +520,18 @@ export function Prose({ content }) {
               >
                 <InlineText text={block.text} />
               </aside>
+            );
+          case "cta":
+            return (
+              <section
+                key={index}
+                aria-label="Publisher rescue review"
+                style={{ margin: "2.5rem 0 1.75rem", padding: "clamp(1.5rem, 4vw, 2.25rem)", background: PALETTE.ink, borderTop: `4px solid ${PALETTE.accent}` }}
+              >
+                <a href={block.href} className="pm-btn-primary" style={S.btnPrimary}>
+                  {block.label}
+                </a>
+              </section>
             );
           default:
             return (
