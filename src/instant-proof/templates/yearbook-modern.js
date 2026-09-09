@@ -25,6 +25,7 @@ export const yearbookModern = {
     "Bold and high-contrast. Heavy display type, full-bleed color and a dense portrait grid — built for schools and athletic programs.",
   publicationTypes: ["yearbook", "commemorative-book", "community-publication", "other"],
   styleCategory: "bold",
+  inputMode: "photos",
   thumbnail: `${DIR}/thumbnail.svg`,
   schemas: ["yearbook-portraits", "people-directory"],
   pageSize: { width: PAGE_W, height: PAGE_H, unit: "in" },

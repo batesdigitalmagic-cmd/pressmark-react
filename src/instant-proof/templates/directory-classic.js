@@ -96,7 +96,8 @@ export const directoryClassic = {
     "other",
   ],
   styleCategory: "traditional",
-  thumbnail: `${DIR}/thumbnail.svg`,
+  inputMode: "csv",
+  thumbnail: `${DIR}/thumbnail.png`,
   schemas: ["people-directory"],
   pageSize: { width: PAGE_W, height: PAGE_H, unit: "in" },
 

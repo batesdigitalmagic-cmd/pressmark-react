@@ -14,6 +14,7 @@
  *   startProofRender(jobId)           -> Promise<void>
  *   getProofStatus(jobId)             -> Promise<ProofJobStatus>
  *   getProofResult(jobId)             -> Promise<ProofResult>
+ *   cancelProofJob(jobId)             -> Promise<void>
  *   isSimulated                       -> boolean
  *
  * Every method is async and every method may reject. The status object is the
@@ -42,6 +43,7 @@
  * @property {(jobId: string) => Promise<void>} startProofRender
  * @property {(jobId: string) => Promise<ProofJobStatus>} getProofStatus
  * @property {(jobId: string) => Promise<ProofResult>} getProofResult
+ * @property {(jobId: string) => Promise<void>} cancelProofJob
  */
 
 import { createMockProofRenderer } from "./mockProofRenderer.js";

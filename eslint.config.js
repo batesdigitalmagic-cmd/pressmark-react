@@ -5,7 +5,9 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // ExtendScript files use Adobe directives such as #target, which Espree
+  // cannot parse as browser JavaScript.
+  globalIgnores(['dist', 'scripts/indesign/**/*.jsx']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [

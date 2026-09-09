@@ -43,6 +43,7 @@ export const photoGallery = {
     "other",
   ],
   styleCategory: "clean",
+  inputMode: "photos",
   thumbnail: `${DIR}/thumbnail.svg`,
   schemas: ["people-directory", "yearbook-portraits"],
   pageSize: { width: PAGE_W, height: PAGE_H, unit: "in" },

@@ -26,6 +26,8 @@ import { formatBytes } from "../models.js";
 import { IP, PALETTE, FONT_STACK } from "../styles.js";
 import CsvTemplatePanel from "./CsvTemplatePanel.jsx";
 
+const CSV_ONLY_EXTENSIONS = [".csv"];
+
 function ContentChecklist({ items, heading, assets }) {
   if (items.length === 0) return null;
 
@@ -89,7 +91,7 @@ function ContentChecklist({ items, heading, assets }) {
   );
 }
 
-export default function ProofUploadPanel({ config, assets, onAdd, onRemove, error, publicationTypeId }) {
+export default function ProofUploadPanel({ config, assets, onAdd, onRemove, error, publicationTypeId, csvOnly = false }) {
   const [dragging, setDragging] = useState(false);
   const [rejections, setRejections] = useState([]);
   const dropId = useId();
@@ -98,7 +100,9 @@ export default function ProofUploadPanel({ config, assets, onAdd, onRemove, erro
      reliable way to know when the pointer has genuinely left the zone. */
   const dragDepth = useRef(0);
 
-  const accept = ACCEPTED_EXTENSIONS.join(",");
+  const acceptedExtensions = csvOnly ? CSV_ONLY_EXTENSIONS : ACCEPTED_EXTENSIONS;
+  const maximumBytes = csvOnly ? 2 * 1024 * 1024 : MAX_FILE_BYTES;
+  const accept = acceptedExtensions.join(",");
 
   const handleFiles = useCallback(
     (fileList) => {
@@ -111,12 +115,12 @@ export default function ProofUploadPanel({ config, assets, onAdd, onRemove, erro
       for (const file of incoming) {
         const ext = (/\.[a-z0-9]+$/i.exec(file.name) || [""])[0].toLowerCase();
 
-        if (!ACCEPTED_EXTENSIONS.includes(ext)) {
+        if (!acceptedExtensions.includes(ext)) {
           problems.push(`${file.name} — ${ext || "no extension"} is not an accepted file type.`);
           continue;
         }
-        if (file.size > MAX_FILE_BYTES) {
-          problems.push(`${file.name} — ${formatBytes(file.size)} exceeds the ${formatBytes(MAX_FILE_BYTES)} demo limit.`);
+        if (file.size > maximumBytes) {
+          problems.push(`${file.name} — ${formatBytes(file.size)} exceeds the ${formatBytes(maximumBytes)} limit.`);
           continue;
         }
         if (assets.length + allowed.length >= MAX_FILES) {
@@ -129,7 +133,7 @@ export default function ProofUploadPanel({ config, assets, onAdd, onRemove, erro
       setRejections(problems);
       if (allowed.length > 0) onAdd(allowed);
     },
-    [assets.length, onAdd]
+    [acceptedExtensions, assets.length, maximumBytes, onAdd]
   );
 
   const onDrop = (event) => {
@@ -192,7 +196,7 @@ export default function ProofUploadPanel({ config, assets, onAdd, onRemove, erro
           }}
         />
         <p id={`${dropId}-types`} style={{ ...IP.hint, marginTop: "0.9rem" }}>
-          JPG, JPEG, PNG, CSV, PDF and DOCX. Up to {MAX_FILES} files, {formatBytes(MAX_FILE_BYTES)} each.
+          {csvOnly ? "CSV only" : "JPG, JPEG, PNG, CSV, PDF and DOCX"}. Up to {MAX_FILES} files, {formatBytes(maximumBytes)} each.
         </p>
       </div>
 

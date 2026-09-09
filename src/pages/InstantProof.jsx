@@ -23,23 +23,17 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import ProofStepper from "../instant-proof/components/ProofStepper.jsx";
-import PublicationTypeSelector from "../instant-proof/components/PublicationTypeSelector.jsx";
-import ModeSelector from "../instant-proof/components/ModeSelector.jsx";
-import PhotoUploadPanel from "../instant-proof/components/PhotoUploadPanel.jsx";
-import PhotoDetailsPanel from "../instant-proof/components/PhotoDetailsPanel.jsx";
-import OrganizationDisclosure from "../instant-proof/components/OrganizationDisclosure.jsx";
-import TemplateSelector from "../instant-proof/components/TemplateSelector.jsx";
+
+import StepShell from "../instant-proof/components/StepShell.jsx";
+import CreateStep from "../instant-proof/components/CreateStep.jsx";
+import UploadStep from "../instant-proof/components/UploadStep.jsx";
 import TemplatePreview from "../instant-proof/components/TemplatePreview.jsx";
-import ProofUploadPanel from "../instant-proof/components/ProofUploadPanel.jsx";
-import SubmissionReview from "../instant-proof/components/SubmissionReview.jsx";
+
 import ProofProcessing from "../instant-proof/components/ProofProcessing.jsx";
 import ProofResults from "../instant-proof/components/ProofResults.jsx";
+import DirectoryRenderJob from "../instant-proof/components/DirectoryRenderJob.jsx";
 import { ProofHeader, ProofFooter } from "../instant-proof/components/ProofChrome.jsx";
 
-import DataReviewPanel from "../instant-proof/components/DataReviewPanel.jsx";
-import ColumnMappingPanel from "../instant-proof/components/ColumnMappingPanel.jsx";
-import PhotoReconciliation from "../instant-proof/components/PhotoReconciliation.jsx";
 
 import { configFor, schemaIdsFor } from "../instant-proof/publications.js";
 import {
@@ -70,45 +64,33 @@ import {
   kindOf,
 } from "../instant-proof/models.js";
 import { getProofRenderer } from "../instant-proof/rendering/proofRenderer.js";
-import { IP, IP_CSS, PALETTE, FONT_STACK, PAGE_X } from "../instant-proof/styles.js";
+import { IP_CSS } from "../instant-proof/styles.js";
+import { PROOF_CSS } from "../instant-proof/theme.css.js";
 
 /*
- * The wizard's steps, by mode.
+ * Three steps, in both modes.
  *
- * ── Quick Photo Proof ──
+ *   create -> upload -> proof
  *
- *   publication -> photos -> details -> proof
+ * The publication type, the build method and the design were three separate
+ * screens; they are cheap choices with sensible defaults, so they are one now.
+ * The spreadsheet path's column mapping and validation moved inside `upload`
+ * rather than occupying a screen of their own.
  *
- * Three screens before a proof, and only the first two ask for anything. The
- * old flow had a mandatory six-field organization step — name, contact, email,
- * trim size, page count, deadline — standing between a visitor and their first
- * look at their own photographs. All of it is now optional and behind a
- * disclosure on the details step.
- *
- * ── Spreadsheet ──
- *
- *   publication -> content -> data -> review -> proof
- *
- * Unchanged, minus the organization gate. Every CSV capability is intact.
- *
- * The "data" step is conditional even within that mode: it appears once a
- * spreadsheet has been parsed. Because the list is variable, validation and
- * navigation key off step IDs, never numeric indices.
+ * The list is fixed, so an index is safe again — but validation still keys off
+ * step IDs, because that is what makes it readable.
  */
-const PHOTO_STEPS = [
-  { id: "type", label: "Publication" },
-  { id: "photos", label: "Photos" },
-  { id: "details", label: "Details" },
-  { id: "generate", label: "Proof" },
+const STEPS = [
+  { id: "create", label: "Create" },
+  { id: "upload", label: "Upload" },
+  { id: "proof", label: "Proof" },
 ];
 
-const DATA_STEPS = [
-  { id: "type", label: "Publication" },
-  { id: "content", label: "Content" },
-  { id: "data", label: "Your data", conditional: true },
-  { id: "review", label: "Review" },
-  { id: "generate", label: "Proof" },
-];
+const PROOF_STEP_INDEX = STEPS.length - 1;
+
+/* A run that has produced nothing by now has stalled; surface Retry rather
+   than spin for ever. The demonstration pipeline takes about eight seconds. */
+const PROCESSING_TIMEOUT_MS = 30000;
 
 /* How often we ask the renderer where it is. The mock updates on its own
    timers; a real renderer will be polled over HTTP at the same cadence. */
@@ -136,7 +118,8 @@ function toAsset(file, kindOverride) {
 }
 
 export default function InstantProof() {
-  const [stepIndex, setStepIndex] = useState(0);
+  const initialRenderJobId = new URLSearchParams(window.location.search).get("job") || "";
+  const [stepIndex, setStepIndex] = useState(initialRenderJobId ? PROOF_STEP_INDEX : 0);
   const [project, setProject] = useState(emptyProject);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState(idleStatus);
@@ -144,28 +127,43 @@ export default function InstantProof() {
   const [renderError, setRenderError] = useState("");
   /* The "Preview design" dialog, now that the chooser sits on step 1. */
   const [previewing, setPreviewing] = useState(null);
+  const [renderJobId, setRenderJobId] = useState(initialRenderJobId);
 
-  /* One renderer for the life of the page. Swapping the mock for a live
-     implementation happens inside getProofRenderer(), not here. */
-  const renderer = useMemo(() => getProofRenderer(), []);
-  const jobIdRef = useRef(null);
+  /*
+   * One renderer for the life of the page.
+   *
+   * Lazily-initialised state rather than useMemo: React is explicitly allowed
+   * to discard a memoized value and recompute it, and a second renderer would
+   * arrive with an empty job map — the job created by the first would then be
+   * unknown to the one being polled, leaving the proof at 0% or failing with
+   * "we lost track of your proof job". State is never discarded, and unlike a
+   * ref it can be read during render.
+   */
+  const [renderer] = useState(() => getProofRenderer());
+
   const pollRef = useRef(null);
+
+  /*
+   * Every increment starts a completely fresh processing run. Entering the
+   * proof step increments it, Retry increments it, and coming Back and
+   * rebuilding increments it again.
+   */
+  const [processingRunId, setProcessingRunId] = useState(0);
+
+  /* The project as it was when the render began, read by the effect without
+     making the whole project a dependency of it. */
+  const projectRef = useRef(project);
   const headingRef = useRef(null);
 
   const config = configFor(project.publicationTypeId);
 
-  const photoMode = project.mode === PROOF_MODES.photo;
+  const selectedTemplate = templateFor(project.visual.templateId);
+  const inputMode = selectedTemplate?.inputMode ?? "photos";
+  const photoMode = inputMode === "photos";
+  const usesDirectoryQueue = Boolean(renderJobId) || inputMode === "csv";
   const photos = useMemo(() => photosOf(project), [project]);
 
-  /* The data step only exists once a spreadsheet has been parsed. */
-  const hasData = project.data.records.length > 0 || Boolean(project.data.parseError);
-  const steps = useMemo(() => {
-    const source = photoMode ? PHOTO_STEPS : DATA_STEPS;
-    return source.filter((entry) => !entry.conditional || hasData);
-  }, [photoMode, hasData]);
-
-  /* A step can disappear underneath us — removing the only CSV while standing
-     on the data step. Clamping keeps stepIndex addressable at all times. */
+  const steps = STEPS;
   const safeIndex = Math.min(stepIndex, steps.length - 1);
   const step = steps[safeIndex];
 
@@ -194,25 +192,24 @@ export default function InstantProof() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [safeIndex]);
 
-  /*
-   * Release every object URL when the page goes away.
-   *
-   * Reads through a ref rather than closing over `project`, so the cleanup sees
-   * the final asset list rather than the empty one it was mounted with. Without
-   * this, a visitor who navigates away leaves every photograph's blob pinned in
-   * memory for the life of the tab.
-   */
-  const assetsRef = useRef([]);
   useEffect(() => {
-    assetsRef.current = [...project.assets, project.visual.logo].filter(Boolean);
-  }, [project.assets, project.visual.logo]);
+    projectRef.current = project;
+  }, [project]);
 
+  /*
+   * Object URLs are released when a file is removed and when the visitor starts
+   * another proof — NOT on unmount.
+   *
+   * Revoking on unmount looked tidier but was a real bug: StrictMode mounts,
+   * unmounts and remounts in development, so the cleanup fired while the
+   * photographs were still on screen and every preview turned into a dead blob
+   * URL. A genuine unmount means the visitor is leaving the page, at which
+   * point the browser reclaims the blobs anyway — so the leak this guarded
+   * against does not really exist, while the bug it caused certainly did.
+   */
   useEffect(() => {
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
-      for (const asset of assetsRef.current) {
-        if (asset?.previewUrl) URL.revokeObjectURL(asset.previewUrl);
-      }
     };
   }, []);
 
@@ -476,55 +473,78 @@ export default function InstantProof() {
    * form wearing a wizard's clothes. Email is asked for once, later, when a
    * visitor asks for something that needs a reply.
    */
+  /*
+   * Validation, keyed by step ID.
+   *
+   * ── What a proof actually requires ──
+   *
+   *   a build method, a publication type, a design, some content, and
+   *   permission to use it.
+   *
+   * That is the whole list. No email, no contact name, no job title, no phone,
+   * no deadline, no organization. Email is asked for once, later, only when a
+   * visitor asks for something that needs a reply.
+   */
   const validateStep = (stepId) => {
     const found = {};
 
-    if (stepId === "type") {
+    if (stepId === "create") {
       if (!project.publicationTypeId) {
-        found.publicationTypeId = "Choose the kind of publication you need.";
+        found.publicationTypeId = "Choose what you are creating.";
       }
       if (!project.visual.templateId) {
         found.templateId = "Choose a Pressmark design.";
       }
     }
 
-    if (stepId === "photos") {
-      if (photos.length === 0) {
-        found.photos = "Add at least one photograph so we have something to build from.";
-      } else if (!project.consentGranted) {
-        found.consent = "Please confirm you have permission to use these photographs.";
-      }
-    }
-
-    if (stepId === "content" && project.assets.length === 0) {
-      found.assets = "Add at least one file so we have something to build from.";
-    }
-
-    if (stepId === "data") {
-      if (project.data.parseError) {
+    if (stepId === "upload") {
+      if (photoMode) {
+        if (photos.length === 0) {
+          found.photos = "Add at least one photograph so we have something to build from.";
+        }
+      } else if (project.assets.length === 0) {
+        found.assets = "Add your spreadsheet and photographs.";
+      } else if (inputMode === "csv") {
+        if (!project.assets.some((asset) => asset.kind === ASSET_KINDS.data)) {
+          found.assets = "Add the directory CSV before continuing.";
+        }
+      } else if (project.data.parseError) {
         found.data = project.data.parseError;
-      } else if (!project.data.mappingConfirmed) {
-        found.data = "Please confirm how your columns map to Pressmark's fields.";
-      } else {
-        /* A missing required column is a hard stop: the template binds to it,
-           and rendering without it produces a page full of blanks. Note this is
-           about the SPREADSHEET's own schema — never about email or a job
-           title, neither of which is ever required to render. */
-        const blocking = (project.data.analysis?.issues ?? []).filter(
-          (issue) => issue.severity === "error" && issue.id === "missing-required-columns"
-        );
-        if (blocking.length > 0) {
-          found.data = "Map a column to every required Pressmark field before continuing.";
+      } else if (project.data.records.length > 0) {
+        if (!project.data.mappingConfirmed) {
+          found.data = "Confirm how your columns map to Pressmark's fields.";
+        } else {
+          /* A missing required column is a hard stop: the template binds to it,
+             and rendering without it produces a page of blanks. This is about
+             the SPREADSHEET's own schema — never about an email or a job
+             title, neither of which is ever required to render. */
+          const blocking = (project.data.analysis?.issues ?? []).filter(
+            (issue) => issue.severity === "error" && issue.id === "missing-required-columns"
+          );
+          if (blocking.length > 0) {
+            found.data = "Map a column to every required Pressmark field before continuing.";
+          }
         }
       }
-    }
 
-    if (stepId === "review" && !project.consentGranted) {
-      found.consent = "Please confirm you have permission to share this content.";
+      if (!found.photos && !found.assets && !project.consentGranted) {
+        found.consent = "Please confirm you have permission to use this content.";
+      }
     }
 
     return found;
   };
+
+  /* Why Continue is disabled, said plainly rather than left to be guessed. */
+  const blockingReason = () => {
+    const found = validateStep(step.id);
+    const messages = Object.values(found);
+    if (messages.length === 0) return "";
+    if (messages.length === 1) return messages[0];
+    return `${messages.length} things still needed: ${messages.join(" ")}`;
+  };
+
+  const stepIsComplete = Object.keys(validateStep(step.id)).length === 0;
 
   const goTo = (index) => {
     setErrors({});
@@ -533,91 +553,196 @@ export default function InstantProof() {
 
   const back = () => goTo(Math.max(safeIndex - 1, 0));
 
-  const isLastInput = step?.id === "review";
+  /*
+   * The last input step, by ID.
+   *
+   * This previously compared against "review", a step deleted in the move to
+   * three steps — so it was permanently false and Continue never started a
+   * proof. Derived from the step list now, so removing or renaming a step
+   * cannot silently strand the proof screen again.
+   */
+  const isLastInput = step?.id === STEPS[STEPS.length - 2].id;
 
   const next = () => {
     const found = validateStep(step.id);
     setErrors(found);
     if (Object.keys(found).length > 0) return;
     if (isLastInput) {
-      startRender();
+      beginProof();
       return;
     }
     goTo(safeIndex + 1);
   };
 
+
+
+  /* ── Processing lifecycle ── */
+
   /*
-   * Straight from the photographs to a rendered proof, skipping the optional
-   * details step. Validation still runs — permission is never skippable.
+   * Called once a run finishes. Held in a ref so the pipeline effect can invoke
+   * the latest version without taking it as a dependency — otherwise every
+   * render would produce a new identity, the effect would re-run, and the
+   * pipeline would restart itself forever.
    */
-  const skipToProof = () => {
-    const found = validateStep("photos");
-    setErrors(found);
-    if (Object.keys(found).length > 0) return;
-    startRender();
-  };
+  const completeProof = useCallback((proof) => {
+    setResult(proof);
+    const snapshot = projectRef.current;
+    /* Counts and our own slugs. No filename, no name, no address. */
+    emit(PROOF_EVENTS.proofGenerated, {
+      proof_mode: snapshot.mode,
+      photo_count: photosOf(snapshot).length,
+      page_count: proof.pages.length,
+      has_organization: Boolean(snapshot.organization.organizationName.trim()),
+      has_logo: Boolean(snapshot.visual.logo),
+      template_id: snapshot.visual.templateId,
+    });
+  }, []);
 
-  /* SubmissionReview's edit links address steps by ID, since their positions
-     shift with the conditional data step. */
-  const goToStepId = (stepId) => {
-    const index = steps.findIndex((entry) => entry.id === stepId);
-    if (index >= 0) goTo(index);
-  };
+  const completeProofRef = useRef(completeProof);
+  useEffect(() => {
+    completeProofRef.current = completeProof;
+  }, [completeProof]);
 
-  /* ── Rendering ── */
+  /*
+   * Move to the proof screen, and mark this as a new run.
+   *
+   * Does no work itself. The effect below runs whenever the visitor is ON the
+   * proof step, so simply arriving there starts processing — which is what
+   * makes the previous failure impossible: there is no button-identity check
+   * left to go stale. Incrementing the run id additionally forces a fresh run
+   * when we are already on that step, which is what Retry needs.
+   */
+  const beginProof = useCallback(() => {
+    setStepIndex(PROOF_STEP_INDEX);
+    setProcessingRunId((id) => id + 1);
+  }, []);
 
-  const startRender = useCallback(async () => {
-    setRenderError("");
-    setResult(null);
-    setStatus(idleStatus());
-    /* "generate" is always last, in both the full and the reduced step list. */
-    setStepIndex(steps.length - 1);
+  /*
+   * The pipeline.
+   *
+   * ── Why this is StrictMode-safe ──
+   *
+   * StrictMode runs an effect, tears it down, and runs it again. There is NO
+   * persistent "already started" flag — such a flag is precisely what breaks
+   * under StrictMode, because the second setup sees it set and refuses to run
+   * while the first setup's work has already been cancelled, leaving nothing
+   * running at all.
+   *
+   * Instead every setup is capable of starting a complete run from scratch, and
+   * cleanup cancels ONLY the work that setup created: its own `cancelled`
+   * flag, its own timeout ids, its own job. Two setups therefore produce one
+   * live run, and one setup produces one live run.
+   *
+   * Leaving the proof step tears the run down; returning starts a new one. So
+   * Back-then-rebuild is a fresh run for free, with no extra bookkeeping.
+   */
+  useEffect(() => {
+    /*
+     * Being on the proof step IS the condition to process. Not "was a button
+     * clicked", not "has a flag been set" — the screen and the work cannot
+     * disagree, because one is derived from the other.
+     */
+    if (step.id !== "proof") return undefined;
+    if (usesDirectoryQueue) return undefined;
 
-    try {
-      const job = await renderer.createProofJob(project);
-      jobIdRef.current = job.id;
+    let cancelled = false;
+    let jobId = null;
+    const timeoutIds = [];
 
-      await renderer.uploadProofAssets(job.id, project.assets, (fraction) => {
-        setStatus((current) => ({ ...current, state: JOB_STATES.uploading, progress: fraction * 0.05 }));
+    const delay = (milliseconds) =>
+      new Promise((resolve) => {
+        timeoutIds.push(setTimeout(resolve, milliseconds));
       });
 
-      await renderer.startProofRender(job.id);
+    const runPipeline = async () => {
+      /* A new run always starts from a clean slate. */
+      setRenderError("");
+      setResult(null);
+      setStatus({
+        state: JOB_STATES.uploading,
+        progress: 0,
+        stageId: "",
+        message: "Preparing your files",
+      });
 
-      if (pollRef.current) clearInterval(pollRef.current);
-      pollRef.current = setInterval(async () => {
-        try {
-          const nextStatus = await renderer.getProofStatus(job.id);
-          setStatus(nextStatus);
+      const snapshot = projectRef.current;
 
-          if (nextStatus.state === JOB_STATES.complete) {
-            clearInterval(pollRef.current);
-            pollRef.current = null;
-            const proof = await renderer.getProofResult(job.id);
-            setResult(proof);
-            /* Counts and our own slugs. No filename, no name, no address. */
-            emit(PROOF_EVENTS.proofGenerated, {
-              proof_mode: project.mode,
-              photo_count: photosOf(project).length,
-              page_count: proof.pages.length,
-              has_organization: Boolean(project.organization.organizationName.trim()),
-              has_logo: Boolean(project.visual.logo),
-              template_id: project.visual.templateId,
-            });
-          } else if (nextStatus.state === JOB_STATES.failed) {
-            clearInterval(pollRef.current);
-            pollRef.current = null;
-            setRenderError(nextStatus.error || "The proof could not be generated.");
-          }
-        } catch {
-          clearInterval(pollRef.current);
-          pollRef.current = null;
-          setRenderError("We lost track of your proof job. Please try again.");
+      try {
+        const job = await renderer.createProofJob(snapshot);
+        if (cancelled) {
+          /* Cleanup ran while the job was being created, so it was never
+             recorded for cancellation. Cancel it here or its stage timers
+             outlive the run that asked for them. */
+          renderer.cancelProofJob?.(job.id);
+          return;
         }
-      }, POLL_MS);
-    } catch {
-      setRenderError("We could not start the proof. Please try again.");
-    }
-  }, [project, renderer, steps.length]);
+        jobId = job.id;
+
+        await renderer.uploadProofAssets(job.id, snapshot.assets, (fraction) => {
+          if (cancelled) return;
+          setStatus((current) => ({
+            ...current,
+            state: JOB_STATES.uploading,
+            /* Monotonic, so a late callback cannot drag the bar backwards. */
+            progress: Math.max(current.progress, fraction * 0.05),
+          }));
+        });
+        if (cancelled) return;
+
+        await renderer.startProofRender(job.id);
+        if (cancelled) return;
+
+        /*
+         * Poll on a timeout chain rather than an interval, so every timer this
+         * run creates is in `timeoutIds` and dies with the run. The renderer
+         * walks the seven stages on a fixed schedule, so progress advances
+         * deterministically and finishes in about eight seconds.
+         */
+        const deadline = Date.now() + PROCESSING_TIMEOUT_MS;
+        for (;;) {
+          if (cancelled) return;
+
+          const next = await renderer.getProofStatus(job.id);
+          if (cancelled) return;
+          setStatus(next);
+
+          if (next.state === JOB_STATES.complete) {
+            const proof = await renderer.getProofResult(job.id);
+            if (cancelled) return;
+            /* Hold the completed bar briefly so 100% is actually seen. Without
+               it the result swaps in during the same commit and the finished
+               state never paints — the work looks like it jumps from 86% to a
+               different screen. */
+            await delay(450);
+            if (cancelled) return;
+            completeProofRef.current(proof);
+            return;
+          }
+          if (next.state === JOB_STATES.failed) {
+            throw new Error(next.error || "The proof could not be generated.");
+          }
+          if (Date.now() > deadline) {
+            throw new Error("Processing took longer than expected.");
+          }
+
+          await delay(POLL_MS);
+        }
+      } catch (error) {
+        if (cancelled) return;
+        setRenderError(error?.message || "We could not build your proof. Please try again.");
+      }
+    };
+
+    runPipeline();
+
+    return () => {
+      cancelled = true;
+      for (const id of timeoutIds) clearTimeout(id);
+      /* Stop the abandoned job's own timers too, so a cancelled run leaves
+         nothing at all running. */
+      if (jobId) renderer.cancelProofJob?.(jobId);
+    };
+  }, [step.id, processingRunId, renderer, usesDirectoryQueue]);
 
   const startOver = () => {
     if (pollRef.current) {
@@ -626,334 +751,74 @@ export default function InstantProof() {
     }
     project.assets.forEach(revoke);
     revoke(project.visual.logo);
-    jobIdRef.current = null;
     setProject(emptyProject());
     setPreviewing(null);
     setResult(null);
     setStatus(idleStatus());
     setRenderError("");
     setErrors({});
+    setProcessingRunId(0);
     setStepIndex(0);
+    setRenderJobId("");
+    window.history.replaceState({}, "", window.location.pathname);
   };
+
+  const rememberRenderJob = useCallback((jobId) => {
+    setRenderJobId(jobId);
+    const url = new URL(window.location.href);
+    url.searchParams.set("job", jobId);
+    window.history.replaceState({}, "", url);
+  }, []);
 
   /* ── Rendering the current step ── */
 
-  const organizationDisclosure = (
-    <OrganizationDisclosure
-      organization={project.organization}
-      onOrganizationChange={(organization) => setProject((current) => ({ ...current, organization }))}
-      visual={project.visual}
-      onVisualChange={(visual) => setProject((current) => ({ ...current, visual }))}
-      onLogoAdd={addLogo}
-      onLogoRemove={removeLogo}
-      onOpened={() => emit(PROOF_EVENTS.organizationDetailsOpened)}
-    />
-  );
-
-  const consentCheckbox = (label) => (
-    <label
-      htmlFor="proof-consent"
-      style={{
-        display: "flex",
-        gap: "0.7rem",
-        alignItems: "flex-start",
-        padding: "0.9rem 1rem",
-        border: `1px solid ${errors.consent ? "#b3261e" : PALETTE.hairline}`,
-        borderRadius: 3,
-        background: PALETTE.white,
-        cursor: "pointer",
-      }}
-    >
-      <input
-        id="proof-consent"
-        type="checkbox"
-        checked={project.consentGranted}
-        onChange={(event) =>
-          setProject((current) => ({ ...current, consentGranted: event.target.checked }))
-        }
-        aria-invalid={errors.consent ? "true" : undefined}
-        style={{ width: 20, height: 20, marginTop: 2, flexShrink: 0, accentColor: PALETTE.accent, cursor: "pointer" }}
-      />
-      <span style={{ fontSize: "0.87rem", lineHeight: 1.6, color: PALETTE.text }}>{label}</span>
-    </label>
-  );
-
-  const stepContent = () => {
-    switch (step.id) {
-      case "type":
-        return (
-          <div style={{ display: "grid", gap: "2rem" }}>
-            <div>
-              <h3 style={{ ...IP.label, marginBottom: "0.7rem" }} id="mode-label">
-                How would you like to build it?
-              </h3>
-              <ModeSelector value={project.mode} onChange={selectMode} />
-            </div>
-
-            <div>
-              <h3 style={{ ...IP.label, marginBottom: "0.7rem" }}>What are you creating?</h3>
-              <PublicationTypeSelector
-                value={project.publicationTypeId}
-                onChange={selectPublicationType}
-                error={errors.publicationTypeId}
-              />
-            </div>
-
-            {project.publicationTypeId && (
-              <div>
-                <h3 style={{ ...IP.label, marginBottom: "0.7rem" }}>Which Pressmark design?</h3>
-                <TemplateSelector
-                  publicationTypeId={project.publicationTypeId}
-                  value={project.visual.templateId}
-                  onChange={(templateId) =>
-                    setProject((current) => ({ ...current, visual: { ...current.visual, templateId } }))
-                  }
-                  onPreview={setPreviewing}
-                  error={errors.templateId}
-                />
-              </div>
-            )}
-          </div>
-        );
-
-      case "photos":
-        return (
-          <div style={{ display: "grid", gap: "1.75rem" }}>
-            <PhotoUploadPanel
-              photos={photos}
-              onAdd={addPhotos}
-              onRemove={removeAsset}
-              selectedIds={project.selectedPhotoIds ?? []}
-              onToggleSelected={togglePhotoSelected}
-              error={errors.photos}
-            />
-            {photos.length > 0 && (
-              <>
-                {consentCheckbox(
-                  "I have permission to use these photographs, and I authorize Pressmark Studio to use them to produce this sample proof."
-                )}
-                {errors.consent && (
-                  <span role="alert" style={IP.error}>{errors.consent}</span>
-                )}
-              </>
-            )}
-          </div>
-        );
-
-      case "details":
-        return (
-          <div style={{ display: "grid", gap: "2rem" }}>
-            <PhotoDetailsPanel
-              photos={photos}
-              onDetailsChange={setPhotoDetails}
-              onOpened={() => emit(PROOF_EVENTS.optionalDetailsOpened)}
-            />
-            {organizationDisclosure}
-          </div>
-        );
-
-      case "content":
-        return (
-          <ProofUploadPanel
-            config={config}
-            assets={project.assets}
-            onAdd={addAssets}
-            onRemove={removeAsset}
-            error={errors.assets}
-            publicationTypeId={project.publicationTypeId}
-          />
-        );
-
-      case "data":
-        return (
-          <div style={{ display: "grid", gap: "2.25rem" }}>
-            {project.data.parseError ? (
-              <p role="alert" style={{ ...IP.notice, borderLeftColor: "#b3261e" }}>
-                {project.data.parseError}
-              </p>
-            ) : (
-              <>
-                {!project.data.mappingConfirmed && (
-                  <>
-                    <ColumnMappingPanel
-                      schemaId={project.data.schemaId}
-                      proposals={project.data.proposals}
-                      sampleRows={project.data.rawRows.slice(0, 5)}
-                      onChange={applyProposals}
-                    />
-                    <button
-                      type="button"
-                      className="ip-btn-primary ip-touch"
-                      style={{ ...IP.btnPrimary, justifySelf: "start" }}
-                      onClick={confirmMapping}
-                    >
-                      Confirm these columns →
-                    </button>
-                  </>
-                )}
-
-                {project.data.mappingConfirmed && (
-                  <>
-                    <DataReviewPanel data={project.data} matching={matching} />
-                    <PhotoReconciliation
-                      matching={matching}
-                      assets={project.assets.filter((asset) => asset.kind === ASSET_KINDS.image)}
-                      overrides={project.data.photoOverrides}
-                      onOverride={setPhotoOverride}
-                    />
-                    <button
-                      type="button"
-                      className="ip-btn-ghost ip-touch"
-                      style={{ ...IP.btnGhost, justifySelf: "start" }}
-                      onClick={reopenMapping}
-                    >
-                      Change column mapping
-                    </button>
-                  </>
-                )}
-
-                {errors.data && <span role="alert" style={IP.error}>{errors.data}</span>}
-              </>
-            )}
-          </div>
-        );
-
-      case "review":
-        return (
-          <div style={{ display: "grid", gap: "1.5rem" }}>
-            <SubmissionReview
-              project={project}
-              config={config}
-              onEditStep={goToStepId}
-              onConsentChange={(consentGranted) =>
-                setProject((current) => ({ ...current, consentGranted }))
-              }
-              consentError={errors.consent}
-            />
-            {organizationDisclosure}
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  /* Numbering counts the visible steps, so it stays true whichever mode is
-     active and whether or not the data step is present. */
-  const inputStepCount = steps.filter((entry) => entry.id !== "generate").length;
-  const stepNumber = safeIndex + 1;
+  const isResults = step.id === "proof" && result && !renderError;
 
   const STEP_COPY = {
-    type: {
-      title: "What are you creating?",
-      lead: "Pick the closest match and a design. We preselect one, so you can change it or move straight on.",
+    create: {
+      title: inputMode === "csv" ? "Choose Directory Classic" : "What are you creating?",
+      lead: "Pick how you want to build it and what you are making. Choose a Pressmark design and we will render your free proof.",
     },
-    photos: {
-      title: "Add your photographs",
-      lead: `Take them now or choose them from your library. One is enough to see a proof; ${QUICK_PROOF_PHOTO_LIMIT} fills the sample.`,
-    },
-    details: {
-      title: "Add details, or skip straight to your proof",
-      lead: "Everything on this screen is optional. A proof built from photographs alone is a perfectly good proof.",
-    },
-    content: {
-      title: "Add your spreadsheet and photographs",
-      lead: "Start from our CSV template and your data will merge without cleanup. Already have a spreadsheet? Upload it and we will help you map the columns.",
-    },
-    data: {
-      title: project.data.mappingConfirmed ? "What we found in your data" : "Match your columns to ours",
-      lead: project.data.mappingConfirmed
-        ? "Parsed in your browser, nothing uploaded. Here is what merged cleanly and what needs your attention."
-        : "Your spreadsheet uses its own column names. Confirm what each one means — we never guess on your behalf.",
-    },
-    review: {
-      title: "Review your submission",
-      lead: "Check the details below, confirm you have permission to share this content, and we will build your proof.",
-    },
+    upload: photoMode
+      ? {
+          title: "Add your photographs",
+          lead: `Take them now or choose them from your library. One is enough to see a proof; ${QUICK_PROOF_PHOTO_LIMIT} fills the sample.`,
+        }
+      : {
+          title: "Upload Spreadsheet",
+          lead: "Upload one CSV. We will validate the supported fields and alphabetize every valid record before it is queued.",
+        },
+    proof: { title: "Building your proof", lead: "" },
   };
-
   const copy = STEP_COPY[step.id];
-  const isResults = step.id === "generate" && result && !renderError;
 
   return (
-    <div style={IP.page}>
+    <div className="ip-root">
       <style>{IP_CSS}</style>
+      <style>{PROOF_CSS}</style>
 
       <ProofHeader />
 
       <main style={{ flex: 1 }}>
-        {/* Intro — shown only on the first step, so returning visitors are not
-            asked to scroll past the pitch on every step. */}
-        {safeIndex === 0 && (
-          <section
-            style={{
-              background: PALETTE.ink,
-              color: PALETTE.white,
-              padding: `clamp(3rem, 8vw, 5rem) ${PAGE_X}`,
-            }}
-          >
-            <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-              <p style={{ ...IP.eyebrow, color: PALETTE.accent }}>Pressmark Instant Proof</p>
-              <h1
-                style={{
-                  fontFamily: FONT_STACK,
-                  fontSize: "clamp(2.3rem, 6vw, 4rem)",
-                  fontWeight: 900,
-                  lineHeight: 1.05,
-                  margin: "0 0 1.2rem",
-                  maxWidth: 900,
-                }}
-              >
-                See Your Publication Before You Hire Us
-              </h1>
-              <p
-                style={{
-                  fontSize: "clamp(1rem, 2.1vw, 1.2rem)",
-                  lineHeight: 1.75,
-                  color: PALETTE.textOnDark,
-                  margin: "0 0 1.8rem",
-                  maxWidth: 640,
-                }}
-              >
-                Upload a small portion of your content and Pressmark's automated production system
-                will transform it into a professionally designed publication proof.
-              </p>
-              <a
-                href="#proof-steps"
-                className="ip-btn-primary"
-                style={IP.btnPrimary}
-                onClick={(event) => {
-                  event.preventDefault();
-                  document.getElementById("proof-steps")?.scrollIntoView({ behavior: "smooth" });
-                  headingRef.current?.focus();
-                }}
-              >
-                Create My Free Publication Proof
-              </a>
-              <p
-                style={{
-                  marginTop: "1.4rem",
-                  fontSize: "0.85rem",
-                  lineHeight: 1.6,
-                  color: PALETTE.textOnDarkMuted,
-                  maxWidth: 520,
-                }}
-              >
-                Your sample is private and automatically removed after 48 hours.
-              </p>
-            </div>
-          </section>
-        )}
-
-        <div id="proof-steps" style={{ ...IP.container, ...IP.section }}>
-          {!isResults && <ProofStepper steps={steps} currentIndex={safeIndex} />}
-
-          {step.id === "generate" ? (
-            <div style={{ paddingTop: "2rem" }}>
-              {isResults ? (
+        {step.id === "proof" ? (
+          <div className="ip-page">
+            {usesDirectoryQueue ? (
+              <div className="ip-section-tight">
+                <p className="ip-eyebrow">Step 3 of 3</p>
+                <h1 className="ip-h1" ref={headingRef} tabIndex={-1}>Generate and download proof</h1>
+                <DirectoryRenderJob
+                  csv={project.assets.find((asset) => asset.kind === ASSET_KINDS.data)?.file}
+                  templateId={selectedTemplate?.id ?? ""}
+                  initialJobId={renderJobId}
+                  onJobId={rememberRenderJob}
+                  onStartOver={startOver}
+                />
+              </div>
+            ) : isResults ? (
+              <div className="ip-section-tight">
                 <ProofResults
                   project={project}
+                  inputMode={inputMode}
                   config={config}
                   result={result}
                   onStartOver={startOver}
@@ -973,72 +838,118 @@ export default function InstantProof() {
                     )
                   }
                 />
-              ) : (
-                <>
-                  <h2
-                    ref={headingRef}
-                    tabIndex={-1}
-                    style={{ ...IP.stepTitle, outline: "none" }}
-                  >
-                    Building your proof
-                  </h2>
+              </div>
+            ) : (
+              <div className="ip-section-tight">
+                <p className="ip-eyebrow">
+                  Step {STEPS.length} of {STEPS.length}
+                </p>
+                <h1 className="ip-h1" ref={headingRef} tabIndex={-1} style={{ outline: "none" }}>
+                  {copy.title}
+                </h1>
+                <div className="ip-section">
                   <ProofProcessing
                     status={status}
                     simulated={renderer.isSimulated}
                     error={renderError}
-                    onRetry={startRender}
+                    onRetry={beginProof}
                   />
-                </>
-              )}
-            </div>
-          ) : (
-            <div style={{ paddingTop: "2rem" }}>
-              <p style={IP.eyebrow}>
-                Step {stepNumber} of {inputStepCount}
-              </p>
-              <h2 ref={headingRef} tabIndex={-1} style={{ ...IP.stepTitle, outline: "none" }}>
-                {copy.title}
-              </h2>
-              <p style={IP.stepLead}>{copy.lead}</p>
-
-              {stepContent()}
-
-              <div
-                className="ip-nav-row"
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "1rem",
-                  marginTop: "2.5rem",
-                  paddingTop: "1.75rem",
-                  borderTop: `1px solid ${PALETTE.hairline}`,
-                }}
-              >
-                {safeIndex > 0 ? (
-                  <button type="button" className="ip-btn-ghost ip-touch" style={IP.btnGhost} onClick={back}>
-                    ← Back
-                  </button>
-                ) : (
-                  <span />
-                )}
-
-                <span style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
-                  {/* The details step is genuinely optional, so say so with a
-                      control rather than only with words. */}
-                  {step.id === "photos" && (
-                    <button type="button" className="ip-btn-ghost ip-touch" style={IP.btnGhost} onClick={skipToProof}>
-                      Skip to my proof →
-                    </button>
-                  )}
-                  <button type="button" className="ip-btn-primary ip-touch" style={IP.btnPrimary} onClick={next}>
-                    {isLastInput ? "Generate My Proof →" : "Continue →"}
-                  </button>
-                </span>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        ) : (
+          <StepShell
+            step={safeIndex + 1}
+            totalSteps={STEPS.length}
+            title={copy.title}
+            lead={copy.lead}
+            headingRef={headingRef}
+            onBack={safeIndex > 0 ? back : undefined}
+            onContinue={next}
+            continueLabel={step.id === "upload" ? "Build My Free Proof" : "Continue"}
+            continueDisabled={!stepIsComplete}
+            blockingReason={blockingReason()}
+          >
+            {step.id === "create" && (
+              <div className="ip-create">
+                <div style={{ minWidth: 0 }}>
+                  <CreateStep
+                    mode={project.mode}
+                    onModeChange={selectMode}
+                    publicationTypeId={project.publicationTypeId}
+                    onPublicationChange={selectPublicationType}
+                    templateId={project.visual.templateId}
+                    inputMode={inputMode}
+                    onTemplateChange={(templateId) =>
+                      setProject((current) => ({ ...current, visual: { ...current.visual, templateId } }))
+                    }
+                    onPreview={setPreviewing}
+                    proofPages={templateFor(project.visual.templateId)?.pages?.length ?? 6}
+                    errors={errors}
+                  />
+                </div>
+
+                {/* Desktop only — a restrained reminder of the chosen design,
+                    never a full-size cover. Hidden from assistive technology
+                    because the carousel already conveys the selection. */}
+                <aside className="ip-aside ip-desktop-only" aria-hidden="true">
+                  {templateFor(project.visual.templateId) && (
+                    <>
+                      <span className="ip-label">Your design</span>
+                      <span className="ip-aside-frame">
+                        <img
+                          src={templateFor(project.visual.templateId).thumbnail}
+                          alt=""
+                          style={{
+                            objectFit:
+                              project.visual.templateId === "directory-classic" ? "contain" : "cover",
+                          }}
+                        />
+                      </span>
+                      <p className="ip-design-name" style={{ marginTop: "var(--proof-space-4)" }}>
+                        {templateFor(project.visual.templateId).name}
+                      </p>
+                    </>
+                  )}
+                </aside>
+              </div>
+            )}
+
+            {step.id === "upload" && (
+              <UploadStep
+                project={project}
+                config={config}
+                photos={photos}
+                matching={matching}
+                errors={errors}
+                onAddPhotos={addPhotos}
+                onRemoveAsset={removeAsset}
+                onToggleSelected={togglePhotoSelected}
+                onPhotoDetails={setPhotoDetails}
+                onAddAssets={addAssets}
+                onOrganizationChange={(organization) => setProject((current) => ({ ...current, organization }))}
+                onVisualChange={(visual) => setProject((current) => ({ ...current, visual }))}
+                onLogoAdd={addLogo}
+                onLogoRemove={removeLogo}
+                onConsentChange={(consentGranted) =>
+                  setProject((current) => ({ ...current, consentGranted }))
+                }
+                onApplyProposals={applyProposals}
+                onConfirmMapping={confirmMapping}
+                onReopenMapping={reopenMapping}
+                onPhotoOverride={setPhotoOverride}
+                onEvent={(kind) =>
+                  emit(
+                    kind === "organization"
+                      ? PROOF_EVENTS.organizationDetailsOpened
+                      : PROOF_EVENTS.optionalDetailsOpened
+                  )
+                }
+              />
+            )}
+          </StepShell>
+        )}
       </main>
 
       {previewing && (

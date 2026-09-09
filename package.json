@@ -11,6 +11,8 @@
     "verify:zoho": "node --env-file=.env scripts/verify-zoho.mjs",
     "verify:tree": "node scripts/verify-folder-tree.mjs",
     "verify:proof": "node scripts/verify-instant-proof.mjs",
+    "test:render-jobs": "node --test scripts/render-jobs.test.mjs",
+    "mock:directory-worker": "node --env-file=.env scripts/mock-directory-worker.mjs",
     "diagnose:link": "node --env-file=.env scripts/diagnose-upload-link.mjs",
     "token": "node --env-file=.env scripts/refresh-token.mjs",
     "seed:license": "node --env-file=.env scripts/seed-test-license.mjs",

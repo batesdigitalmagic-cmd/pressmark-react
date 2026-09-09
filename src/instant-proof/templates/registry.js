@@ -91,6 +91,7 @@
  * @property {string} description
  * @property {string[]} publicationTypes   PUBLICATION_CONFIGS ids this suits.
  * @property {string} styleCategory        A STYLE_DIRECTIONS id — filter metadata, not the design itself.
+ * @property {'csv'|'photos'} inputMode    Content workflow and validation capability.
  * @property {string} thumbnail
  * @property {string[]} schemas            CONTENT_SCHEMAS ids this template can render.
  * @property {{width:number, height:number, unit:'in'}} pageSize

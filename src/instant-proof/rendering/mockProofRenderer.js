@@ -505,6 +505,23 @@ export function createMockProofRenderer() {
       job.timers.push(finish);
     },
 
+    /*
+     * Abandon a job and stop its timers.
+     *
+     * StrictMode runs an effect, tears it down and runs it again, so the first
+     * run's job is abandoned by design. Without this its stage timers keep
+     * firing against a job nobody is watching — harmless but untidy, and in a
+     * real renderer it would be a wasted server render. Cleanup calls this so a
+     * run's work stops with the run that created it.
+     */
+    async cancelProofJob(jobId) {
+      const job = jobs.get(jobId);
+      if (!job) return;
+      for (const timer of job.timers) clearTimeout(timer);
+      job.timers = [];
+      jobs.delete(jobId);
+    },
+
     async getProofStatus(jobId) {
       const job = jobs.get(jobId);
       if (!job) throw new Error("Unknown proof job");
