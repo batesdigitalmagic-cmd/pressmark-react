@@ -10,7 +10,7 @@ import claim from "../api/render-jobs/worker/claim.js";
 import input from "../api/render-jobs/worker/[jobId]/input.js";
 import result from "../api/render-jobs/worker/[jobId]/result.js";
 import { validateAndNormalizeCsv } from "../lib/render-jobs/csv.js";
-import { templateFor } from "../src/instant-proof/templates/registry.js";
+import { modeForTemplate, templateFor } from "../src/instant-proof/templates/registry.js";
 
 const encoder = new TextEncoder();
 const token = "test-worker-token-with-enough-entropy";
@@ -39,9 +39,32 @@ test("template capabilities route Directory Classic to CSV and keep photo templa
   const createSource = await readFile("src/instant-proof/components/CreateStep.jsx", "utf8");
   const pageSource = await readFile("src/pages/InstantProof.jsx", "utf8");
   assert.match(uploadSource, /const photoMode = inputMode === "photos"/);
-  assert.match(pageSource, /const usesDirectoryQueue = Boolean\(renderJobId\) \|\| inputMode === "csv"/);
   assert.doesNotMatch(uploadSource, /templateId === "directory-classic"/);
   assert.match(createSource, /inputMode !== "csv"/);
+
+  /*
+   * Directory Classic renders its free proof in the browser like every other
+   * design; the InDesign queue is an optional follow-on offered afterwards.
+   *
+   * This used to assert the opposite — that the page carried
+   * `usesDirectoryQueue = Boolean(renderJobId) || inputMode === "csv"`, routing
+   * every spreadsheet visitor straight to the queue. That made the free proof a
+   * 503 in production, where getRenderJobStorage() fails closed.
+   */
+  assert.doesNotMatch(pageSource, /usesDirectoryQueue/);
+  assert.match(pageSource, /resumingRenderJob/);
+
+  /*
+   * The queue view is reached ONLY by resuming a job from ?job=..., never by
+   * choosing a CSV design.
+   */
+  assert.doesNotMatch(pageSource, /resumingRenderJob\s*=\s*[^;]*inputMode/);
+
+  /* The build method follows the design, because the mode selector is hidden
+     for CSV designs and would otherwise keep its `photo` default — which makes
+     recordsFor() read photographs out of a spreadsheet project. */
+  assert.equal(modeForTemplate("directory-classic"), "data");
+  assert.equal(modeForTemplate("photo-gallery"), "photo");
 });
 
 function workerRequest(url, method = "POST", body) {

@@ -193,3 +193,44 @@ export function largestGridOf(template) {
   }
   return largest;
 }
+
+/*
+ * The build method a template implies.
+ *
+ * `ProofProject.mode` decides where records come from — recordsFor() reads
+ * photographs in `photo` mode and the parsed spreadsheet in `data` mode. The
+ * mode selector is hidden for CSV-driven designs, so a visitor who chooses
+ * Directory Classic never sets it and it keeps its `photo` default; the
+ * directory then renders from photographs while the customer's spreadsheet sits
+ * unused. Deriving it from the design closes that gap at the source.
+ *
+ * Returns the mode as one of ProofProject's two values without importing
+ * models.js, which would make this module depend on the shape it describes.
+ */
+export function modeForTemplate(templateId, fallback = "photo") {
+  const template = templateFor(templateId);
+  if (!template) return fallback;
+  return template.inputMode === "csv" ? "data" : "photo";
+}
+
+/*
+ * The caption printed under a page in the results view.
+ *
+ * A page's `caption` describes the layout and is always true. `countCaption`
+ * additionally states how much of the customer's content landed on the page,
+ * and is used only when something actually did.
+ *
+ * Two fields rather than one interpolated string because the count is not
+ * always available: the listing spread was captioned "Twelve of your records
+ * placed into the template's profile grid" whatever the spreadsheet held, so a
+ * three-family directory was told twelve of its records were on a page showing
+ * three. The number is the customer's own data being described back to them —
+ * it has to be the real one or not appear at all.
+ */
+export function captionFor(page, count = 0) {
+  if (!page) return "";
+  if (count > 0 && page.countCaption) {
+    return page.countCaption.replace("{count}", String(count));
+  }
+  return page.caption ?? "";
+}

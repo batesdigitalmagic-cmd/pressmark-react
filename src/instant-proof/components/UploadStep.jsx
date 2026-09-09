@@ -170,13 +170,13 @@ export default function UploadStep({
         />
       </div>
 
-      {!csvMode && project.data.parseError && (
+      {project.data.parseError && (
         <p role="alert" className="ip-note ip-section" style={{ color: "var(--proof-danger)" }}>
           {project.data.parseError}
         </p>
       )}
 
-      {!csvMode && parsed && !project.data.mappingConfirmed && (
+      {parsed && !project.data.mappingConfirmed && (
         <div className="ip-section">
           <ColumnMappingPanel
             schemaId={project.data.schemaId}
@@ -195,7 +195,7 @@ export default function UploadStep({
         </div>
       )}
 
-      {!csvMode && parsed && project.data.mappingConfirmed && (
+      {parsed && project.data.mappingConfirmed && (
         <>
           <div className="ip-section">
             <DataReviewPanel data={project.data} matching={matching} />
@@ -225,20 +225,20 @@ export default function UploadStep({
         </p>
       )}
 
-      {csvMode && (
+      {csvMode && !parsed && !project.data.parseError && (
         <div className="ip-section">
-          <p className="ip-label">Supported spreadsheet headers</p>
-          <p className="ip-note">Only <code>last_name</code> and <code>first_name</code> are required.</p>
-          <ul className="ip-note" style={{ columns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
-            {["last_name", "first_name", "address", "phone", "alternate_phone", "email", "alternate_email", "family_members"].map((header) => (
-              <li key={header}><code>{header}</code></li>
-            ))}
-          </ul>
+          <p className="ip-label">Bring the spreadsheet you already have</p>
+          <p className="ip-note">
+            Your columns do not have to be named ours. Upload the CSV and we will propose a mapping
+            for you to confirm — a name column, and whatever contact details you keep alongside it.
+          </p>
         </div>
       )}
 
-      {csvMode && project.assets.some((asset) => asset.kind === ASSET_KINDS.data) && (
-        <p className="ip-note ip-section">Your CSV will be validated and alphabetized securely after you choose Build My Free Proof.</p>
+      {csvMode && parsed && project.data.mappingConfirmed && (
+        <p className="ip-note ip-section">
+          Your proof is built in this browser — nothing is uploaded to produce it.
+        </p>
       )}
 
       {project.assets.length > 0 && (

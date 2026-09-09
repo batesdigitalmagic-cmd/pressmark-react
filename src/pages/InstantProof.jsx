@@ -32,6 +32,7 @@ import TemplatePreview from "../instant-proof/components/TemplatePreview.jsx";
 import ProofProcessing from "../instant-proof/components/ProofProcessing.jsx";
 import ProofResults from "../instant-proof/components/ProofResults.jsx";
 import DirectoryRenderJob from "../instant-proof/components/DirectoryRenderJob.jsx";
+import DirectoryPdfOffer from "../instant-proof/components/DirectoryPdfOffer.jsx";
 import { ProofHeader, ProofFooter } from "../instant-proof/components/ProofChrome.jsx";
 
 
@@ -52,7 +53,12 @@ import {
 } from "../instant-proof/csv/columnMapping.js";
 import { analyzeRecords } from "../instant-proof/csv/analyzeRecords.js";
 import { matchPhotos } from "../instant-proof/csv/photoMatching.js";
-import { defaultTemplateFor, templateFor, templatesForPublication } from "../instant-proof/templates/registry.js";
+import {
+  defaultTemplateFor,
+  modeForTemplate,
+  templateFor,
+  templatesForPublication,
+} from "../instant-proof/templates/registry.js";
 import {
   ASSET_KINDS,
   JOB_STATES,
@@ -98,6 +104,15 @@ const POLL_MS = 400;
 
 let assetCounter = 0;
 const nextAssetId = () => `asset-${(assetCounter += 1)}`;
+
+/** Set the chosen design and the build method it implies, together. */
+function withTemplate(current, templateId) {
+  return {
+    ...current,
+    mode: modeForTemplate(templateId, current.mode),
+    visual: { ...current.visual, templateId },
+  };
+}
 
 /** Wrap a File as an UploadedAsset, creating a preview URL for images. */
 function toAsset(file, kindOverride) {
@@ -160,7 +175,22 @@ export default function InstantProof() {
   const selectedTemplate = templateFor(project.visual.templateId);
   const inputMode = selectedTemplate?.inputMode ?? "photos";
   const photoMode = inputMode === "photos";
-  const usesDirectoryQueue = Boolean(renderJobId) || inputMode === "csv";
+  /*
+   * A page opened with ?job=... is RESUMING a production PDF render, not
+   * building a proof: there is no File in state to rebuild from, so the queue
+   * view is all we can honestly show.
+   *
+   * This used to read `Boolean(renderJobId) || inputMode === "csv"`, which sent
+   * every Directory Classic visitor straight past the browser renderer to the
+   * server queue. That queue needs a Mac running InDesign and durable object
+   * storage; in production getRenderJobStorage() throws and the customer's free
+   * proof was a 503. Now the spreadsheet path renders in the browser exactly
+   * like the photograph path, and the PDF is offered afterwards as a bonus.
+   *
+   * Held in state rather than recomputed from the URL each render, because
+   * startOver() rewrites the URL and a derived value would flip mid-session.
+   */
+  const [resumingRenderJob, setResumingRenderJob] = useState(Boolean(initialRenderJobId));
   const photos = useMemo(() => photosOf(project), [project]);
 
   const steps = STEPS;
@@ -362,11 +392,21 @@ export default function InstantProof() {
   const selectMode = useCallback((mode) => {
     setProject((current) => {
       const photoLed = mode === PROOF_MODES.photo;
-      /* Preselect a sensible design so nobody is blocked on a choice. */
-      const templateId =
-        current.visual.templateId ||
-        defaultTemplateFor(current.publicationTypeId, { photoLed });
-      return { ...current, mode, visual: { ...current.visual, templateId } };
+      /*
+       * Preselect a sensible design so nobody is blocked on a choice — but a
+       * design already chosen only survives if it agrees with the method being
+       * asked for. Keeping a CSV-driven design while switching to the
+       * photograph method would leave mode and template contradicting each
+       * other, and recordsFor() would then read photographs out of a project
+       * whose content is a spreadsheet.
+       */
+      const kept =
+        current.visual.templateId &&
+        modeForTemplate(current.visual.templateId, mode) === mode
+          ? current.visual.templateId
+          : "";
+      const templateId = kept || defaultTemplateFor(current.publicationTypeId, { photoLed });
+      return { ...withTemplate(current, templateId), mode };
     });
     emit(
       mode === PROOF_MODES.photo ? PROOF_EVENTS.quickProofStarted : PROOF_EVENTS.spreadsheetModeSelected,
@@ -388,18 +428,12 @@ export default function InstantProof() {
           (template) => template.id === current.visual.templateId
         );
       const photoLed = current.mode === PROOF_MODES.photo && suggestsPhotoLedDesign(current);
-      return {
-        ...current,
-        publicationTypeId,
-        visual: {
-          ...current.visual,
-          /* Preselected rather than cleared: a visitor should never be stopped
-             by a design decision they have no opinion about yet. */
-          templateId: stillValid
-            ? current.visual.templateId
-            : defaultTemplateFor(publicationTypeId, { photoLed }),
-        },
-      };
+      /* Preselected rather than cleared: a visitor should never be stopped by a
+         design decision they have no opinion about yet. */
+      const templateId = stillValid
+        ? current.visual.templateId
+        : defaultTemplateFor(publicationTypeId, { photoLed });
+      return { ...withTemplate(current, templateId), publicationTypeId };
     });
   }, []);
 
@@ -504,10 +538,14 @@ export default function InstantProof() {
         }
       } else if (project.assets.length === 0) {
         found.assets = "Add your spreadsheet and photographs.";
-      } else if (inputMode === "csv") {
-        if (!project.assets.some((asset) => asset.kind === ASSET_KINDS.data)) {
-          found.assets = "Add the directory CSV before continuing.";
-        }
+      } else if (inputMode === "csv" && !project.assets.some((asset) => asset.kind === ASSET_KINDS.data)) {
+        /* Directory Classic is bound to per-record text; portraits alone cannot
+           fill it. Note this is now a guard and NOT a short circuit — the parse
+           and mapping checks below apply to this path too. Previously an
+           `else if` chain skipped every one of them whenever inputMode was
+           "csv", so a directory CSV reached the renderer with its columns
+           unconfirmed and its required fields unchecked. */
+        found.assets = "Add the directory CSV before continuing.";
       } else if (project.data.parseError) {
         found.data = project.data.parseError;
       } else if (project.data.records.length > 0) {
@@ -643,7 +681,8 @@ export default function InstantProof() {
      * disagree, because one is derived from the other.
      */
     if (step.id !== "proof") return undefined;
-    if (usesDirectoryQueue) return undefined;
+    /* Nothing to render from on a resumed job — the queue view takes over. */
+    if (resumingRenderJob) return undefined;
 
     let cancelled = false;
     let jobId = null;
@@ -742,7 +781,7 @@ export default function InstantProof() {
          nothing at all running. */
       if (jobId) renderer.cancelProofJob?.(jobId);
     };
-  }, [step.id, processingRunId, renderer, usesDirectoryQueue]);
+  }, [step.id, processingRunId, renderer, resumingRenderJob]);
 
   const startOver = () => {
     if (pollRef.current) {
@@ -760,6 +799,7 @@ export default function InstantProof() {
     setProcessingRunId(0);
     setStepIndex(0);
     setRenderJobId("");
+    setResumingRenderJob(false);
     window.history.replaceState({}, "", window.location.pathname);
   };
 
@@ -776,7 +816,7 @@ export default function InstantProof() {
 
   const STEP_COPY = {
     create: {
-      title: inputMode === "csv" ? "Choose Directory Classic" : "What are you creating?",
+      title: "What are you creating?",
       lead: "Pick how you want to build it and what you are making. Choose a Pressmark design and we will render your free proof.",
     },
     upload: photoMode
@@ -785,8 +825,8 @@ export default function InstantProof() {
           lead: `Take them now or choose them from your library. One is enough to see a proof; ${QUICK_PROOF_PHOTO_LIMIT} fills the sample.`,
         }
       : {
-          title: "Upload Spreadsheet",
-          lead: "Upload one CSV. We will validate the supported fields and alphabetize every valid record before it is queued.",
+          title: "Upload your spreadsheet",
+          lead: "Add your CSV and, if you have them, the portraits that go with it. We will show you how your columns map, what we found in the data, and then build your proof.",
         },
     proof: { title: "Building your proof", lead: "" },
   };
@@ -802,16 +842,18 @@ export default function InstantProof() {
       <main style={{ flex: 1 }}>
         {step.id === "proof" ? (
           <div className="ip-page">
-            {usesDirectoryQueue ? (
+            {resumingRenderJob ? (
+              /* Resumed from ?job=... — the browser has no file to rebuild the
+                 proof from, so the queue is the only honest thing to show. */
               <div className="ip-section-tight">
                 <p className="ip-eyebrow">Step 3 of 3</p>
                 <h1 className="ip-h1" ref={headingRef} tabIndex={-1}>Generate and download proof</h1>
                 <DirectoryRenderJob
-                  csv={project.assets.find((asset) => asset.kind === ASSET_KINDS.data)?.file}
                   templateId={selectedTemplate?.id ?? ""}
                   initialJobId={renderJobId}
                   onJobId={rememberRenderJob}
                   onStartOver={startOver}
+                  showSteps
                 />
               </div>
             ) : isResults ? (
@@ -838,6 +880,20 @@ export default function InstantProof() {
                     )
                   }
                 />
+
+                {inputMode === "csv" && (
+                  <DirectoryPdfOffer
+                    records={project.data.records}
+                    schema={schema}
+                    templateId={selectedTemplate?.id ?? ""}
+                    originalName={
+                      project.assets.find((asset) => asset.kind === ASSET_KINDS.data)?.name ??
+                      "directory.csv"
+                    }
+                    renderJobId={renderJobId}
+                    onJobId={rememberRenderJob}
+                  />
+                )}
               </div>
             ) : (
               <div className="ip-section-tight">
@@ -882,7 +938,7 @@ export default function InstantProof() {
                     templateId={project.visual.templateId}
                     inputMode={inputMode}
                     onTemplateChange={(templateId) =>
-                      setProject((current) => ({ ...current, visual: { ...current.visual, templateId } }))
+                      setProject((current) => withTemplate(current, templateId))
                     }
                     onPreview={setPreviewing}
                     proofPages={templateFor(project.visual.templateId)?.pages?.length ?? 6}

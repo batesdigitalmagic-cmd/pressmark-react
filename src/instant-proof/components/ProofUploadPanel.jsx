@@ -26,7 +26,22 @@ import { formatBytes } from "../models.js";
 import { IP, PALETTE, FONT_STACK } from "../styles.js";
 import CsvTemplatePanel from "./CsvTemplatePanel.jsx";
 
-const CSV_ONLY_EXTENSIONS = [".csv"];
+/*
+ * Directory Classic's accepted types.
+ *
+ * The CSV plus portraits — not the CSV alone. The directory template binds
+ * `record:image` for every listing and for the featured profile, so a
+ * spreadsheet-only upload renders a directory of grey placeholder boxes. The
+ * photographs never leave the browser (they feed the on-screen proof only; the
+ * production CSV cannot carry a filename column), but without them the preview
+ * misrepresents what the finished publication looks like.
+ */
+const DIRECTORY_EXTENSIONS = [".csv", ".jpg", ".jpeg", ".png"];
+
+/* The worker rejects a CSV over 2 MiB, so the browser should too — but that
+   limit belongs to the spreadsheet alone. A 6 MP portrait is comfortably over
+   it and is perfectly fine, because it is never uploaded. */
+const CSV_MAX_BYTES = 2 * 1024 * 1024;
 
 function ContentChecklist({ items, heading, assets }) {
   if (items.length === 0) return null;
@@ -100,9 +115,16 @@ export default function ProofUploadPanel({ config, assets, onAdd, onRemove, erro
      reliable way to know when the pointer has genuinely left the zone. */
   const dragDepth = useRef(0);
 
-  const acceptedExtensions = csvOnly ? CSV_ONLY_EXTENSIONS : ACCEPTED_EXTENSIONS;
-  const maximumBytes = csvOnly ? 2 * 1024 * 1024 : MAX_FILE_BYTES;
+  const acceptedExtensions = csvOnly ? DIRECTORY_EXTENSIONS : ACCEPTED_EXTENSIONS;
   const accept = acceptedExtensions.join(",");
+
+  /* Per-extension, so one shared cap cannot either reject a legitimate
+     photograph or wave through a spreadsheet the worker will refuse. */
+  const limitFor = useCallback(
+    (extension) => (csvOnly && extension === ".csv" ? CSV_MAX_BYTES : MAX_FILE_BYTES),
+    [csvOnly]
+  );
+  const maximumBytes = MAX_FILE_BYTES;
 
   const handleFiles = useCallback(
     (fileList) => {
@@ -119,8 +141,9 @@ export default function ProofUploadPanel({ config, assets, onAdd, onRemove, erro
           problems.push(`${file.name} — ${ext || "no extension"} is not an accepted file type.`);
           continue;
         }
-        if (file.size > maximumBytes) {
-          problems.push(`${file.name} — ${formatBytes(file.size)} exceeds the ${formatBytes(maximumBytes)} limit.`);
+        const limit = limitFor(ext);
+        if (file.size > limit) {
+          problems.push(`${file.name} — ${formatBytes(file.size)} exceeds the ${formatBytes(limit)} limit.`);
           continue;
         }
         if (assets.length + allowed.length >= MAX_FILES) {
@@ -133,7 +156,7 @@ export default function ProofUploadPanel({ config, assets, onAdd, onRemove, erro
       setRejections(problems);
       if (allowed.length > 0) onAdd(allowed);
     },
-    [acceptedExtensions, assets.length, maximumBytes, onAdd]
+    [acceptedExtensions, assets.length, limitFor, onAdd]
   );
 
   const onDrop = (event) => {
@@ -196,7 +219,9 @@ export default function ProofUploadPanel({ config, assets, onAdd, onRemove, erro
           }}
         />
         <p id={`${dropId}-types`} style={{ ...IP.hint, marginTop: "0.9rem" }}>
-          {csvOnly ? "CSV only" : "JPG, JPEG, PNG, CSV, PDF and DOCX"}. Up to {MAX_FILES} files, {formatBytes(maximumBytes)} each.
+          {csvOnly
+            ? `CSV and portraits (JPG, PNG). Up to ${MAX_FILES} files — CSV to ${formatBytes(CSV_MAX_BYTES)}, images to ${formatBytes(MAX_FILE_BYTES)}.`
+            : `JPG, JPEG, PNG, CSV, PDF and DOCX. Up to ${MAX_FILES} files, ${formatBytes(maximumBytes)} each.`}
         </p>
       </div>
 

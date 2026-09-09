@@ -2,16 +2,34 @@
 
 ## Status
 
-Stage 2 provides a tested website job queue and a development-only mock worker. It does **not** run InDesign in Vercel or in the browser and is not production-ready until a durable object-storage adapter is configured. The existing browser DOM proof renderer remains available for every flow other than the spreadsheet-based `directory-classic` production queue.
+Stage 2 provides a tested website job queue and a development-only mock worker. It does **not** run InDesign in Vercel or in the browser and is not production-ready until a durable object-storage adapter is configured.
+
+**The free proof no longer depends on any of that.** `directory-classic` renders through the same browser DOM proof renderer as every other design: the customer's CSV is parsed, mapped, validated and composed into pages entirely in the tab. The queue below is an *optional follow-on* offered under the finished proof, so a visitor still gets their directory proof when no worker is running and when production storage is unconfigured.
+
+Previously the spreadsheet path routed straight to this queue, which meant the free proof was a 503 in production (`getRenderJobStorage()` fails closed) and a "queued for the local InDesign worker" message everywhere else.
+
+## The two CSV schemas
+
+The browser and the worker deliberately speak different schemas:
+
+| | Columns | Required | Used for |
+| --- | --- | --- | --- |
+| `src/instant-proof/csv/schemas.js` (`people-directory`) | 17 | `record_id`, `display_name` | Mapping UI, photo matching, the on-screen proof |
+| `lib/render-jobs/csv.js` | 8 | `last_name`, `first_name` | What the InDesign worker receives |
+
+These used to disagree silently, and the `pressmark-people-directory.csv` template this site offers for download was rejected outright by the endpoint it feeds (`Unsupported headers: record_id, display_name, ...`).
+
+`src/instant-proof/csv/directoryExport.js` now projects the rich record set down to the worker's eight columns immediately before submission — names split from `display_name` when necessary, street and locality rejoined into the single `address` column, and empty optional columns omitted. The customer's original file is never posted. `verify:proof` asserts the mirrored header list still matches `lib/render-jobs/csv.js` and runs the real server validator over the projected output.
 
 ## Browser-to-worker flow
 
-1. The customer chooses the unchanged `directory-classic` template, uploads a CSV, and grants permission to use it.
-2. The browser posts multipart form data to `POST /api/render-jobs`.
-3. The server enforces the size limit, accepts only `.csv`, decodes UTF-8, removes a BOM from the first header, rejects malformed/unsupported columns, requires `last_name` and `first_name`, sorts rows by last name then first name, and saves only a server-generated input key.
-4. The browser receives a 256-bit random job ID, puts it in `?job=...`, and polls the status endpoint. The URL allows refresh/resume without storing customer data in the browser.
-5. An authenticated Mac worker claims the next queued job, downloads its normalized input CSV, performs the local InDesign operation, and uploads either a PDF or a bounded failure message.
-6. A completed customer job exposes a download URL. The high-entropy job ID is the customer bearer capability; internal object keys are never returned.
+1. The customer chooses `directory-classic`, uploads a CSV, confirms the column mapping, and grants permission to use it.
+2. The proof is composed **in the browser** and shown. Under it, "Request the production PDF" is offered.
+3. Only if the customer asks: the browser projects the mapped records to the worker schema and posts multipart form data to `POST /api/render-jobs`.
+4. The server enforces the size limit, accepts only `.csv`, decodes UTF-8, removes a BOM from the first header, rejects malformed/unsupported columns, requires `last_name` and `first_name`, sorts rows by last name then first name, and saves only a server-generated input key.
+5. The browser receives a 256-bit random job ID, puts it in `?job=...`, and polls the status endpoint. The URL allows refresh/resume without storing customer data in the browser.
+6. An authenticated Mac worker claims the next queued job, downloads its normalized input CSV, performs the local InDesign operation, and uploads either a PDF or a bounded failure message.
+7. A completed customer job exposes a download URL. The high-entropy job ID is the customer bearer capability; internal object keys are never returned.
 
 ## API endpoints
 

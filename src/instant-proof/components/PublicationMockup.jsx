@@ -16,7 +16,7 @@
 import TemplateRenderer from "../render/TemplateRenderer.jsx";
 import { resolveColors } from "../render/colors.js";
 import { schemaFor } from "../csv/schemas.js";
-import { templateFor } from "../templates/registry.js";
+import { captionFor, templateFor } from "../templates/registry.js";
 import { planProof } from "../render/proofPlan.js";
 import { matchPhotos } from "../csv/photoMatching.js";
 import { ASSET_KINDS } from "../models.js";
@@ -156,7 +156,7 @@ export default function PublicationMockup({ project, config, result }) {
         <BookPage
           key={page.id}
           label={page.label}
-          caption={page.caption}
+          caption={captionFor(page, pageRecords.length)}
           single={page.form === "single"}
         >
           <TemplateRenderer

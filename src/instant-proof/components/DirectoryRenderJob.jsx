@@ -19,10 +19,25 @@ function submit(csv, templateId) {
   return submissions.get(csv);
 }
 
-export default function DirectoryRenderJob({ csv, templateId, initialJobId, onJobId, onStartOver }) {
+/*
+ * `showSteps` and `onStartOver` are for the standalone resumed-job view, where
+ * this component IS the page. Embedded under a finished proof (DirectoryPdfOffer)
+ * both are omitted: the three-step list is already above it in the wizard
+ * chrome, and Start over belongs to the results screen, not to one section of it.
+ */
+export default function DirectoryRenderJob({
+  csv,
+  templateId,
+  initialJobId,
+  onJobId,
+  onStartOver,
+  showSteps = false,
+}) {
   const [job, setJob] = useState(initialJobId ? { jobId: initialJobId, status: "uploaded" } : null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(!initialJobId);
+  /* `active` needs `csv` to have arrived; the offer builds it lazily, so a
+     first render with csv===undefined is normal rather than an error. */
   const mounted = useRef(true);
 
   useEffect(() => () => { mounted.current = false; }, []);
@@ -62,14 +77,16 @@ export default function DirectoryRenderJob({ csv, templateId, initialJobId, onJo
 
   return (
     <section aria-live="polite" aria-busy={submitting || generating} className="ip-section">
-      <ol style={{ display: "grid", gap: "0.75rem", padding: 0, margin: "0 0 2rem", listStyle: "none" }}>
-        {LABELS.map((label, index) => (
-          <li key={label} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <span className="ip-step-dot" aria-hidden="true">{index < active ? "✓" : index + 1}</span>
-            <strong>{label}</strong>
-          </li>
-        ))}
-      </ol>
+      {showSteps && (
+        <ol style={{ display: "grid", gap: "0.75rem", padding: 0, margin: "0 0 2rem", listStyle: "none" }}>
+          {LABELS.map((label, index) => (
+            <li key={label} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <span className="ip-step-dot" aria-hidden="true">{index < active ? "✓" : index + 1}</span>
+              <strong>{label}</strong>
+            </li>
+          ))}
+        </ol>
+      )}
 
       {submitting && <p>Uploading and validating your CSV…</p>}
       {job?.status === "queued" && <p>Your validated directory is queued for the local InDesign worker.</p>}
@@ -83,7 +100,9 @@ export default function DirectoryRenderJob({ csv, templateId, initialJobId, onJo
           <a className="ip-btn-primary ip-touch" href={job.downloadUrl}>Download directory PDF</a>
         </div>
       )}
-      <p><button type="button" className="ip-btn-ghost ip-touch" onClick={onStartOver}>Start over</button></p>
+      {onStartOver && (
+        <p><button type="button" className="ip-btn-ghost ip-touch" onClick={onStartOver}>Start over</button></p>
+      )}
     </section>
   );
 }

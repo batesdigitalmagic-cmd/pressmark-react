@@ -28,6 +28,21 @@ import { parseCsv } from "../src/instant-proof/csv/parseCsv.js";
 import { applyMapping, mappingFromProposals, suggestMapping } from "../src/instant-proof/csv/columnMapping.js";
 import { analyzeRecords } from "../src/instant-proof/csv/analyzeRecords.js";
 import {
+  WORKER_HEADERS,
+  WORKER_REQUIRED_HEADERS,
+  namePartsOf,
+  splitDisplayName,
+  toDirectoryCsv,
+  unexportableRecords,
+} from "../src/instant-proof/csv/directoryExport.js";
+/* The server's own validator, run for real. scripts/ may import lib/; src/ may
+   not, which is exactly why the header list is mirrored and asserted here. */
+import {
+  OPTIONAL_HEADERS as SERVER_OPTIONAL_HEADERS,
+  REQUIRED_HEADERS as SERVER_REQUIRED_HEADERS,
+  validateAndNormalizeCsv,
+} from "../lib/render-jobs/csv.js";
+import {
   PROOF_MODES,
   emptyOrganization,
   emptyProject,
@@ -42,7 +57,7 @@ import {
   recordsFor,
   suggestsPhotoLedDesign,
 } from "../src/instant-proof/photoProject.js";
-import { defaultTemplateFor } from "../src/instant-proof/templates/registry.js";
+import { captionFor, defaultTemplateFor, modeForTemplate } from "../src/instant-proof/templates/registry.js";
 import { getSubscriptionService, isValidEmail } from "../src/instant-proof/services/subscriptionService.js";
 import { buildContactPayload } from "../src/instant-proof/services/contactRequests.js";
 import { __sanitizeForTest } from "../src/instant-proof/analytics.js";
@@ -1243,6 +1258,235 @@ group("Data pipeline still sound");
   ok("quoted commas survive parsing", table.rows[0].display_name === "Whitfield, Ava");
   ok("trailing blank rows are ignored", table.rows.length === 1);
   ok("headers are trimmed", table.headers.includes("record_id"));
+}
+
+
+/* ── The directory merge: rich browser schema -> narrow worker contract ── */
+group("Directory CSV export matches the worker contract");
+{
+  const schema = schemaFor("people-directory");
+
+  /* The bug this whole module exists to close: the two header lists disagreed,
+     and nothing detected it because they live either side of the src/lib wall. */
+  ok(
+    "required headers mirror the server exactly",
+    JSON.stringify(WORKER_REQUIRED_HEADERS) === JSON.stringify(SERVER_REQUIRED_HEADERS),
+    `browser ${WORKER_REQUIRED_HEADERS.join(",")} vs server ${SERVER_REQUIRED_HEADERS.join(",")}`
+  );
+  ok(
+    "the full header list mirrors the server exactly",
+    JSON.stringify(WORKER_HEADERS) ===
+      JSON.stringify([...SERVER_REQUIRED_HEADERS, ...SERVER_OPTIONAL_HEADERS]),
+    `browser ${WORKER_HEADERS.join(",")}`
+  );
+
+  /* Regression: the CSV template this site hands out used to be rejected by the
+     endpoint it feeds, with "Unsupported headers: record_id, display_name, ...". */
+  const templatePath = resolve(ROOT, "public/csv-templates/pressmark-people-directory.csv");
+  const table = parseCsv(readFileSync(templatePath, "utf8"));
+  const mapping = mappingFromProposals(suggestMapping(table.headers, "people-directory"));
+  const records = applyMapping(table.rows, mapping);
+  ok("our own directory template still parses", records.length > 0, `${records.length} records`);
+
+  const built = toDirectoryCsv(records, schema);
+  ok("every parsed record survives the projection", built.rowCount === records.length);
+  ok("no record is dropped", built.skipped === 0);
+  ok(
+    "only headers the worker accepts are emitted",
+    built.headers.every((header) => WORKER_HEADERS.includes(header)),
+    built.headers.join(",")
+  );
+  ok(
+    "empty optional columns are omitted rather than shipped blank",
+    !built.headers.includes("alternate_phone") && !built.headers.includes("family_members")
+  );
+
+  let accepted = null;
+  try {
+    accepted = validateAndNormalizeCsv(new TextEncoder().encode(built.text));
+  } catch (error) {
+    accepted = { error: error.message };
+  }
+  ok(
+    "the server accepts our projected CSV",
+    accepted?.rowCount === records.length,
+    accepted?.error ?? `${accepted?.rowCount} rows`
+  );
+
+  /* Rich columns are deliberately not sent; they feed the on-screen proof only. */
+  ok("no bio, photo filename or record id reaches the worker",
+    !/short_bio|photo_filename|record_id/.test(built.text));
+
+  /* The address column is one line because the worker has one column for it. */
+  ok(
+    "street and locality are rejoined into the single address column",
+    built.text.includes("412 Larkspur Lane, Marietta, GA 30060")
+  );
+}
+
+group("Directory names survive every spelling a customer uses");
+{
+  const cases = [
+    ["Whitfield, Ava", "Whitfield", "Ava"],
+    ["Ava Whitfield", "Whitfield", "Ava"],
+    ["Ava Marie Whitfield", "Whitfield", "Ava Marie"],
+    ["  Okonkwo ,  Benjamin  ", "Okonkwo", "Benjamin"],
+  ];
+  for (const [input, last, first] of cases) {
+    const split = splitDisplayName(input);
+    ok(`"${input}" -> ${last} / ${first}`, split.last === last && split.first === first,
+      `got ${split.last} / ${split.first}`);
+  }
+  ok("a single-word name is treated as a surname", splitDisplayName("Cher").last === "Cher");
+  ok("an empty name yields empty parts", splitDisplayName("").last === "");
+
+  const schema = schemaFor("people-directory");
+  /* Explicit columns beat the display name, because the customer stated them. */
+  const explicit = namePartsOf(
+    { first_name: "Ava", last_name: "Whitfield", display_name: "Somebody Else" },
+    schema
+  );
+  ok("explicit first/last columns win over display_name",
+    explicit.first === "Ava" && explicit.last === "Whitfield");
+
+  /* A sheet carrying display_name alone still produces both halves. */
+  const derived = namePartsOf({ display_name: "Whitfield, Ava" }, schema);
+  ok("display_name alone still yields both halves",
+    derived.first === "Ava" && derived.last === "Whitfield");
+}
+
+group("A nameless row is reported, not allowed to fail the whole upload");
+{
+  const schema = schemaFor("people-directory");
+  const records = [
+    { display_name: "Whitfield, Ava" },
+    { display_name: "" },
+    { display_name: "Okonkwo, Benjamin" },
+  ];
+  const problems = unexportableRecords(records, schema);
+  ok("the nameless record is identified", problems.length === 1, `${problems.length} found`);
+  ok("it is identified by position", problems[0]?.index === 1);
+
+  const built = toDirectoryCsv(records, schema);
+  ok("the two usable records are still exported", built.rowCount === 2);
+  ok("the unusable one is counted as skipped", built.skipped === 1);
+
+  /* The server would 400 the entire upload over that one row; we must not
+     hand it one. */
+  let ok400 = false;
+  try {
+    validateAndNormalizeCsv(new TextEncoder().encode(built.text));
+    ok400 = true;
+  } catch {
+    ok400 = false;
+  }
+  ok("what we send still passes the server", ok400);
+
+  /* A one-word name is a real person, not an error: it becomes both halves
+     rather than being dropped. */
+  const mononym = toDirectoryCsv([{ display_name: "Cher" }], schema);
+  ok("a single-word name is still exported", mononym.rowCount === 1);
+}
+
+/* ── The free proof itself: a directory CSV renders in the browser ── */
+group("A directory CSV produces an on-screen proof");
+{
+  const template = templateFor("directory-classic");
+  const schema = schemaFor("people-directory");
+  const templatePath = resolve(ROOT, "public/csv-templates/pressmark-people-directory.csv");
+  const table = parseCsv(readFileSync(templatePath, "utf8"));
+  const mapping = mappingFromProposals(suggestMapping(table.headers, "people-directory"));
+  const records = applyMapping(table.rows, mapping);
+
+  ok("directory-classic is a CSV-driven template", template.inputMode === "csv");
+
+  const plan = planProof(template, records);
+  ok("the plan produces pages", plan.pages.length > 0, `${plan.pages.length} pages`);
+  ok("it is not in manual mode", plan.manualMode === false);
+  ok("every uploaded record is accounted for", plan.recordsAvailable === records.length);
+  ok(
+    "records are actually placed on the pages",
+    plan.pages.some((planned) => planned.records.length > 0)
+  );
+
+  /* The merge is the point: a real name from the spreadsheet must reach a
+     real text frame, through the same binding the renderer uses. */
+  const listing = plan.pages.find((planned) => planned.records.length > 0);
+  const name = resolveBinding("personName", { record: listing.records[0], schema });
+  ok("a real name is bound into the page", name.value.includes("Whitfield"), name.value);
+
+  const address = resolveBinding("streetAddress", { record: listing.records[0], schema });
+  ok("the address is bound too", address.value === "412 Larkspur Lane", address.value);
+
+  /* A directory with no spreadsheet at all must not crash the planner. */
+  const empty = planProof(template, []);
+  ok("an empty record set still plans pages", empty.pages.length > 0);
+  ok("and reports itself as manual", empty.manualMode === true);
+}
+
+
+group("The build method follows the chosen design");
+{
+  /* The mode selector is hidden for CSV designs, so nothing else sets this. */
+  ok("Directory Classic implies the spreadsheet mode",
+    modeForTemplate("directory-classic") === PROOF_MODES.data);
+  ok("the photo gallery implies the photograph mode",
+    modeForTemplate("photo-gallery") === PROOF_MODES.photo);
+  ok("an unknown design keeps whatever mode was passed",
+    modeForTemplate("no-such-template", PROOF_MODES.data) === PROOF_MODES.data);
+
+  /*
+   * The regression this guards: a directory project left in `photo` mode
+   * renders photo records, so the customer's spreadsheet is silently ignored
+   * and the proof shows their filenames instead of their members.
+   */
+  const schema = schemaFor("people-directory");
+  const table = parseCsv(
+    readFileSync(resolve(ROOT, "public/csv-templates/pressmark-people-directory.csv"), "utf8")
+  );
+  const records = applyMapping(
+    table.rows,
+    mappingFromProposals(suggestMapping(table.headers, "people-directory"))
+  );
+
+  const directoryProject = {
+    ...emptyProject(),
+    mode: modeForTemplate("directory-classic"),
+    visual: { ...emptyProject().visual, templateId: "directory-classic" },
+    data: { ...emptyProject().data, schemaId: "people-directory", records },
+  };
+  const resolved = recordsFor(directoryProject);
+  ok("a directory project renders from the spreadsheet, not from photographs",
+    resolved.length === records.length, `${resolved.length} records`);
+  ok("and those are the customer's own records",
+    resolveBinding("personName", { record: resolved[0], schema }).value.includes("Whitfield"));
+}
+
+
+group("A page caption never overstates what is on the page");
+{
+  const template = templateFor("directory-classic");
+  const listing = template.pages.find((page) => page.id === "listing-spread");
+
+  /* The regression: this caption read "Twelve of your records ..." for every
+     directory, so a three-family church was told twelve of its records were on
+     a page that showed three. */
+  ok("no caption hard-codes a record count",
+    template.pages.every((page) => !/\b(twelve|eight|ten|six)\b/i.test(page.caption ?? "")),
+    template.pages.map((page) => page.caption).join(" | "));
+
+  ok("a full grid reports its real count",
+    captionFor(listing, 12).includes("12 of your records"), captionFor(listing, 12));
+  ok("a small directory reports ITS real count",
+    captionFor(listing, 3).includes("3 of your records"), captionFor(listing, 3));
+  ok("a single record is still stated honestly",
+    captionFor(listing, 1).includes("1 of your records"), captionFor(listing, 1));
+  ok("an empty page claims no records at all",
+    !/\d/.test(captionFor(listing, 0)), captionFor(listing, 0));
+  ok("a page with no count caption falls back to its plain one",
+    captionFor(template.pages.find((page) => page.id === "cover"), 5) ===
+      template.pages.find((page) => page.id === "cover").caption);
+  ok("a missing page yields an empty caption", captionFor(null, 3) === "");
 }
 
 console.log(`\n${pass} passed, ${failures.length} failed`);
