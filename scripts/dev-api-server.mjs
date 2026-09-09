@@ -14,14 +14,24 @@
  * ── What it is and is not ──
  *
  * It imports and calls the REAL handler modules — the same files Vercel runs,
- * with no test doubles — and it talks to the REAL Upstash and Blob stores. What
- * differs from production is only the HTTP plumbing: Vercel's runtime builds
- * the `Request` and writes the `Response`, and here this file does. Handlers
- * receive a standard `Request` and return a standard `Response` either way.
+ * with no test doubles — and it talks to the REAL Upstash and Blob stores.
  *
- * So a success here proves the pipeline, the storage and the worker. It does
- * NOT prove Vercel's routing, its function config, or its Edge/Node split —
- * only a deploy proves those.
+ * ── It hands them a raw Node request, exactly as Vercel does ──
+ *
+ * This file used to convert IncomingMessage into a Web `Request` before calling
+ * a handler. That felt harmless and was not: Vercel's Node runtime performs no
+ * such conversion, so the handlers were only ever exercised against a shape
+ * that existed here and nowhere else. Every endpoint passed locally and then
+ * died in production on `request.headers.get is not a function`.
+ *
+ * The conversion now lives in lib/render-jobs/node-adapter.js, which wraps each
+ * endpoint's default export — so this host calls handlers exactly as Vercel
+ * does, and a mismatch of this kind cannot hide here again.
+ *
+ * What still differs from production is only routing: Vercel maps files to
+ * paths, and here `route()` does. A success here proves the pipeline, the
+ * storage, the runtime bridge and the worker; it does not prove Vercel's own
+ * file-based routing or function config.
  *
  * Development only. Never deployed, never reachable from outside this machine.
  */
@@ -64,39 +74,6 @@ function route(pathname) {
   return null;
 }
 
-/** Node's IncomingMessage -> a standard Request the handlers understand. */
-async function toRequest(nodeRequest) {
-  const url = `http://${HOST}:${PORT}${nodeRequest.url}`;
-  const headers = new Headers();
-  for (const [key, value] of Object.entries(nodeRequest.headers)) {
-    if (Array.isArray(value)) value.forEach((entry) => headers.append(key, entry));
-    else if (value !== undefined) headers.set(key, value);
-  }
-
-  const method = nodeRequest.method || "GET";
-  if (method === "GET" || method === "HEAD") return new Request(url, { method, headers });
-
-  /* Buffer the body. Uploads here are a CSV (≤2 MiB) or a PDF (≤100 MiB);
-     streaming would be faithful to Vercel but adds nothing to what we are
-     trying to prove. */
-  const chunks = [];
-  for await (const chunk of nodeRequest) chunks.push(chunk);
-  return new Request(url, { method, headers, body: Buffer.concat(chunks) });
-}
-
-async function send(nodeResponse, response) {
-  const headers = {};
-  response.headers.forEach((value, key) => {
-    headers[key] = value;
-  });
-  nodeResponse.writeHead(response.status, headers);
-  if (response.body) {
-    nodeResponse.end(Buffer.from(await response.arrayBuffer()));
-  } else {
-    nodeResponse.end();
-  }
-}
-
 const server = createServer(async (nodeRequest, nodeResponse) => {
   const { pathname } = new URL(nodeRequest.url, `http://${HOST}:${PORT}`);
   const handler = route(pathname);
@@ -109,13 +86,14 @@ const server = createServer(async (nodeRequest, nodeResponse) => {
 
   const started = Date.now();
   try {
-    const response = await handler(await toRequest(nodeRequest));
+    /* Node-style, exactly as Vercel invokes it. The handler's own adapter does
+       the conversion; this host must not do it for them. */
+    await handler(nodeRequest, nodeResponse);
     /* Method, path and status only. Never a body: those carry customer CSV
        rows, PDF bytes and job ids. */
     console.log(
-      `${nodeRequest.method} ${pathname.replace(/\/[a-f0-9]{64}/g, "/<jobId>")} -> ${response.status} (${Date.now() - started}ms)`
+      `${nodeRequest.method} ${pathname.replace(/\/[a-f0-9]{64}/g, "/<jobId>")} -> ${nodeResponse.statusCode} (${Date.now() - started}ms)`
     );
-    await send(nodeResponse, response);
   } catch (error) {
     console.error(`${nodeRequest.method} ${pathname} -> 500`, error?.message);
     nodeResponse.writeHead(500, { "Content-Type": "application/json" });

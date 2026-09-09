@@ -10,11 +10,12 @@ import { apiError, jobIdFrom, json } from "../../../../lib/render-jobs/http.js";
 import { readJob, JOB_STATUSES } from "../../../../lib/render-jobs/jobs.js";
 import { readInputCsv } from "../../../../lib/render-jobs/blob.js";
 import { assertRenderStorage } from "../../../../lib/render-jobs/storage.js";
+import { toNodeHandler } from "../../../../lib/render-jobs/node-adapter.js";
 
 /* Only a job someone is actively holding has an input worth serving. */
 const HELD = new Set([JOB_STATUSES.claimed, JOB_STATUSES.rendering]);
 
-export default async function handler(request) {
+async function handler(request) {
   /*
    * Authorization is checked BEFORE the method.
    *
@@ -45,3 +46,14 @@ export default async function handler(request) {
     return apiError(error);
   }
 }
+
+/*
+ * Wrapped for Vercel's Node runtime, which invokes handlers as (req, res)
+ * rather than handing them a Web Request. See lib/render-jobs/node-adapter.js —
+ * without this every endpoint here died on `request.headers.get is not a
+ * function` in production while passing every local test.
+ *
+ * The wrapper also accepts a Web-style call, so the test suite drives the exact
+ * export Vercel invokes rather than a parallel one.
+ */
+export default toNodeHandler(handler);

@@ -12,6 +12,7 @@ import heartbeat from "../api/render-jobs/worker/[jobId]/heartbeat.js";
 import result from "../api/render-jobs/worker/[jobId]/result.js";
 import cleanup from "../api/render-jobs/cleanup.js";
 import { __resetLocalKv, command } from "../lib/render-jobs/kv.js";
+import { Readable } from "node:stream";
 import {
   JOB_STATUSES,
   readJob,
@@ -520,6 +521,143 @@ test("cleanup removes the files of a job whose record has expired", async () => 
   assert.equal(await readOutputPdf(job.jobId), null, "the PDF must be deleted once the job has expired");
   assert.equal(await readInputCsv(job.jobId), null);
   assert.equal((await status(new Request(`http://local/api/render-jobs/${job.jobId}`))).status, 404);
+});
+
+
+/* ── The Vercel Node runtime calling convention ── */
+
+/*
+ * Build the pair Vercel's Node runtime actually passes: an IncomingMessage-like
+ * readable with a plain-object `headers`, and a ServerResponse-like sink.
+ *
+ * Deliberately NOT a Web Request. That is the whole point of these tests.
+ */
+function nodeStyleRequest({ method = "GET", path = "/api/render-jobs", headers = {}, body } = {}) {
+  const stream = body ? Readable.from([Buffer.from(body)]) : Readable.from([]);
+  stream.method = method;
+  stream.url = path;
+  stream.headers = { host: "pressmark.studio", ...headers };
+  return stream;
+}
+
+function nodeStyleResponse() {
+  const captured = { statusCode: 0, headers: {}, chunks: [], headersSent: false };
+  return {
+    captured,
+    writeHead(status, headers) {
+      captured.statusCode = status;
+      captured.headers = headers || {};
+      captured.headersSent = true;
+    },
+    end(chunk) {
+      if (chunk) captured.chunks.push(Buffer.from(chunk));
+      captured.ended = true;
+    },
+    get headersSent() {
+      return captured.headersSent;
+    },
+    get body() {
+      return Buffer.concat(captured.chunks).toString();
+    },
+  };
+}
+
+test("handlers work when invoked the way Vercel's Node runtime invokes them", async () => {
+  /*
+   * The regression this exists for.
+   *
+   * Vercel runs api/** on the Node runtime, which calls handler(req, res) with
+   * an IncomingMessage — NOT handler(request) with a Web Request. Every
+   * endpoint was written Web-style, so in production each one died on
+   *
+   *   TypeError: request.headers.get is not a function
+   *
+   * while passing the entire local suite, because the local dev host converted
+   * the request before calling them. Handlers are now wrapped by
+   * lib/render-jobs/node-adapter.js and this drives them the production way.
+   */
+  const res = nodeStyleResponse();
+  await claim(
+    nodeStyleRequest({ method: "POST", path: "/api/render-jobs/worker/claim" }),
+    res
+  );
+  assert.equal(res.captured.statusCode, 401, "an unauthenticated Node-style call must be a clean 401, not a crash");
+  assert.match(res.body, /Unauthorized/);
+});
+
+test("a Node-style call reaches auth with the token intact", async () => {
+  const res = nodeStyleResponse();
+  await claim(
+    nodeStyleRequest({
+      method: "POST",
+      path: "/api/render-jobs/worker/claim",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({ workerId: "node-style-worker" }),
+    }),
+    res
+  );
+  /* Empty queue -> 204. Proves the header survived the bridge and the JSON body
+     was readable from the stream. */
+  assert.equal(res.captured.statusCode, 204);
+});
+
+test("a Node-style call carries a real body through to the handler", async () => {
+  const boundary = "----pressmarktest";
+  const body =
+    `--${boundary}\r\n` +
+    'Content-Disposition: form-data; name="templateId"\r\n\r\n' +
+    `not-a-real-template\r\n` +
+    `--${boundary}\r\n` +
+    'Content-Disposition: form-data; name="csv"; filename="x.csv"\r\n' +
+    "Content-Type: text/csv\r\n\r\n" +
+    "last_name,first_name\r\nSmith,Amy\r\n\r\n" +
+    `--${boundary}--\r\n`;
+
+  const res = nodeStyleResponse();
+  await submit(
+    nodeStyleRequest({
+      method: "POST",
+      path: "/api/render-jobs",
+      headers: { "content-type": `multipart/form-data; boundary=${boundary}` },
+      body,
+    }),
+    res
+  );
+  /* 400 for the bad template id means the multipart body was parsed — a bridge
+     that dropped the body would have produced a different failure. */
+  assert.equal(res.captured.statusCode, 400);
+  assert.match(res.body, /Only Directory Classic/);
+});
+
+test("a Node-style response carries status, headers and binary body", async () => {
+  const { job } = await submitJob();
+  await claimAs("worker-a");
+  await result(
+    workerRequest(`http://local/api/render-jobs/worker/${job.jobId}/result`, "POST", completionForm(await samplePdf()))
+  );
+
+  const res = nodeStyleResponse();
+  await download(
+    nodeStyleRequest({ method: "GET", path: `/api/render-jobs/${job.jobId}/download` }),
+    res
+  );
+  assert.equal(res.captured.statusCode, 200);
+  /* Headers iteration lowercases names — HTTP header names are case-insensitive
+     and Node's writeHead handles either, so lowercase is what arrives. */
+  assert.equal(res.captured.headers["content-type"], "application/pdf");
+  assert.equal(res.captured.headers["cache-control"], "private, no-store");
+  assert.equal(res.captured.headers["x-content-type-options"], "nosniff");
+  assert.match(Buffer.concat(res.captured.chunks).subarray(0, 5).toString(), /^%PDF-/);
+});
+
+test("the same export still accepts a Web-style call", async () => {
+  /* Both shapes must work from ONE export, so the suite drives exactly the
+     function Vercel invokes rather than a parallel entry point. */
+  const response = await claim(
+    new Request("http://local/api/render-jobs/worker/claim", { method: "POST" })
+  );
+  assert.ok(response instanceof Response);
+  assert.equal(response.status, 401);
 });
 
 test("cleanup is safe to run twice and on an empty store", async () => {

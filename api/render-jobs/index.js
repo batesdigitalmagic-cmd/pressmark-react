@@ -13,6 +13,7 @@ import { apiError, json, publicJob, safeOriginalFilename } from "../../lib/rende
 import { assertRenderStorage } from "../../lib/render-jobs/storage.js";
 import { createJob } from "../../lib/render-jobs/jobs.js";
 import { inputCsvPath, outputPdfPath, putInputCsv } from "../../lib/render-jobs/blob.js";
+import { toNodeHandler } from "../../lib/render-jobs/node-adapter.js";
 
 /* Only this template has a production InDesign counterpart. Anything else would
    queue work no worker knows how to run. */
@@ -23,7 +24,7 @@ const SUPPORTED_TEMPLATE_IDS = new Set(["directory-classic"]);
 const MAX_CSV_BYTES = Number(process.env.PRESSMARK_RENDER_MAX_CSV_BYTES) || 2 * 1024 * 1024;
 const MAX_ROWS = Number(process.env.PRESSMARK_RENDER_MAX_ROWS) || 5000;
 
-export default async function handler(request) {
+async function handler(request) {
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   const limited = await rateLimit("directory-render-submit", clientIp(request), {
@@ -89,3 +90,14 @@ export default async function handler(request) {
     return apiError(error);
   }
 }
+
+/*
+ * Wrapped for Vercel's Node runtime, which invokes handlers as (req, res)
+ * rather than handing them a Web Request. See lib/render-jobs/node-adapter.js —
+ * without this every endpoint here died on `request.headers.get is not a
+ * function` in production while passing every local test.
+ *
+ * The wrapper also accepts a Web-style call, so the test suite drives the exact
+ * export Vercel invokes rather than a parallel one.
+ */
+export default toNodeHandler(handler);

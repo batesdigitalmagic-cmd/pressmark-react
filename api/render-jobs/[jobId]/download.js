@@ -18,8 +18,9 @@ import { readJob, JOB_STATUSES } from "../../../lib/render-jobs/jobs.js";
 import { readOutputPdf } from "../../../lib/render-jobs/blob.js";
 import { assertRenderStorage } from "../../../lib/render-jobs/storage.js";
 import { clientIp, rateLimit, tooManyRequests } from "../../../lib/rate-limit.js";
+import { toNodeHandler } from "../../../lib/render-jobs/node-adapter.js";
 
-export default async function handler(request) {
+async function handler(request) {
   if (request.method !== "GET") return json({ error: "Method not allowed" }, 405);
 
   /* Generous, but it stops a leaked id being used to hammer blob storage. */
@@ -59,3 +60,14 @@ export default async function handler(request) {
     return apiError(error);
   }
 }
+
+/*
+ * Wrapped for Vercel's Node runtime, which invokes handlers as (req, res)
+ * rather than handing them a Web Request. See lib/render-jobs/node-adapter.js —
+ * without this every endpoint here died on `request.headers.get is not a
+ * function` in production while passing every local test.
+ *
+ * The wrapper also accepts a Web-style call, so the test suite drives the exact
+ * export Vercel invokes rather than a parallel one.
+ */
+export default toNodeHandler(handler);
