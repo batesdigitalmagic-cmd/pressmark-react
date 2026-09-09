@@ -19,9 +19,13 @@
     "health": "node --env-file=.env -e \"import('./api/health.js').then(async m=>{const r=await m.default(new Request('https://local/api/health'));console.log(await r.text())})\"",
     "blog:generate": "node scripts/generate-blog-pages.mjs",
     "prebuild": "node scripts/generate-blog-pages.mjs",
-    "predev": "node scripts/generate-blog-pages.mjs"
+    "predev": "node scripts/generate-blog-pages.mjs",
+    "test:worker": "node --test worker/tests/*.test.mjs",
+    "worker": "node worker/pressmark-worker.mjs",
+    "worker:health": "node worker/health.mjs"
   },
   "dependencies": {
+    "@vercel/blob": "^2.8.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "stripe": "^22.4.0"

@@ -35,3 +35,12 @@ dist-ssr
 public/sitemap.xml
 public/robots.txt
 .env*
+
+# Render worker scratch: customer CSVs and rendered PDFs pass through here.
+# Never commit any of it.
+worker/.env
+.pressmark-worker/
+pressmark-worker-*/
+
+# The InDesign handoff file, if a worker is ever run from inside the checkout.
+current-render-job.txt

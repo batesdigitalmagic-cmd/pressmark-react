@@ -1,0 +1,13 @@
+{
+  "name": "pressmark-directory-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Private Mac worker that renders Pressmark Directory Classic jobs through Adobe InDesign.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node pressmark-worker.mjs",
+    "health": "node health.mjs",
+    "test": "node --test tests/"
+  }
+}
