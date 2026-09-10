@@ -871,13 +871,36 @@ group("Church Directory Classic proof page");
   ok("the job id is kept in the URL so a refresh resumes",
      /searchParams\.set\("job"/.test(page) && /get\("job"\)/.test(page));
 
-  /* The columns it advertises are the schema's, so the page cannot drift from
-     the InDesign merge fields. */
+  /* The columns it validates against are the schema's, so the page cannot
+     drift from the InDesign merge fields. */
   const schema = schemaFor("church-directory");
-  ok("the schema it advertises is the directory schema",
+  ok("the schema it validates against is the directory schema",
      /schemaFor\("church-directory"\)/.test(page));
   ok("that schema is the one Directory Classic declares",
      templateFor("directory-classic").schemas[0] === schema.id);
+
+  /*
+   * The blank template is offered instead of listing the columns on the page.
+   * A visitor who starts from the file cannot get the headers wrong, which is
+   * the only way this flow fails — so the file has to exist, and its header row
+   * has to be exactly the schema's columns. A template that drifted from the
+   * schema would hand people a file the page then rejects.
+   */
+  const templatePath = resolve(ROOT, "public/csv-templates/church-directory-classic-template.csv");
+  ok("the blank template exists where the page links it", existsSync(templatePath));
+
+  const templateText = readFileSync(templatePath, "utf8");
+  const templateHeaders = templateText.trim().split("\n")[0].split(",").map((h) => h.trim());
+  ok("its headers are exactly the schema's columns",
+     [...templateHeaders].sort().join(",") === [...columnsOf(schema)].sort().join(","),
+     templateHeaders.join(","));
+  ok("it carries headers only — nothing to delete before filling it in",
+     templateText.trim().split("\n").length === 1, `${templateText.trim().split("\n").length} lines`);
+  ok("the page links that exact file",
+     page.includes("/csv-templates/church-directory-classic-template.csv"));
+  ok("the link downloads rather than navigating", /download="/.test(page));
+  ok("the columns are not also listed on the page",
+     !/needs these columns/.test(page));
 }
 
 group("Regression: no element overflows its box, in any template");

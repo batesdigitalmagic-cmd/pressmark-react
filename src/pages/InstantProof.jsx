@@ -42,6 +42,8 @@ import { IP_CSS } from "../instant-proof/styles.js";
 import { PROOF_CSS } from "../instant-proof/theme.css.js";
 
 const TEMPLATE_ID = "directory-classic";
+/* Served from public/. Headers only — the visitor fills in their own rows. */
+const TEMPLATE_CSV = "/csv-templates/church-directory-classic-template.csv";
 const SCHEMA = schemaFor("church-directory");
 const REQUIRED = requiredColumnsOf(SCHEMA);
 const OPTIONAL = columnsOf(SCHEMA).filter((column) => !REQUIRED.includes(column));
@@ -176,24 +178,48 @@ export default function InstantProof() {
               </div>
             ) : (
               <>
-                {/* ── 1. The columns we need ── */}
-                <div className="ip-section">
-                  <p className="ip-label">Your CSV needs these columns</p>
-                  <ul className="ip-note" style={{ columns: "repeat(auto-fit, minmax(190px, 1fr))" }}>
-                    {REQUIRED.map((column) => (
-                      <li key={column}>
-                        <code>{column}</code> — required
-                      </li>
-                    ))}
-                    {OPTIONAL.map((column) => (
-                      <li key={column} className="ip-muted">
-                        <code>{column}</code> — optional
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="ip-note ip-muted">
-                    Header names must match exactly. Nothing else is needed — no record ID, no
-                    display name, no photographs.
+                {/* ── 1. The blank template ──
+                    A visitor who starts from this file cannot get the headers
+                    wrong, which is the only way this flow can fail. Listing the
+                    columns on the page was a worse version of handing them the
+                    file: something to transcribe rather than something to
+                    fill in. */}
+                <div
+                  className="ip-section"
+                  style={{ display: "flex", alignItems: "center", gap: "var(--proof-space-4)" }}
+                >
+                  <a
+                    href={TEMPLATE_CSV}
+                    download="church-directory-classic.csv"
+                    aria-label="Download the blank church directory CSV template"
+                    style={{
+                      flex: "0 0 auto",
+                      width: 78,
+                      height: 78,
+                      display: "grid",
+                      placeItems: "center",
+                      gap: 2,
+                      border: "1.5px solid var(--proof-line)",
+                      borderRadius: "var(--proof-radius)",
+                      background: "var(--proof-surface)",
+                      color: "var(--proof-ink)",
+                      textDecoration: "none",
+                      lineHeight: 1,
+                    }}
+                  >
+                    <span aria-hidden="true" style={{ fontSize: "1.5rem", color: "var(--proof-gold)" }}>
+                      ↓
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.08em" }}
+                    >
+                      CSV
+                    </span>
+                  </a>
+                  <p className="ip-note" style={{ margin: 0 }}>
+                    <strong>Start from our blank template.</strong> Download it, fill in your
+                    households, and upload it back — the column names are already correct.
                   </p>
                 </div>
 
