@@ -734,48 +734,6 @@ group("28. Spreadsheet mode retains every capability");
   ok("spreadsheet mode renders from the parsed rows", recordsFor(dataProject).length === 3);
   ok("and never from synthesised photo records", recordsFor(dataProject)[0].display_name === rows[0].display_name);
 }
-
-/* ── 29. Photographs stay in browser memory ── */
-group("29. Photographs never leave the browser");
-{
-  /*
-   * Comments discuss localStorage and uploads by name — a naive grep would
-   * match the very sentence promising not to do it. Strip comments first so
-   * these assertions are about executable code.
-   */
-  const stripComments = (src) =>
-    src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
-
-  const files = [
-    "src/instant-proof/photoProject.js",
-    "src/instant-proof/components/PhotoUploadPanel.jsx",
-    "src/instant-proof/components/PhotoDetailsPanel.jsx",
-    "src/pages/InstantProof.jsx",
-  ];
-  const sources = files.map((f) => stripComments(readFileSync(resolve(ROOT, f), "utf8")));
-
-  ok("no photo path writes to localStorage or sessionStorage",
-     sources.every((src) => !/localStorage|sessionStorage/.test(src)));
-  ok("no photo path uploads a file",
-     sources.every((src) => !/fetch\(|XMLHttpRequest|FormData/.test(src)));
-  ok("no console call could log a filename",
-     sources.every((src) => !/console\.(log|info|warn|error)/.test(src)));
-
-  const page = readFileSync(resolve(ROOT, "src/pages/InstantProof.jsx"), "utf8");
-  ok("object URLs are revoked when a file is removed", /revokeObjectURL/.test(page));
-  /*
-   * Deliberately NOT on unmount. StrictMode mounts, unmounts and remounts in
-   * development, so an unmount revoke fired while the photographs were still on
-   * screen and turned every preview into a dead blob URL. A real unmount means
-   * the visitor is leaving, at which point the browser reclaims them anyway.
-   */
-  ok("object URLs are NOT revoked on unmount, which broke StrictMode remounts",
-     !/assetsRef/.test(page));
-  ok("starting another proof revokes them too",
-     /project\.assets\.forEach\(revoke\)/.test(page));
-}
-
-/* ── 30. Mobile ── */
 group("30. Mobile layout");
 {
   const page = readFileSync(resolve(ROOT, "src/pages/InstantProof.jsx"), "utf8");
@@ -792,47 +750,10 @@ group("30. Mobile layout");
   ok("the camera input asks for the rear camera", /capture: "environment"/.test(panel));
   ok("the library input allows several at once", /multiple: true/.test(panel));
   ok("WebP is accepted", /webp/i.test(panel));
-  /* Files survive Back because the whole project is one piece of state on the
-     page component, not per-step state that unmounts with the step. */
-  ok("uploads survive stepping backwards — project state lives on the page",
-     /const \[project, setProject\] = useState\(/.test(page));
-  ok("navigating back only changes an index, never the project",
-     /const back = \(\) => goTo\(Math\.max\(safeIndex - 1, 0\)\)/.test(page));
+  /* There are no steps to go back through any more: the page is upload ->
+     accept -> generate on one screen. What replaced those assertions is the
+     "Church Directory Classic proof page" group below. */
 }
-
-/* ── 31. One design, two steps ── */
-group("31. Single-design flow");
-{
-  const page = readFileSync(resolve(ROOT, "src/pages/InstantProof.jsx"), "utf8");
-  const ids = [...page.matchAll(/\{ id: "(create|upload|proof)"/g)].map((m) => m[1]);
-  /*
-   * Instant Proof offers the church directory and nothing else, so there is no
-   * "create" step: with one publication and one design there is nothing to
-   * choose before uploading.
-   */
-  ok("exactly two steps, in order", ids.join(",") === "upload,proof", ids.join(" -> "));
-  ok("no publication or design chooser is rendered",
-     !/<CreateStep/.test(page) && !/<TemplatePreview/.test(page));
-  ok("the publication and design are fixed",
-     /FIXED_PUBLICATION_ID = "church-directory"/.test(page) &&
-       /FIXED_TEMPLATE_ID = "directory-classic"/.test(page));
-  ok("the step list is fixed, not mode-dependent",
-     !/PHOTO_STEPS|DATA_STEPS/.test(page));
-  ok("there is one step list", (page.match(/const STEPS = \[/g) || []).length === 1);
-
-  /* Back must not reset anything: it only moves an index. */
-  ok("Back only changes the step index", /const back = \(\) => goTo\(Math\.max\(safeIndex - 1, 0\)\)/.test(page));
-  ok("project state lives on the page, so uploads survive Back",
-     /const \[project, setProject\] = useState\(/.test(page));
-  ok("goTo clears only validation errors", /const goTo = \(index\) => \{\s*setErrors\(\{\}\);/.test(page));
-
-  ok("Continue is disabled until the step is complete", /continueDisabled=\{!stepIsComplete\}/.test(page));
-  ok("and says what is missing", /blockingReason=\{blockingReason\(\)\}/.test(page));
-  ok("the upload step's primary action is Build My Free Proof",
-     /"Build My Free Proof"/.test(page));
-}
-
-/* ── 32. Carousel ── */
 group("32. Design carousel");
 {
   const car = readFileSync(resolve(ROOT, "src/instant-proof/components/DesignCarousel.jsx"), "utf8");
@@ -921,363 +842,44 @@ group("33. Mobile layout");
      /\.ip-root \{\s*--proof-gold/.test(readFileSync(resolve(ROOT, "src/instant-proof/tokens.js"), "utf8")) &&
      !/^\s*:root\s*\{/m.test(css));
 }
-
-/* ── 34. Processing starts, and starts once ── */
-group("34. Processing initialisation");
+/* ── The minimal Church Directory proof page ── */
+group("Church Directory Classic proof page");
 {
   const page = readFileSync(resolve(ROOT, "src/pages/InstantProof.jsx"), "utf8");
 
-  ok("the renderer is stable state, not a discardable useMemo",
-     /const \[renderer\] = useState\(\(\) => getProofRenderer\(\)\)/.test(page) &&
-     !/useMemo\(\(\) => getProofRenderer/.test(page));
-  ok("rendering is driven by an effect keyed on being ON the proof step",
-     /if \(step\.id !== "proof"\) return undefined;/.test(page));
-  ok("no persistent one-shot guard survives StrictMode cleanup",
-     !/startedRef|hasStarted|renderStartedRef/.test(page));
-  ok("entering the proof step always starts a run",
-     /setProcessingRunId\(\(id\) => id \+ 1\)/.test(page));
-  /* The original bug: isLastInput compared against "review", a step deleted in
-     the move to three steps, so it was permanently false. Derived now. Scoped
-     to that line — "review" still legitimately names a CTA kind elsewhere. */
-  ok("the last input step is derived, not a hardcoded id that can go stale",
-     /const isLastInput = step\?\.id === STEPS\[STEPS\.length - 2\]\.id;/.test(page));
-  /* beginProof must put a real status up immediately. idleStatus survives only
-     as the initial value and in startOver, which returns to step 1 — neither
-     can leave the proof screen showing "Waiting to start". */
-  ok("a new run resets status to a real state, never idle",
-     /message: "Preparing your files"/.test(page));
-  ok("idleStatus is only the initial value and the start-over reset",
-     (page.match(/idleStatus\(\)/g) || []).length === 1 && /useState\(idleStatus\)/.test(page));
-  ok("the effect is cancellable, which is what makes it StrictMode-safe",
-     /let cancelled = false;/.test(page) && /cancelled = true;/.test(page));
-  ok("every timer the run creates is tracked and cleared by its own cleanup",
-     /const timeoutIds = \[\]/.test(page) && /for \(const id of timeoutIds\) clearTimeout\(id\)/.test(page));
-  ok("cleanup cancels only that run's job", /renderer\.cancelProofJob\?\.\(jobId\)/.test(page));
-  ok("no setInterval anywhere in the lifecycle", !/setInterval/.test(page));
-  ok("retry re-enters through the same path", /onRetry=\{beginProof\}/.test(page));
-  ok("starting over resets the run id", /setProcessingRunId\(0\)/.test(page));
-  ok("progress can never run backwards", /Math\.max\(current\.progress/.test(page));
-}
-
-/* ── 35. Processing under a simulated StrictMode double-invoke ── */
-group("35. Processing runs end to end under StrictMode");
-{
-  /* Browser APIs the mock renderer measures images with. */
-  globalThis.URL.createObjectURL = () => "blob:x";
-  globalThis.URL.revokeObjectURL = () => {};
-  globalThis.Image = class {
-    set src(_) {
-      queueMicrotask(() => {
-        this.naturalWidth = 1200;
-        this.naturalHeight = 1600;
-        this.onload();
-      });
-    }
-  };
-
-  const { createMockProofRenderer } = await import("../src/instant-proof/rendering/mockProofRenderer.js");
-  const { JOB_STATES } = await import("../src/instant-proof/models.js");
-
-  /* Count live intervals so a leaked timer is detectable. */
-  let live = 0;
-  const realSet = globalThis.setInterval;
-  const realClear = globalThis.clearInterval;
-  globalThis.setInterval = (...args) => { live += 1; return realSet(...args); };
-  globalThis.clearInterval = (id) => { if (id != null) live -= 1; return realClear(id); };
-
-  const snapshot = {
-    ...emptyProject(),
-    publicationTypeId: "yearbook",
-    visual: { ...emptyProject().visual, templateId: "photo-gallery" },
-    assets: Array.from({ length: 3 }, (_, i) => ({
-      id: `p${i}`, name: `IMG_${i}.jpg`, extension: ".jpg", size: 10,
-      kind: "image", file: new File(["x"], `IMG_${i}.jpg`), previewUrl: "blob:x",
-    })),
-  };
-
-  /* The effect from InstantProof.jsx, transcribed. */
-  const runEffect = (renderer, setStatus, setResult, setError) => {
-    let cancelled = false;
-    let timer = null;
-    const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
-    (async () => {
-      try {
-        const job = await renderer.createProofJob(snapshot);
-        if (cancelled) return;
-        await renderer.uploadProofAssets(job.id, snapshot.assets, () => {});
-        if (cancelled) return;
-        await renderer.startProofRender(job.id);
-        if (cancelled) return;
-        stop();
-        timer = setInterval(async () => {
-          try {
-            const st = await renderer.getProofStatus(job.id);
-            if (cancelled) return;
-            setStatus(st);
-            if (st.state === JOB_STATES.complete) { stop(); setResult(await renderer.getProofResult(job.id)); }
-            else if (st.state === JOB_STATES.failed) { stop(); setError(st.error); }
-          } catch { stop(); if (!cancelled) setError("lost track"); }
-        }, 400);
-      } catch { if (!cancelled) setError("could not start"); }
-    })();
-    return () => { cancelled = true; stop(); };
-  };
-
-  const renderer = createMockProofRenderer();
-  let status = { state: "uploading", progress: 0.01, message: "Preparing your files" };
-  let result = null;
-  let failure = "";
-
-  ok("the first paint never shows 'Waiting to start'", status.message !== "Waiting to start");
-
-  /* StrictMode: run, tear down, run again. */
-  const cleanup1 = runEffect(renderer, (v) => (status = v), (r) => (result = r), (e) => (failure = e));
-  cleanup1();
-  const cleanup2 = runEffect(renderer, (v) => (status = v), (r) => (result = r), (e) => (failure = e));
-
-  /* setTimeout, not the captured setInterval — an interval used as a one-shot
-     wait resolves the promise but then keeps the Node event loop alive for
-     ever, which hangs the whole suite. */
-  await new Promise((resolve) => setTimeout(resolve, 9000));
-
-  ok("processing completed", status.state === "complete", `state ${status.state}, ${Math.round(status.progress * 100)}%`);
-  ok("it did not stall at 0%", status.progress === 1);
-  ok("no error was raised", failure === "", failure);
-  ok("a proof came back", Boolean(result) && result.pages.length === 3);
-  ok("exactly one timer ran and it was cleared", live === 0, `${live} live`);
-
-  cleanup2();
-  ok("unmount leaves no timer behind", live === 0);
-
-  globalThis.setInterval = realSet;
-  globalThis.clearInterval = realClear;
-}
-
-/* ── 36. The processing lifecycle, on fake timers ── */
-group("36. Processing lifecycle (fake timers)");
-{
-  const { createMockProofRenderer } = await import("../src/instant-proof/rendering/mockProofRenderer.js");
-  const { JOB_STATES } = await import("../src/instant-proof/models.js");
-
-  globalThis.URL.createObjectURL = () => "blob:x";
-  globalThis.URL.revokeObjectURL = () => {};
-  globalThis.Image = class {
-    set src(_) {
-      queueMicrotask(() => { this.naturalWidth = 1200; this.naturalHeight = 1600; this.onload(); });
-    }
-  };
-
   /*
-   * A controllable clock. The pipeline awaits promises resolved by timers, so
-   * after firing one we yield to the real event loop to let the microtask
-   * queue drain before deciding what is due next.
+   * The whole flow is: upload a CSV, headers checked, one button, PDF. Anything
+   * that reappears here is scope this page deliberately does not carry.
    */
-  const realSetTimeout = globalThis.setTimeout;
-  const realClearTimeout = globalThis.clearTimeout;
-  function installFakeTimers() {
-    let now = 0;
-    let seq = 0;
-    const scheduled = new Map();
-    globalThis.setTimeout = (fn, ms = 0) => {
-      const id = ++seq;
-      scheduled.set(id, { fn, at: now + ms });
-      return id;
-    };
-    globalThis.clearTimeout = (id) => scheduled.delete(id);
-    return {
-      async advance(ms) {
-        const target = now + ms;
-        for (;;) {
-          /* Let any pending promise chain run first — it may not have reached
-             its setTimeout yet, and looking for due timers before it does
-             would end the advance with work still to come. */
-          await new Promise((r) => realSetTimeout(r, 0));
-          const due = [...scheduled.entries()]
-            .filter(([, t]) => t.at <= target)
-            .sort((a, b) => a[1].at - b[1].at);
-          if (due.length === 0) break;
-          const [id, entry] = due[0];
-          scheduled.delete(id);
-          now = entry.at;
-          entry.fn();
-          await new Promise((r) => realSetTimeout(r, 0));
-        }
-        now = target;
-      },
-      pending: () => scheduled.size,
-      restore() {
-        globalThis.setTimeout = realSetTimeout;
-        globalThis.clearTimeout = realClearTimeout;
-      },
-    };
-  }
+  ok("no column mapping", !/ColumnMappingPanel|mappingConfirmed/.test(page));
+  ok("no publication or design chooser",
+     !/CreateStep|DesignCarousel|TemplatePreview|PublicationTypeSelector/.test(page));
+  ok("no photo upload", !/PhotoUploadPanel|addPhotos|selectedPhotoIds/.test(page));
+  ok("no browser mock proof", !/getProofRenderer|ProofProcessing|ProofResults/.test(page));
+  ok("no branding, account or payment fields",
+     !/organizationName|checkout|stripe/i.test(page));
+  ok("no multi-step wizard", !/const STEPS = \[|StepShell/.test(page));
 
-  const photoProject = {
-    ...emptyProject(),
-    publicationTypeId: "yearbook",
-    visual: { ...emptyProject().visual, templateId: "photo-gallery" },
-    assets: Array.from({ length: 3 }, (_, i) => ({
-      id: `p${i}`, name: `IMG_${i}.jpg`, extension: ".jpg", size: 10,
-      kind: "image", file: new File(["x"], `IMG_${i}.jpg`), previewUrl: "blob:x",
-    })),
-  };
+  /* What it must have. */
+  ok("it drives the real render job", /DirectoryRenderJob/.test(page));
+  ok("it targets Directory Classic", /TEMPLATE_ID = "directory-classic"/.test(page));
+  ok("it reads the required columns from the schema, not a second list",
+     /requiredColumnsOf\(SCHEMA\)/.test(page));
+  ok("it accepts only .csv", /accept=\{?"?\.csv/.test(page));
+  ok("it reports the record count", /CSV accepted/.test(page));
+  ok("the one action is Generate My PDF Proof", /Generate My PDF Proof/.test(page));
+  ok("the job id is kept in the URL so a refresh resumes",
+     /searchParams\.set\("job"/.test(page) && /get\("job"\)/.test(page));
 
-  /* The component's effect body, transcribed. No persistent started flag. */
-  const startRun = (renderer, snapshot, sink) => {
-    let cancelled = false;
-    let jobId = null;
-    const timeoutIds = [];
-    const delay = (ms) => new Promise((resolve) => { timeoutIds.push(setTimeout(resolve, ms)); });
-
-    sink.setStatus({ state: JOB_STATES.uploading, progress: 0, stageId: "", message: "Preparing your files" });
-
-    (async () => {
-      try {
-        const job = await renderer.createProofJob(snapshot);
-        if (cancelled) { renderer.cancelProofJob?.(job.id); return; }
-        jobId = job.id;
-        await renderer.uploadProofAssets(job.id, snapshot.assets, (f) => {
-          if (!cancelled) sink.setStatus({ state: JOB_STATES.uploading, progress: f * 0.05, message: "Preparing your files" });
-        });
-        if (cancelled) return;
-        await renderer.startProofRender(job.id);
-        if (cancelled) return;
-        for (;;) {
-          if (cancelled) return;
-          const next = await renderer.getProofStatus(job.id);
-          if (cancelled) return;
-          sink.setStatus(next);
-          if (next.state === JOB_STATES.complete) {
-            const proof = await renderer.getProofResult(job.id);
-            if (cancelled) return;
-            await delay(450);
-            if (cancelled) return;
-            sink.complete(proof);
-            return;
-          }
-          if (next.state === JOB_STATES.failed) throw new Error(next.error);
-          await delay(400);
-        }
-      } catch (error) {
-        if (!cancelled) sink.setError(error.message);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      for (const id of timeoutIds) clearTimeout(id);
-      if (jobId) renderer.cancelProofJob?.(jobId);
-    };
-  };
-
-  const makeSink = () => {
-    const state = { status: null, result: null, error: "", writes: 0 };
-    return {
-      state,
-      setStatus: (v) => { state.status = v; state.writes += 1; },
-      complete: (p) => { state.result = p; state.writes += 1; },
-      setError: (e) => { state.error = e; state.writes += 1; },
-    };
-  };
-
-  /* 1-3. Starts immediately, moves off 0%, reaches 100%. */
-  {
-    const clock = installFakeTimers();
-    const renderer = createMockProofRenderer();
-    const sink = makeSink();
-    startRun(renderer, photoProject, sink);
-
-    ok("1. the pipeline starts immediately, not at 'Waiting to start'",
-       sink.state.status?.message === "Preparing your files");
-
-    await clock.advance(1500);
-    ok("2. progress moves off zero", (sink.state.status?.progress ?? 0) > 0,
-       `${Math.round((sink.state.status?.progress ?? 0) * 100)}%`);
-
-    await clock.advance(12000);
-    ok("3. progress reaches 100%", sink.state.status?.progress === 1);
-    ok("   and the proof is handed over", Boolean(sink.state.result));
-    ok("   with no error", sink.state.error === "");
-    clock.restore();
-  }
-
-  /* 4. Completes under StrictMode's setup/cleanup/setup. */
-  {
-    const clock = installFakeTimers();
-    const renderer = createMockProofRenderer();
-    const sink = makeSink();
-    const cleanup1 = startRun(renderer, photoProject, sink);
-    cleanup1();                                   // StrictMode tears the first down
-    const cleanup2 = startRun(renderer, photoProject, sink);
-    await clock.advance(14000);
-    ok("4. completes under StrictMode setup/cleanup/setup", Boolean(sink.state.result));
-    ok("   reaching 100%", sink.state.status?.progress === 1);
-    cleanup2();
-    ok("   and leaves no timer pending", clock.pending() === 0, `${clock.pending()} pending`);
-    clock.restore();
-  }
-
-  /* 5. Cleanup prevents stale updates. */
-  {
-    const clock = installFakeTimers();
-    const renderer = createMockProofRenderer();
-    const sink = makeSink();
-    const cleanup = startRun(renderer, photoProject, sink);
-    await clock.advance(2000);
-    const writesAtCleanup = sink.state.writes;
-    cleanup();
-    await clock.advance(20000);
-    ok("5. no state is written after cleanup", sink.state.writes === writesAtCleanup,
-       `${sink.state.writes - writesAtCleanup} stale writes`);
-    ok("   and no proof is delivered by a cancelled run", sink.state.result === null);
-    clock.restore();
-  }
-
-  /* 6. Retry is a completely new run. */
-  {
-    const clock = installFakeTimers();
-    const renderer = createMockProofRenderer();
-    const first = makeSink();
-    const cleanupFirst = startRun(renderer, photoProject, first);
-    await clock.advance(1200);
-    cleanupFirst();                               // abandon it, as Retry does
-
-    const retry = makeSink();
-    startRun(renderer, photoProject, retry);
-    ok("6. retry starts from zero", retry.state.status?.progress === 0);
-    await clock.advance(14000);
-    ok("   and runs to completion", Boolean(retry.state.result) && retry.state.status?.progress === 1);
-    ok("   the abandoned run delivered nothing", first.state.result === null);
-    clock.restore();
-  }
-
-  /* 7. Photographs only — no email, title, CSV or optional details. */
-  {
-    const clock = installFakeTimers();
-    const renderer = createMockProofRenderer();
-    const sink = makeSink();
-    const bare = {
-      ...emptyProject(),
-      publicationTypeId: "yearbook",
-      visual: { ...emptyProject().visual, templateId: "photo-gallery" },
-      assets: [{ id: "solo", name: "one.jpg", extension: ".jpg", size: 10, kind: "image", file: new File(["x"], "one.jpg"), previewUrl: "blob:x" }],
-    };
-    ok("7. the project carries no email, contact name or phone",
-       !("email" in bare.organization) && !("contactName" in bare.organization));
-    ok("   no organization name", bare.organization.organizationName === "");
-    ok("   no spreadsheet", bare.data.records.length === 0);
-    ok("   and no per-photo details", !bare.assets[0].details);
-
-    startRun(renderer, bare, sink);
-    await clock.advance(14000);
-    ok("   a single photograph still produces a proof",
-       Boolean(sink.state.result) && sink.state.result.pages.length === 3);
-    ok("   at 100%", sink.state.status?.progress === 1);
-    clock.restore();
-  }
+  /* The columns it advertises are the schema's, so the page cannot drift from
+     the InDesign merge fields. */
+  const schema = schemaFor("church-directory");
+  ok("the schema it advertises is the directory schema",
+     /schemaFor\("church-directory"\)/.test(page));
+  ok("that schema is the one Directory Classic declares",
+     templateFor("directory-classic").schemas[0] === schema.id);
 }
 
-/* ── Regression guard across every template ── */
 group("Regression: no element overflows its box, in any template");
 {
   let overflow = 0;

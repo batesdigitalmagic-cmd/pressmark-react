@@ -1,12 +1,11 @@
 /*
  * The production render job: submit, poll, download.
  *
- * ── What this is NOT ──
+ * ── This IS the proof ──
  *
- * This is not the free proof. The free proof is rendered in the browser and is
- * already on screen above this component. This queues the same directory for
- * the InDesign production pipeline, which needs a Mac running InDesign to have
- * claimed the job. It is offered, never promised.
+ * The page no longer composes a mock proof in the browser first; the customer's
+ * proof is the InDesign PDF this produces. It needs a Mac running InDesign to
+ * have claimed the job, so a queued state can legitimately last a while.
  *
  * ── Polling ──
  *
@@ -205,7 +204,7 @@ export default function DirectoryRenderJob({
       {error && !failed && (
         <p role="alert" className="ip-error">
           {error}{" "}
-          <button type="button" className="ip-btn-ghost" onClick={retry}>
+          <button type="button" className="ip-btn ip-btn-ghost" onClick={retry}>
             Try again
           </button>
         </p>
@@ -230,7 +229,9 @@ export default function DirectoryRenderJob({
               InDesign render of your directory.
             </p>
           )}
-          <a className="ip-btn-primary ip-touch" href={job.downloadUrl}>
+          {/* `.ip-btn` carries the padding and typography; `.ip-btn-gold` only
+              the colours. Without both the link renders unstyled. */}
+          <a className="ip-btn ip-btn-gold ip-touch" href={job.downloadUrl}>
             Download directory PDF
           </a>
         </div>
@@ -238,7 +239,7 @@ export default function DirectoryRenderJob({
 
       {onStartOver && (
         <p>
-          <button type="button" className="ip-btn-ghost ip-touch" onClick={onStartOver}>
+          <button type="button" className="ip-btn ip-btn-ghost ip-touch" onClick={onStartOver}>
             Start over
           </button>
         </p>

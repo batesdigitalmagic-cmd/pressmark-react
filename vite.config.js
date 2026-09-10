@@ -19,6 +19,21 @@ function blogInputs() {
 
 // https://vite.dev/config/
 export default defineConfig({
+  /*
+   * Dev only. `api/**` are Vercel Functions, which `vite dev` does not serve,
+   * so /instant-proof's fetch to /api/render-jobs would 404 locally. Point it
+   * at scripts/dev-api-server.mjs, which hosts the real handlers against real
+   * storage. Has no effect on the production build — Vercel routes these paths
+   * itself.
+   */
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:3100',
+        changeOrigin: false,
+      },
+    },
+  },
   plugins: [react()],
   build: {
     rollupOptions: {

@@ -100,26 +100,17 @@ test("template capabilities route Directory Classic to CSV and keep photo templa
   assert.match(createSource, /inputMode !== "csv"/);
 
   /*
-   * Directory Classic renders its free proof in the browser like every other
-   * design; the InDesign queue is an optional follow-on offered afterwards.
-   *
-   * This used to assert the opposite — that the page carried
-   * `usesDirectoryQueue = Boolean(renderJobId) || inputMode === "csv"`, routing
-   * every spreadsheet visitor straight to the queue. That made the free proof a
-   * 503 in production, where getRenderJobStorage() fails closed.
+   * The proof IS the InDesign PDF now. /instant-proof uploads a CSV and drives
+   * the render job directly — there is no browser mock proof to fall back to
+   * and no queue/preview branch to get wrong.
    */
+  assert.match(pageSource, /DirectoryRenderJob/);
   assert.doesNotMatch(pageSource, /usesDirectoryQueue/);
-  assert.match(pageSource, /resumingRenderJob/);
+  assert.doesNotMatch(pageSource, /getProofRenderer/);
 
-  /*
-   * The queue view is reached ONLY by resuming a job from ?job=..., never by
-   * choosing a CSV design.
-   */
-  assert.doesNotMatch(pageSource, /resumingRenderJob\s*=\s*[^;]*inputMode/);
+  /* A job id in the URL resumes rather than starting a second render. */
+  assert.match(pageSource, /get\("job"\)/);
 
-  /* The build method follows the design, because the mode selector is hidden
-     for CSV designs and would otherwise keep its `photo` default — which makes
-     recordsFor() read photographs out of a spreadsheet project. */
   assert.equal(modeForTemplate("directory-classic"), "data");
   assert.equal(modeForTemplate("photo-gallery"), "photo");
 });
