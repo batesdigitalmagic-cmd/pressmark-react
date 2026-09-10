@@ -100,14 +100,21 @@ export const PUBLICATION_CONFIGS = [
     blurb: "Families, households and congregation contacts.",
     description:
       "A church photo directory built from family photographs and a household list, organized alphabetically with clear contact blocks.",
+    /*
+     * One CSV. No photographs.
+     *
+     * This used to ask for 10–30 portraits, which was true of an earlier
+     * design. Directory Classic sets a text listing with no portrait frame, so
+     * asking for photographs would be asking for files the proof cannot place
+     * and the production render would ignore.
+     */
     requiredContent: [
-      portraits("10–30 family or individual photographs."),
       roster(
         "Family and contact CSV",
         "Exactly these columns: last_name, first_name, address, phone, email, plus optional alternate_phone, alternate_email and family_members."
       ),
     ],
-    optionalContent: [logo("Church logo"), candids],
+    optionalContent: [logo("Church logo")],
     suggestedProofPages: 6,
     dataFields: [
       "last_name",

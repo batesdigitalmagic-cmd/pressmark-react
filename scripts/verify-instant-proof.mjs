@@ -794,26 +794,36 @@ group("30. Mobile layout");
   ok("WebP is accepted", /webp/i.test(panel));
   /* Files survive Back because the whole project is one piece of state on the
      page component, not per-step state that unmounts with the step. */
-  ok("photographs survive stepping backwards — project state lives on the page",
-     /const \[project, setProject\] = useState\(emptyProject\)/.test(page));
+  ok("uploads survive stepping backwards — project state lives on the page",
+     /const \[project, setProject\] = useState\(/.test(page));
   ok("navigating back only changes an index, never the project",
      /const back = \(\) => goTo\(Math\.max\(safeIndex - 1, 0\)\)/.test(page));
 }
 
-/* ── 31. Three-step navigation ── */
-group("31. Three-step flow");
+/* ── 31. One design, two steps ── */
+group("31. Single-design flow");
 {
   const page = readFileSync(resolve(ROOT, "src/pages/InstantProof.jsx"), "utf8");
   const ids = [...page.matchAll(/\{ id: "(create|upload|proof)"/g)].map((m) => m[1]);
-  ok("exactly three steps, in order", ids.join(",") === "create,upload,proof", ids.join(" -> "));
+  /*
+   * Instant Proof offers the church directory and nothing else, so there is no
+   * "create" step: with one publication and one design there is nothing to
+   * choose before uploading.
+   */
+  ok("exactly two steps, in order", ids.join(",") === "upload,proof", ids.join(" -> "));
+  ok("no publication or design chooser is rendered",
+     !/<CreateStep/.test(page) && !/<TemplatePreview/.test(page));
+  ok("the publication and design are fixed",
+     /FIXED_PUBLICATION_ID = "church-directory"/.test(page) &&
+       /FIXED_TEMPLATE_ID = "directory-classic"/.test(page));
   ok("the step list is fixed, not mode-dependent",
      !/PHOTO_STEPS|DATA_STEPS/.test(page));
-  ok("both modes use the same three steps", (page.match(/const STEPS = \[/g) || []).length === 1);
+  ok("there is one step list", (page.match(/const STEPS = \[/g) || []).length === 1);
 
   /* Back must not reset anything: it only moves an index. */
   ok("Back only changes the step index", /const back = \(\) => goTo\(Math\.max\(safeIndex - 1, 0\)\)/.test(page));
-  ok("project state lives on the page, so selections and uploads survive Back",
-     /const \[project, setProject\] = useState\(emptyProject\)/.test(page));
+  ok("project state lives on the page, so uploads survive Back",
+     /const \[project, setProject\] = useState\(/.test(page));
   ok("goTo clears only validation errors", /const goTo = \(index\) => \{\s*setErrors\(\{\}\);/.test(page));
 
   ok("Continue is disabled until the step is complete", /continueDisabled=\{!stepIsComplete\}/.test(page));

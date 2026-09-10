@@ -25,9 +25,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 
 import StepShell from "../instant-proof/components/StepShell.jsx";
-import CreateStep from "../instant-proof/components/CreateStep.jsx";
 import UploadStep from "../instant-proof/components/UploadStep.jsx";
-import TemplatePreview from "../instant-proof/components/TemplatePreview.jsx";
 
 import ProofProcessing from "../instant-proof/components/ProofProcessing.jsx";
 import ProofResults from "../instant-proof/components/ProofResults.jsx";
@@ -37,11 +35,13 @@ import { ProofHeader, ProofFooter } from "../instant-proof/components/ProofChrom
 
 
 import { configFor, schemaIdsFor } from "../instant-proof/publications.js";
-import {
-  QUICK_PROOF_PHOTO_LIMIT,
-  photosOf,
-  suggestsPhotoLedDesign,
-} from "../instant-proof/photoProject.js";
+/*
+ * The photo helpers stay wired even though the Quick Photo Proof mode is not
+ * offered: UploadStep still contains that branch, and leaving the callbacks
+ * intact means re-enabling the mode is a rendering change rather than a
+ * rebuild. Nothing reaches them while the flow is fixed to the directory.
+ */
+import { QUICK_PROOF_PHOTO_LIMIT, photosOf } from "../instant-proof/photoProject.js";
 import { PROOF_EVENTS, emit } from "../instant-proof/analytics.js";
 import { parseCsvFile } from "../instant-proof/csv/parseCsv.js";
 import { schemaFor } from "../instant-proof/csv/schemas.js";
@@ -53,12 +53,7 @@ import {
 } from "../instant-proof/csv/columnMapping.js";
 import { analyzeRecords } from "../instant-proof/csv/analyzeRecords.js";
 import { matchPhotos } from "../instant-proof/csv/photoMatching.js";
-import {
-  defaultTemplateFor,
-  modeForTemplate,
-  templateFor,
-  templatesForPublication,
-} from "../instant-proof/templates/registry.js";
+import { templateFor } from "../instant-proof/templates/registry.js";
 import {
   ASSET_KINDS,
   JOB_STATES,
@@ -86,8 +81,24 @@ import { PROOF_CSS } from "../instant-proof/theme.css.js";
  * The list is fixed, so an index is safe again — but validation still keys off
  * step IDs, because that is what makes it readable.
  */
+/*
+ * ── One design at a time ──
+ *
+ * Instant Proof offers the Church Directory and nothing else. The publication
+ * chooser, the design carousel and the Quick Photo Proof mode are not rendered:
+ * a visitor uploads their directory CSV and gets a proof, with no decision to
+ * make before they start.
+ *
+ * This is a deliberate narrowing, not a deletion. CreateStep.jsx,
+ * DesignCarousel.jsx and the photo-led templates are all still in the tree, and
+ * the machinery that drove them — publication configs, several schemas, the
+ * mode selector — is untouched. Adding the next design back means rendering
+ * those again, not rebuilding them.
+ */
+export const FIXED_PUBLICATION_ID = "church-directory";
+export const FIXED_TEMPLATE_ID = "directory-classic";
+
 const STEPS = [
-  { id: "create", label: "Create" },
   { id: "upload", label: "Upload" },
   { id: "proof", label: "Proof" },
 ];
@@ -104,15 +115,6 @@ const POLL_MS = 400;
 
 let assetCounter = 0;
 const nextAssetId = () => `asset-${(assetCounter += 1)}`;
-
-/** Set the chosen design and the build method it implies, together. */
-function withTemplate(current, templateId) {
-  return {
-    ...current,
-    mode: modeForTemplate(templateId, current.mode),
-    visual: { ...current.visual, templateId },
-  };
-}
 
 /** Wrap a File as an UploadedAsset, creating a preview URL for images. */
 function toAsset(file, kindOverride) {
@@ -135,13 +137,20 @@ function toAsset(file, kindOverride) {
 export default function InstantProof() {
   const initialRenderJobId = new URLSearchParams(window.location.search).get("job") || "";
   const [stepIndex, setStepIndex] = useState(initialRenderJobId ? PROOF_STEP_INDEX : 0);
-  const [project, setProject] = useState(emptyProject);
+  /* Seeded rather than chosen: there is no chooser to choose with. */
+  const [project, setProject] = useState(() => {
+    const base = emptyProject();
+    return {
+      ...base,
+      mode: PROOF_MODES.data,
+      publicationTypeId: FIXED_PUBLICATION_ID,
+      visual: { ...base.visual, templateId: FIXED_TEMPLATE_ID },
+    };
+  });
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState(idleStatus);
   const [result, setResult] = useState(null);
   const [renderError, setRenderError] = useState("");
-  /* The "Preview design" dialog, now that the chooser sits on step 1. */
-  const [previewing, setPreviewing] = useState(null);
   const [renderJobId, setRenderJobId] = useState(initialRenderJobId);
 
   /*
@@ -400,53 +409,6 @@ export default function InstantProof() {
     }));
   }, []);
 
-  const selectMode = useCallback((mode) => {
-    setProject((current) => {
-      const photoLed = mode === PROOF_MODES.photo;
-      /*
-       * Preselect a sensible design so nobody is blocked on a choice — but a
-       * design already chosen only survives if it agrees with the method being
-       * asked for. Keeping a CSV-driven design while switching to the
-       * photograph method would leave mode and template contradicting each
-       * other, and recordsFor() would then read photographs out of a project
-       * whose content is a spreadsheet.
-       */
-      const kept =
-        current.visual.templateId &&
-        modeForTemplate(current.visual.templateId, mode) === mode
-          ? current.visual.templateId
-          : "";
-      const templateId = kept || defaultTemplateFor(current.publicationTypeId, { photoLed });
-      return { ...withTemplate(current, templateId), mode };
-    });
-    emit(
-      mode === PROOF_MODES.photo ? PROOF_EVENTS.quickProofStarted : PROOF_EVENTS.spreadsheetModeSelected,
-      { proof_mode: mode }
-    );
-  }, []);
-
-  /*
-   * Changing the publication type can invalidate an already-chosen design: a
-   * customer who picks Yearbook, selects Yearbook Modern, then switches to
-   * Church Directory would otherwise carry a yearbook template into a directory
-   * proof. Clear it unless the template also serves the new type.
-   */
-  const selectPublicationType = useCallback((publicationTypeId) => {
-    setProject((current) => {
-      const stillValid =
-        current.visual.templateId &&
-        templatesForPublication(publicationTypeId).some(
-          (template) => template.id === current.visual.templateId
-        );
-      const photoLed = current.mode === PROOF_MODES.photo && suggestsPhotoLedDesign(current);
-      /* Preselected rather than cleared: a visitor should never be stopped by a
-         design decision they have no opinion about yet. */
-      const templateId = stillValid
-        ? current.visual.templateId
-        : defaultTemplateFor(publicationTypeId, { photoLed });
-      return { ...withTemplate(current, templateId), publicationTypeId };
-    });
-  }, []);
 
   /*
    * Re-derive records whenever the customer edits the mapping. Records are a
@@ -801,8 +763,15 @@ export default function InstantProof() {
     }
     project.assets.forEach(revoke);
     revoke(project.visual.logo);
-    setProject(emptyProject());
-    setPreviewing(null);
+    setProject(() => {
+      const base = emptyProject();
+      return {
+        ...base,
+        mode: PROOF_MODES.data,
+        publicationTypeId: FIXED_PUBLICATION_ID,
+        visual: { ...base.visual, templateId: FIXED_TEMPLATE_ID },
+      };
+    });
     setResult(null);
     setStatus(idleStatus());
     setRenderError("");
@@ -826,19 +795,10 @@ export default function InstantProof() {
   const isResults = step.id === "proof" && result && !renderError;
 
   const STEP_COPY = {
-    create: {
-      title: "What are you creating?",
-      lead: "Pick how you want to build it and what you are making. Choose a Pressmark design and we will render your free proof.",
+    upload: {
+      title: "Upload your church directory",
+      lead: "One CSV with your households. We will check it against the Directory Classic fields, show you what we found, and build your proof.",
     },
-    upload: photoMode
-      ? {
-          title: "Add your photographs",
-          lead: `Take them now or choose them from your library. One is enough to see a proof; ${QUICK_PROOF_PHOTO_LIMIT} fills the sample.`,
-        }
-      : {
-          title: "Upload your spreadsheet",
-          lead: "Add your CSV and, if you have them, the portraits that go with it. We will show you how your columns map, what we found in the data, and then build your proof.",
-        },
     proof: { title: "Building your proof", lead: "" },
   };
   const copy = STEP_COPY[step.id];
@@ -938,51 +898,6 @@ export default function InstantProof() {
             continueDisabled={!stepIsComplete}
             blockingReason={blockingReason()}
           >
-            {step.id === "create" && (
-              <div className="ip-create">
-                <div style={{ minWidth: 0 }}>
-                  <CreateStep
-                    mode={project.mode}
-                    onModeChange={selectMode}
-                    publicationTypeId={project.publicationTypeId}
-                    onPublicationChange={selectPublicationType}
-                    templateId={project.visual.templateId}
-                    inputMode={inputMode}
-                    onTemplateChange={(templateId) =>
-                      setProject((current) => withTemplate(current, templateId))
-                    }
-                    onPreview={setPreviewing}
-                    proofPages={templateFor(project.visual.templateId)?.pages?.length ?? 6}
-                    errors={errors}
-                  />
-                </div>
-
-                {/* Desktop only — a restrained reminder of the chosen design,
-                    never a full-size cover. Hidden from assistive technology
-                    because the carousel already conveys the selection. */}
-                <aside className="ip-aside ip-desktop-only" aria-hidden="true">
-                  {templateFor(project.visual.templateId) && (
-                    <>
-                      <span className="ip-label">Your design</span>
-                      <span className="ip-aside-frame">
-                        <img
-                          src={templateFor(project.visual.templateId).thumbnail}
-                          alt=""
-                          style={{
-                            objectFit:
-                              project.visual.templateId === "directory-classic" ? "contain" : "cover",
-                          }}
-                        />
-                      </span>
-                      <p className="ip-design-name" style={{ marginTop: "var(--proof-space-4)" }}>
-                        {templateFor(project.visual.templateId).name}
-                      </p>
-                    </>
-                  )}
-                </aside>
-              </div>
-            )}
-
             {step.id === "upload" && (
               <UploadStep
                 project={project}
@@ -1018,16 +933,6 @@ export default function InstantProof() {
           </StepShell>
         )}
       </main>
-
-      {previewing && (
-        <TemplatePreview
-          template={previewing}
-          visual={project.visual}
-          organization={project.organization}
-          publicationLabel={config?.label ?? "Publication"}
-          onClose={() => setPreviewing(null)}
-        />
-      )}
 
       <ProofFooter />
     </div>
