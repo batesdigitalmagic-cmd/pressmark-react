@@ -325,6 +325,48 @@ ${PROOF_TOKENS_CSS}
   /* The bar must never sit on top of the last section. */
   .ip-actions-spacer { height: var(--proof-space-5); }
 
+  /* ── The blank-template offer ──────────────────────────────────
+     Button above, caption beneath, one column at every width. Stacked
+     rather than side-by-side so nothing has to reflow on a phone, and so
+     the caption never gets squeezed into a two-word-per-line column. */
+
+  .ip-template-offer {
+    display: grid;
+    justify-items: start;
+    gap: var(--proof-space-3);
+  }
+  .ip-template-download {
+    display: grid;
+    place-items: center;
+    gap: 2px;
+    /* Square, and comfortably past the 44px minimum tap target. */
+    width: 78px;
+    height: 78px;
+    border: 1.5px solid var(--proof-line);
+    border-radius: var(--proof-radius);
+    background: var(--proof-surface);
+    color: var(--proof-ink);
+    text-decoration: none;
+    line-height: 1;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .ip-template-download:hover,
+  .ip-template-download:focus-visible {
+    border-color: var(--proof-gold);
+    background: var(--proof-paper);
+  }
+  .ip-template-arrow { font-size: 1.5rem; color: var(--proof-gold); }
+  .ip-template-kind {
+    /* 12.5px. Anything under 12px is uncomfortable on a phone, and a caps
+       label with letter-spacing reads smaller than its size suggests. */
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+  /* Measure, not width: a caption running the full width of a tablet is
+     harder to read than one that wraps at a sensible line length. */
+  .ip-template-caption { margin: 0; max-width: 46ch; }
+
   /* ── Sections ─────────────────────────────────────────────────── */
 
   .ip-section { padding: var(--proof-space-6) 0 0; }

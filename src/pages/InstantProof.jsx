@@ -183,43 +183,27 @@ export default function InstantProof() {
                     wrong, which is the only way this flow can fail. Listing the
                     columns on the page was a worse version of handing them the
                     file: something to transcribe rather than something to
-                    fill in. */}
-                <div
-                  className="ip-section"
-                  style={{ display: "flex", alignItems: "center", gap: "var(--proof-space-4)" }}
-                >
+                    fill in.
+
+                    Button above, caption beneath — one column at every width,
+                    so nothing has to reflow on a phone. */}
+                <div className="ip-section ip-template-offer">
                   <a
+                    className="ip-template-download"
                     href={TEMPLATE_CSV}
                     download="church-directory-classic.csv"
                     aria-label="Download the blank church directory CSV template"
-                    style={{
-                      flex: "0 0 auto",
-                      width: 78,
-                      height: 78,
-                      display: "grid",
-                      placeItems: "center",
-                      gap: 2,
-                      border: "1.5px solid var(--proof-line)",
-                      borderRadius: "var(--proof-radius)",
-                      background: "var(--proof-surface)",
-                      color: "var(--proof-ink)",
-                      textDecoration: "none",
-                      lineHeight: 1,
-                    }}
                   >
-                    <span aria-hidden="true" style={{ fontSize: "1.5rem", color: "var(--proof-gold)" }}>
+                    <span aria-hidden="true" className="ip-template-arrow">
                       ↓
                     </span>
-                    <span
-                      aria-hidden="true"
-                      style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.08em" }}
-                    >
+                    <span aria-hidden="true" className="ip-template-kind">
                       CSV
                     </span>
                   </a>
-                  <p className="ip-note" style={{ margin: 0 }}>
-                    <strong>Start from our blank template.</strong> Download it, fill in your
-                    households, and upload it back — the column names are already correct.
+                  <p className="ip-note ip-template-caption">
+                    <strong>Download our blank template.</strong> Fill in your households and
+                    upload it back — the column names are already correct.
                   </p>
                 </div>
 
