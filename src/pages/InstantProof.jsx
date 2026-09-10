@@ -160,7 +160,7 @@ export default function InstantProof() {
         <div className="ip-page">
           <div className="ip-section-tight">
             <p className="ip-eyebrow">Church Directory Classic</p>
-            <h1 className="ip-h1">Free directory proof</h1>
+            <h1 className="ip-h1">Printable Church Directory Generator</h1>
             <p className="ip-lead">
               Upload your directory CSV and we will typeset it through our InDesign production
               template. You get the finished PDF, not a mock-up.
