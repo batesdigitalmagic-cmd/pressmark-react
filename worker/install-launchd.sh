@@ -102,13 +102,23 @@ PLISTEOF
     ;;
 
   status)
-    if launchctl list | grep -q "$LABEL"; then
-      echo "LaunchAgent : loaded"
-      launchctl list | grep "$LABEL" | awk '{print "  pid=" $1 "  last exit=" $2}'
+    # `launchctl print` is authoritative and, unlike `launchctl list | grep -q`,
+    # survives `set -o pipefail`: grep -q exits at the first match, launchctl
+    # takes SIGPIPE, and the pipeline reports failure — which made this print
+    # "not loaded" for an agent that was demonstrably running.
+    if info="$(launchctl print "gui/$(id -u)/$LABEL" 2>/dev/null)"; then
+      state="$(printf '%s\n' "$info" | awk -F'= ' '/^\tstate = /{print $2; exit}')"
+      pid="$(printf '%s\n' "$info" | awk -F'= ' '/^\tpid = /{print $2; exit}')"
+      echo "LaunchAgent : loaded (${state:-unknown})${pid:+  pid=$pid}"
     else
       echo "LaunchAgent : not loaded"
     fi
     echo "plist       : $([ -f "$PLIST" ] && echo "$PLIST" || echo "not installed")"
+    if pgrep -f "worker/pressmark-worker.mjs" >/dev/null 2>&1; then
+      echo "process     : running"
+    else
+      echo "process     : not running"
+    fi
     echo ""
     echo "Last 15 log lines:"
     tail -n 15 "$LOG_DIR/pressmark-worker.log" 2>/dev/null | sed 's/^/  /' || echo "  (no log yet)"
