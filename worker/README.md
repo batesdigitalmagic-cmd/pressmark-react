@@ -38,8 +38,14 @@ manual run uses — there is one script, with two modes.
 
 ## 3. Configure
 
-Create `worker/.env` (gitignored) or export these in the shell that starts the
-worker.
+Two gitignored files at the repository root, loaded together at launch:
+
+| File | Holds | Why split |
+| --- | --- | --- |
+| `.env.worker` | paths and the API URL | No secret, so it is safe to read, diff and paste |
+| `.env.local` | `PRESSMARK_WORKER_TOKEN` | Already where this machine's secrets live — one copy, one place to rotate |
+
+`.env.local` is loaded **last**, so its values win.
 
 | Variable | Required | Meaning |
 | --- | --- | --- |
@@ -63,28 +69,32 @@ bundle.
 ## 4. Check the setup before starting
 
 ```sh
-cd worker
-node health.mjs
+node --env-file=.env.worker --env-file=.env.local worker/health.mjs
 ```
 
 It reports configuration, whether the template and script are readable, whether
-InDesign is installed, and whether the API accepts this worker's token. It
-prints the token's **length only** — never its value — so the output is safe to
-paste into a support thread. Exit code `0` means ready, `1` means not.
+InDesign is installed, whether the API accepts this worker's token, and how deep
+the queue is.
 
-`node health.mjs --json` gives the same report as one JSON object, for
-monitoring.
+Neither the token **nor its length** is printed — a length narrows a brute force
+and ends up in screenshots — so the output is safe to paste into a support
+thread. Exit code `0` means ready, `1` means not.
+
+`--json` gives the same report as one object, for monitoring.
+
+A `FAIL` on `API authorized` immediately after a redeploy is usually
+propagation, not a wrong value. Wait a minute and run it again.
 
 ---
 
 ## 5. Start it
 
 ```sh
-cd worker
-node pressmark-worker.mjs
+node --env-file=.env.worker --env-file=.env.local worker/pressmark-worker.mjs
 ```
 
-Or `npm start` from inside `worker/`.
+Or `./worker/start-worker.sh`, which resolves the paths itself and is what
+launchd runs.
 
 Logs are one JSON object per line: job id prefixes, stages, byte counts. Never a
 CSV value, never a customer name, never the token.
@@ -94,68 +104,88 @@ flight is not abandoned mid-export. `Ctrl-C` twice exits immediately.
 
 ---
 
-## 6. Start automatically after a reboot
-
-Create `~/Library/LaunchAgents/studio.pressmark.worker.plist`. Replace the two
-paths and keep the file readable only by you, since it carries the token.
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
-  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>Label</key>
-  <string>studio.pressmark.worker</string>
-
-  <key>ProgramArguments</key>
-  <array>
-    <string>/usr/local/bin/node</string>
-    <string>/Users/YOU/pressmark-react/worker/pressmark-worker.mjs</string>
-  </array>
-
-  <key>WorkingDirectory</key>
-  <string>/Users/YOU/pressmark-react/worker</string>
-
-  <key>EnvironmentVariables</key>
-  <dict>
-    <key>PRESSMARK_API_URL</key>
-    <string>https://your-domain</string>
-    <key>PRESSMARK_WORKER_TOKEN</key>
-    <string>PASTE_TOKEN_HERE</string>
-    <key>PRESSMARK_INDD_TEMPLATE</key>
-    <string>/Users/YOU/Pressmark/church-directory-classic.indd</string>
-  </dict>
-
-  <key>RunAtLoad</key>
-  <true/>
-  <key>KeepAlive</key>
-  <true/>
-
-  <key>StandardOutPath</key>
-  <string>/Users/YOU/Library/Logs/pressmark-worker.log</string>
-  <key>StandardErrorPath</key>
-  <string>/Users/YOU/Library/Logs/pressmark-worker.error.log</string>
-</dict>
-</plist>
-```
-
-Then:
+## 6. Start automatically after login
 
 ```sh
-chmod 600 ~/Library/LaunchAgents/studio.pressmark.worker.plist
-launchctl load ~/Library/LaunchAgents/studio.pressmark.worker.plist   # start now + at login
-launchctl unload ~/Library/LaunchAgents/studio.pressmark.worker.plist # stop
+./worker/install-launchd.sh install
 ```
 
-`which node` will tell you the correct node path — `/usr/local/bin/node` and
-`/opt/homebrew/bin/node` are both common.
+That writes `~/Library/LaunchAgents/studio.pressmark.worker.plist`, loads it,
+and starts the worker immediately. It will start again at every login.
 
-**The Mac must be logged in.** InDesign needs a GUI session; a LaunchAgent runs
-at login, not at boot. Set Energy Saver to prevent sleep, or renders only happen
-while you are at the machine.
+```sh
+./worker/install-launchd.sh status      # loaded? pid? last 15 log lines
+./worker/install-launchd.sh uninstall   # stop it and remove the agent
+```
 
----
+### No secret goes in the plist
+
+The obvious launchd setup puts `PRESSMARK_WORKER_TOKEN` in the plist's
+`EnvironmentVariables` dictionary. Don't. That writes the token into a file in
+`~/Library/LaunchAgents` which is world-readable by default, lands in Time
+Machine backups, and is easy to paste into a support thread by accident.
+
+The generated plist contains **paths only**. `worker/start-worker.sh` loads
+`.env.worker` and `.env.local` at launch, so there is exactly one copy of the
+token on the machine, in a file that is already gitignored.
+
+### A LaunchAgent, not a LaunchDaemon
+
+Deliberate. InDesign needs a logged-in GUI session; a daemon starting at boot
+would have no window server and every render would fail.
+
+**Consequence: the Mac must be logged in for renders to happen.** Set Energy
+Saver to prevent sleep, or PDFs are only produced while you are at the machine.
+Customers' free browser proofs are unaffected either way — only the production
+PDF waits.
+
+### Logs
+
+```
+~/Library/Logs/pressmark-worker.log
+~/Library/Logs/pressmark-worker.error.log
+```
+
+One JSON object per line. They are not rotated automatically; if the worker runs
+for months, truncate them or add a `newsyslog.d` rule.
+
+### Restart behaviour
+
+`KeepAlive` restarts the worker if it exits unexpectedly, with a 30-second
+`ThrottleInterval` so a persistent problem does not hot-loop. A configuration
+error (missing node, missing env file) exits 78 and launchd will **not** respawn
+it — check `install-launchd.sh status` and the error log.
+
+### What the log tells you
+
+While idle the worker reports the queue whenever the depth changes, and at least
+every five minutes:
+
+```json
+{"level":"info","message":"Queue","waiting":2,"heldByWorker":0,"holdingFiles":2}
+```
+
+Counts only — the status endpoint returns three numbers and no job data, because
+a filename routinely identifies the customer.
+
+A rejected token is called out by name, since it is the most likely failure
+after a rotation or redeploy:
+
+```json
+{"level":"error","message":"API rejected this worker's token","status":401,
+ "consecutiveFailures":3,
+ "hint":"PRESSMARK_WORKER_TOKEN does not match the deployment; check both, and allow a minute after a redeploy"}
+```
+
+Repeated failures are counted rather than repeated verbatim, and a single
+`Recovered` line is logged when the API comes back.
+
+### One job at a time
+
+The loop awaits each render to completion before polling again. InDesign drives
+one document at a time and two concurrent renders would fight over the same
+template and the same application state. Run **one worker per Mac** — throughput
+comes from the queue, not from concurrency here.
 
 ## 7. Rotating `PRESSMARK_WORKER_TOKEN`
 
@@ -168,10 +198,13 @@ the new one is in place, so do it when the queue is quiet.
 1. Generate one: `openssl rand -hex 32`
 2. Vercel → Project → Settings → Environment Variables → update
    `PRESSMARK_WORKER_TOKEN` → **redeploy** (env changes need a deploy).
-3. Stop the worker (`Ctrl-C`, or `launchctl unload …`).
-4. Update the value in `worker/.env` or in the plist.
-5. Start the worker and confirm with `node health.mjs` — `API authorized` must
-   read `ok`.
+3. Stop the worker (`Ctrl-C`, or `./worker/install-launchd.sh uninstall`).
+4. Update `PRESSMARK_WORKER_TOKEN` in `.env.local`. Nowhere else — the plist
+   contains no secret.
+5. Start the worker and confirm:
+   `node --env-file=.env.worker --env-file=.env.local worker/health.mjs`
+   — `API authorized` must read `ok`. Allow a minute after the redeploy before
+   trusting a `FAIL`.
 
 Any job mid-render when you stop the worker returns to the queue automatically
 once its lease expires (about two minutes) and is retried.

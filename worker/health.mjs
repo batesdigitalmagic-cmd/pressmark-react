@@ -75,7 +75,16 @@ async function checkApi(config) {
       const body = await response.json().catch(() => ({}));
       return { reachable: true, authorized: true, detail: body.error || "render storage is not configured" };
     }
-    return { reachable: true, authorized: true, detail: `HTTP ${response.status}` };
+
+    /* Authorized. Ask how much work is waiting — counts only, no job data. */
+    const queue = await fetch(`${config.apiUrl}/api/render-jobs/worker/status`, {
+      headers: { Authorization: `Bearer ${config.token}` },
+      cache: "no-store",
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
+
+    return { reachable: true, authorized: true, detail: `HTTP ${response.status}`, queue };
   } catch (error) {
     return { reachable: false, authorized: false, detail: error.message };
   }
@@ -100,6 +109,9 @@ const report = {
   apiReachable: api.reachable,
   apiAuthorized: api.authorized,
   apiDetail: api.detail,
+  queueWaiting: api.queue?.queued ?? null,
+  queueHeldByWorker: api.queue?.active ?? null,
+  jobsHoldingFiles: api.queue?.tracked ?? null,
 };
 
 const healthy =
@@ -124,6 +136,12 @@ if (process.argv.includes("--json")) {
     `  worker id ${report.workerId}`,
     `  work dir  ${report.workDir}`,
   ];
+  if (api.queue) {
+    lines.push(
+      "",
+      `  queue: ${api.queue.queued} waiting · ${api.queue.active} held by a worker · ${api.queue.tracked} holding files`
+    );
+  }
   for (const problem of problems) lines.push(`  ! ${problem}`);
   process.stdout.write(`${lines.join("\n")}\n`);
 }

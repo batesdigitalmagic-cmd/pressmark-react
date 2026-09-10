@@ -101,6 +101,26 @@ export function createApi(config) {
     },
 
     /**
+     * How much work is waiting. Counts only — no ids, no filenames.
+     *
+     * Read-only: it never claims. Returns null on failure rather than throwing,
+     * because not knowing the queue depth must never stop the worker from
+     * doing its actual job.
+     */
+    async status() {
+      try {
+        const response = await fetch(url("/api/render-jobs/worker/status"), {
+          headers: auth(),
+          cache: "no-store",
+        });
+        if (!response.ok) return null;
+        return response.json();
+      } catch {
+        return null;
+      }
+    },
+
+    /**
      * Retention sweep. Opportunistic: a deployment with no cron still expires
      * data as long as this Mac is running, so a failure here is logged and
      * ignored rather than allowed to stop the loop.

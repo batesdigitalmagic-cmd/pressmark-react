@@ -238,22 +238,67 @@ async function main() {
 
   let backoffMs = config.pollMs;
   let sweepAt = 0;
+  let statusAt = 0;
+  let lastQueued = null;
+  /* Consecutive poll failures, so a persistent outage is reported once with a
+     count rather than as an unbroken wall of identical lines. */
+  let consecutiveFailures = 0;
 
   while (!stopping && !forced) {
     try {
       const claimed = await api.claim();
 
       if (claimed) {
+        if (consecutiveFailures > 0) {
+          log.info("Recovered; the API is reachable again", { afterFailures: consecutiveFailures });
+          consecutiveFailures = 0;
+        }
         backoffMs = config.pollMs;
+        /* Strictly one at a time: this awaits the whole render before the loop
+           comes round again. InDesign drives one document at a time and two
+           concurrent renders would fight over the same template. */
         await processJob(api, config, claimed);
+        lastQueued = null; /* force a fresh queue report next idle tick */
         continue;
       }
 
-      /* Idle. Run the retention sweep occasionally so a deployment without a
-         cron still expires customer data on schedule. */
+      if (consecutiveFailures > 0) {
+        log.info("Recovered; the API is reachable again", { afterFailures: consecutiveFailures });
+        consecutiveFailures = 0;
+      }
+
+      /*
+       * Idle. Report the queue periodically, and immediately whenever the depth
+       * changes — an operator watching the log should be able to see at a
+       * glance that work is arriving and being drained, without tailing
+       * anything else. Counts only: the status endpoint returns three numbers
+       * and no job data.
+       */
+      if (Date.now() > statusAt) {
+        statusAt = Date.now() + 5 * 60 * 1000;
+        const status = await api.status();
+        if (status && status.queued !== lastQueued) {
+          log.info("Queue", {
+            waiting: status.queued,
+            heldByWorker: status.active,
+            holdingFiles: status.tracked,
+          });
+          lastQueued = status.queued;
+        }
+      }
+
+      /* Run the retention sweep occasionally so a deployment without a cron
+         still expires customer data on schedule. */
       if (Date.now() > sweepAt) {
         sweepAt = Date.now() + 15 * 60 * 1000;
-        await api.cleanup();
+        const swept = await api.cleanup();
+        if (swept && (swept.recovered || swept.failed || swept.purged)) {
+          log.info("Retention sweep", {
+            recovered: swept.recovered,
+            failed: swept.failed,
+            purged: swept.purged,
+          });
+        }
       }
 
       backoffMs = config.pollMs;
@@ -263,8 +308,22 @@ async function main() {
        * The API is unreachable, or refusing us. Back off exponentially rather
        * than hammering it — a worker left running through a deploy should not
        * generate a request storm.
+       *
+       * A 401 is called out by name because it is the one failure an operator
+       * can act on immediately and the one most likely to follow a token
+       * rotation or a redeploy.
        */
-      log.error("Poll failed", { reason: error.message, status: error.status, retryInMs: backoffMs });
+      consecutiveFailures += 1;
+      const unauthorized = error.status === 401;
+      log.error(unauthorized ? "API rejected this worker's token" : "Poll failed", {
+        reason: error.message,
+        status: error.status,
+        consecutiveFailures,
+        retryInMs: backoffMs,
+        hint: unauthorized
+          ? "PRESSMARK_WORKER_TOKEN does not match the deployment; check both, and allow a minute after a redeploy"
+          : undefined,
+      });
       await sleep(backoffMs);
       backoffMs = Math.min(backoffMs * 2, config.maxBackoffMs);
     }

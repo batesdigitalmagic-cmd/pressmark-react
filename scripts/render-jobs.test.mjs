@@ -11,6 +11,7 @@ import input from "../api/render-jobs/worker/[jobId]/input.js";
 import heartbeat from "../api/render-jobs/worker/[jobId]/heartbeat.js";
 import result from "../api/render-jobs/worker/[jobId]/result.js";
 import cleanup from "../api/render-jobs/cleanup.js";
+import workerStatus from "../api/render-jobs/worker/status.js";
 import { __resetLocalKv, command } from "../lib/render-jobs/kv.js";
 import { Readable } from "node:stream";
 import {
@@ -658,6 +659,83 @@ test("the same export still accepts a Web-style call", async () => {
   );
   assert.ok(response instanceof Response);
   assert.equal(response.status, 401);
+});
+
+
+/* ── Worker status ── */
+
+test("the worker status endpoint is protected and counts only", async () => {
+  assert.equal(
+    (await workerStatus(new Request("http://local/api/render-jobs/worker/status"))).status,
+    401
+  );
+  assert.equal(
+    (await workerStatus(
+      new Request("http://local/api/render-jobs/worker/status", {
+        headers: { Authorization: "Bearer not-the-token" },
+      })
+    )).status,
+    401
+  );
+
+  const empty = await workerStatus(
+    new Request("http://local/api/render-jobs/worker/status", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  );
+  assert.equal(empty.status, 200);
+  assert.deepEqual(await empty.json(), { queued: 0, active: 0, tracked: 0 });
+});
+
+test("worker status reflects the queue without leaking job data", async () => {
+  const { job } = await submitJob(undefined, "First Baptist members.csv");
+
+  const queuedResponse = await workerStatus(
+    new Request("http://local/api/render-jobs/worker/status", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  );
+  const queued = await queuedResponse.json();
+  assert.equal(queued.queued, 1, "the submitted job should be waiting");
+  assert.equal(queued.active, 0);
+  assert.equal(queued.tracked, 1, "it holds a CSV in blob storage");
+
+  /*
+   * The response is three numbers. An operator watching a worker log, or a
+   * monitoring probe hitting this every minute, has no business learning who
+   * uploaded what — and originalFilename routinely identifies the customer.
+   */
+  const serialized = JSON.stringify(queued);
+  assert.deepEqual(Object.keys(queued).sort(), ["active", "queued", "tracked"]);
+  assert.doesNotMatch(serialized, /First Baptist/, "a customer filename must never appear");
+  assert.doesNotMatch(serialized, new RegExp(job.jobId), "a job id must never appear");
+
+  /* Claiming moves it from waiting to held, so an operator can tell a stalled
+     queue from one being worked. */
+  await claimAs("worker-a");
+  const held = await (
+    await workerStatus(
+      new Request("http://local/api/render-jobs/worker/status", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+    )
+  ).json();
+  assert.equal(held.queued, 0);
+  assert.equal(held.active, 1);
+});
+
+test("reading the status never consumes a queued job", async () => {
+  await submitJob();
+  for (let i = 0; i < 3; i += 1) {
+    await workerStatus(
+      new Request("http://local/api/render-jobs/worker/status", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+    );
+  }
+  /* Still claimable after three status reads — checking must not be the thing
+     that consumes the work. */
+  assert.equal((await claimAs("worker-a")).response.status, 200);
 });
 
 test("cleanup is safe to run twice and on an empty store", async () => {
