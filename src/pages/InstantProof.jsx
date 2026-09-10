@@ -160,10 +160,17 @@ export default function InstantProof() {
         <div className="ip-page">
           <div className="ip-section-tight">
             <p className="ip-eyebrow">Church Directory Classic</p>
-            <h1 className="ip-h1">Printable Church Directory Generator</h1>
+            <h1 className="ip-h1">Printable Church Directory</h1>
+            {/*
+              "Customize" here means the households, not the design — this flow
+              offers no colour, cover or branding options, so the sentence is
+              careful to say what is actually yours: your own people, set in our
+              template.
+            */}
             <p className="ip-lead">
-              Upload your directory CSV and we will typeset it through our InDesign production
-              template. You get the finished PDF, not a mock-up.
+              Customize your church directory with your own households. Upload your CSV and we
+              will typeset it through our InDesign production template — you get the finished
+              PDF, not a mock-up.
             </p>
 
             {submitted ? (
@@ -209,10 +216,10 @@ export default function InstantProof() {
 
                 {/* ── 2. Choose the file ── */}
                 <div className="ip-section">
-                  <label
-                    className="ip-btn ip-btn-ghost ip-touch"
-                    style={{ cursor: "pointer", display: "inline-block" }}
-                  >
+                  {/* No inline style: .ip-btn is already inline-flex with its
+                      content centred, and an inline `display: inline-block`
+                      overrode exactly that, pushing the label off-centre. */}
+                  <label className="ip-btn ip-btn-ghost ip-touch">
                     Choose your CSV
                     <input
                       type="file"
