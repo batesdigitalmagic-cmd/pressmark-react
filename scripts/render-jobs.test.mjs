@@ -35,11 +35,57 @@ test.before(async () => {
 test.after(async () => rm(root, { recursive: true, force: true }));
 
 test("CSV validation normalizes BOM, rejects headers, and sorts names", () => {
-  const valid = validateAndNormalizeCsv(encoder.encode("\uFEFFlast_name,first_name,email\nZulu,Amy,a@x.test\nalpha,Zed,z@x.test\nAlpha,Amy,b@x.test\n"));
+  const head = "last_name,first_name,address,phone,email";
+  const valid = validateAndNormalizeCsv(
+    encoder.encode(
+      `\uFEFF${head}\n` +
+        "Zulu,Amy,9 Cedar Way,770-1,a@x.test\n" +
+        "alpha,Zed,2 Oak Row,770-2,z@x.test\n" +
+        "Alpha,Amy,3 Elm St,770-3,b@x.test\n"
+    )
+  );
   assert.equal(valid.rowCount, 3);
-  assert.deepEqual(valid.records.map((row) => `${row.last_name}:${row.first_name}`), ["Alpha:Amy", "alpha:Zed", "Zulu:Amy"]);
-  assert.throws(() => validateAndNormalizeCsv(encoder.encode("last_name,bogus\nSmith,Amy\n")), /Missing required headers: first_name.*Unsupported headers: bogus/);
-  assert.throws(() => validateAndNormalizeCsv(encoder.encode('last_name,first_name\n"Smith,Amy\n')), /not closed/);
+  assert.deepEqual(
+    valid.records.map((row) => `${row.last_name}:${row.first_name}`),
+    ["Alpha:Amy", "alpha:Zed", "Zulu:Amy"]
+  );
+
+  /* The five required columns are the Directory Classic merge fields. A CSV
+     carrying only a name no longer satisfies the contract. */
+  assert.throws(
+    () => validateAndNormalizeCsv(encoder.encode("last_name,first_name\nSmith,Amy\n")),
+    /Missing required headers: address, phone, email/
+  );
+  assert.throws(
+    () => validateAndNormalizeCsv(encoder.encode(`${head},bogus\nSmith,Amy,1 St,770,a@x.test,x\n`)),
+    /Unsupported headers: bogus/
+  );
+  /* record_id and display_name are gone for this template, so they are
+     unsupported rather than required. */
+  assert.throws(
+    () => validateAndNormalizeCsv(encoder.encode(`${head},record_id,display_name\nS,A,1 St,770,a@x.test,7,"S, A"\n`)),
+    /Unsupported headers: record_id, display_name/
+  );
+  assert.throws(() => validateAndNormalizeCsv(encoder.encode(`${head}\n"Smith,Amy\n`)), /not closed/);
+});
+
+test("a row missing a name is rejected by number, not vaguely", () => {
+  const head = "last_name,first_name,address,phone,email";
+  assert.throws(
+    () =>
+      validateAndNormalizeCsv(
+        encoder.encode(`${head}\nZulu,Amy,9 Cedar,770-1,a@x.test\nAlpha,,2 Oak,770-2,b@x.test\n`)
+      ),
+    /Row 3 is missing last_name or first_name/
+  );
+
+  /* A household with no email is a normal directory entry, not a broken one:
+     the COLUMN is required, a value on every row is not. */
+  const sparse = validateAndNormalizeCsv(
+    encoder.encode(`${head}\nZulu,Amy,9 Cedar,770-1,\n`)
+  );
+  assert.equal(sparse.rowCount, 1);
+  assert.equal(sparse.records[0].email, "");
 });
 
 test("template capabilities route Directory Classic to CSV and keep photo templates photo-based", async () => {
@@ -114,8 +160,21 @@ function workerRequest(url, method = "POST", body, workerId = "worker-a") {
   return new Request(url, { method, headers, body });
 }
 
+/*
+ * A minimal but COMPLETE Directory Classic CSV.
+ *
+ * All eight merge-field columns are present, because that is what the schema
+ * requires and what PressmarkDirectoryMerge.jsx validates. Optional cells are
+ * left empty on purpose — an empty optional column is normal, and a fixture
+ * that filled every field would not exercise that.
+ */
+const DIRECTORY_CSV =
+  "last_name,first_name,address,phone,alternate_phone,email,alternate_email,family_members\n" +
+  "Zulu,Amy,9 Cedar Way,770-555-0001,,amy.zulu@example.invalid,,Amy\n" +
+  "Alpha,Ben,2 Oak Row,770-555-0002,770-555-0003,ben.alpha@example.invalid,,\"Ben and Ada\"\n";
+
 /** Submit one directory CSV and return the created public job. */
-async function submitJob(csv = "last_name,first_name\nZulu,Amy\nAlpha,Ben\n", filename = "members.csv") {
+async function submitJob(csv = DIRECTORY_CSV, filename = "members.csv") {
   const form = new FormData();
   form.set("templateId", "directory-classic");
   form.set("csv", new Blob([csv], { type: "text/csv" }), filename);
@@ -186,7 +245,12 @@ test("the CSV is stored privately and is never exposed to the customer", async (
   /* Stored, and readable only through the server-side adapter. */
   const stored = await readInputCsv(job.jobId);
   assert.ok(stored && stored.length > 0);
-  assert.match(new TextDecoder().decode(stored), /^last_name,first_name/);
+  /* The stored CSV keeps the customer's own column order; what matters is that
+     every required merge field survived the round trip. */
+  const storedHeader = new TextDecoder().decode(stored).split("\r\n")[0].split(",");
+  for (const required of ["last_name", "first_name", "address", "phone", "email"]) {
+    assert.ok(storedHeader.includes(required), `stored CSV lost the ${required} column`);
+  }
 
   /* The customer's view carries no storage path and no operational field. */
   const publicView = await (await status(new Request(`http://local/api/render-jobs/${job.jobId}`))).json();
@@ -611,7 +675,7 @@ test("a Node-style call carries a real body through to the handler", async () =>
     `--${boundary}\r\n` +
     'Content-Disposition: form-data; name="csv"; filename="x.csv"\r\n' +
     "Content-Type: text/csv\r\n\r\n" +
-    "last_name,first_name\r\nSmith,Amy\r\n\r\n" +
+    "last_name,first_name,address,phone,email\r\nSmith,Amy,1 St,770-1,a@x.test\r\n\r\n" +
     `--${boundary}--\r\n`;
 
   const res = nodeStyleResponse();

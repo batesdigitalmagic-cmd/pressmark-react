@@ -25,29 +25,58 @@ const val = (record, schema, role) => {
   return field ? String(record?.[field.key] ?? "").trim() : "";
 };
 
+/*
+ * "Email: ava@example.org", or nothing at all.
+ *
+ * The label is attached here rather than being static text in the template so
+ * that an empty optional field collapses completely. The production .indd
+ * prints its labels unconditionally, so a household with no alternate phone
+ * shows a bare "Alt Ph#:" there; in a proof that reads as a defect rather than
+ * as an empty field, so the proof omits the whole line instead.
+ */
+const labelled = (label, value) => (value ? `${label}: ${value}` : "");
+
 const COMPOSITES = {
   /*
    * The name to print.
    *
-   * display_name when the customer supplied one — they chose that form
-   * deliberately, often "Whitfield, Ava" for alphabetical listing. Otherwise
-   * first + last, so a spreadsheet with only those columns still shows a real
-   * name rather than nothing (or, worse, the template's "Name" placeholder).
+   * A schema that carries an explicit display column uses it — the customer
+   * chose that form deliberately. The church directory has no such column by
+   * design, so the name is composed from `last_name` and `first_name` in the
+   * order the InDesign listing sets them: "Whitfield, Ava".
+   *
+   * Both halves are printed exactly as supplied. Nothing here invents a name,
+   * substitutes one half for the other, or falls back to a fabricated value —
+   * a record missing one half prints the half it has.
    */
   personName: (record, schema) => {
     if (!record) return "";
     const display = val(record, schema, "primaryText");
     if (display) return display;
-    return [val(record, schema, "firstName"), val(record, schema, "lastName")]
-      .filter(Boolean)
-      .join(" ");
+
+    const last = val(record, schema, "lastName");
+    const first = val(record, schema, "firstName");
+    if (last && first) return `${last}, ${first}`;
+    return last || first;
   },
 
-  /* Street address only. City/state/postcode is its own line so each has its
-     own reserved height and neither pushes the other out of the card. */
+  /* The address as supplied, on one line. The church directory template does
+     not split city, state and postcode, so neither does this. */
+  addressLine: (record, schema) => labelled("Address", val(record, schema, "addressLine")),
+
+  altPhoneLine: (record, schema) => labelled("Alt Ph#", val(record, schema, "altPhone")),
+
+  emailLine: (record, schema) => labelled("Email", val(record, schema, "email")),
+
+  altEmailLine: (record, schema) => labelled("Alt Email", val(record, schema, "altEmail")),
+
+  familyLine: (record, schema) => labelled("Family Members", val(record, schema, "familyMembers")),
+
+  /* Kept for the street portion alone, where a schema separates it. */
   streetAddress: (record, schema) => val(record, schema, "addressLine"),
 
-  /* "Marietta, GA 30060" — from whichever parts exist. */
+  /* "Marietta, GA 30060" — from whichever parts exist. Used by schemas that
+     keep locality separate; the church directory does not. */
   cityStateLine: (record, schema) => {
     if (!record) return "";
     const city = val(record, schema, "city");
@@ -59,7 +88,7 @@ const COMPOSITES = {
 
   /*
    * The full contact block, for layouts with one large text frame rather than
-   * separate reserved lines (the featured-profile page).
+   * separate reserved lines.
    */
   contactBlock: (record, schema) => {
     if (!record) return "";

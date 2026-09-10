@@ -229,8 +229,22 @@ export default function UploadStep({
         <div className="ip-section">
           <p className="ip-label">Bring the spreadsheet you already have</p>
           <p className="ip-note">
-            Your columns do not have to be named ours. Upload the CSV and we will propose a mapping
-            for you to confirm — a name column, and whatever contact details you keep alongside it.
+            Your columns do not have to be named ours — upload the CSV and we will propose a mapping
+            for you to confirm. Directory Classic sets these fields and no others:
+          </p>
+          <ul className="ip-note" style={{ columns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+            <li><code>last_name</code> — required</li>
+            <li><code>first_name</code> — required</li>
+            <li><code>address</code> — required</li>
+            <li><code>phone</code> — required</li>
+            <li><code>email</code> — required</li>
+            <li><code>alternate_phone</code></li>
+            <li><code>alternate_email</code></li>
+            <li><code>family_members</code></li>
+          </ul>
+          <p className="ip-note ip-muted">
+            No record ID, no display name and no photo filename: the directory listing is text, and
+            we print your values exactly as you supply them.
           </p>
         </div>
       )}

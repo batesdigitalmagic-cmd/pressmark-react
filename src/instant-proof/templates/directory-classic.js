@@ -25,60 +25,83 @@ const PAGE_W = 8.5;
 const PAGE_H = 11;
 
 /*
- * One profile card.
+ * One directory listing.
  *
- * Coordinates are inches from the top-left of the CARD, not the page — a
+ * These are the merge fields of church-directory-classic.indd and nothing else.
+ * There is no portrait frame — the production listing is text — so the card
+ * asks for no image and the schema offers no photo filename.
+ *
+ * Coordinates are inches from the top-left of the CARD, not the page: a
  * repeater cell is its own coordinate box (see render/geometry.js). The card is
- * 2.18 x 4.17in and every field below has its own reserved band, so a missing
- * title or a two-line name cannot push anything into the field beneath it:
+ * 2.18 x 4.17in and every field has its own reserved band, so a missing
+ * alternate phone or a three-line family list cannot push anything into the
+ * field beneath it:
  *
- *   portrait      0.00 -> 2.35   fixed 2.18 x 2.35 frame, cover-cropped
- *   rule          2.46
- *   name          2.60 -> 3.10   16pt, up to 2 lines  (2 x 16 x 1.10 = 0.489in)
- *   title         3.16 -> 3.57   12pt, up to 2 lines  (2 x 12 x 1.20 = 0.400in)
- *   address       3.63 -> 3.98   10pt, up to 2 lines  (2 x 10 x 1.25 = 0.347in)
- *   city/state    3.99 -> 4.16   10pt, one line       (1 x 10 x 1.20 = 0.167in)
+ *   name          0.00 -> 0.50   16pt, up to 2 lines  (2 x 0.244 = 0.488)
+ *   rule          0.58
+ *   phone         0.66 -> 0.88   12pt, one line       (1 x 0.200 = 0.200)
+ *   alt phone     0.94 -> 1.13   10pt, one line       (1 x 0.167 = 0.167)
+ *   email         1.19 -> 1.55   10pt, up to 2 lines  (2 x 0.174 = 0.348)
+ *   alt email     1.61 -> 1.97   10pt, up to 2 lines  (2 x 0.174 = 0.348)
+ *   address       2.03 -> 2.39   10pt, up to 2 lines  (2 x 0.174 = 0.348)
+ *   family        2.45 -> 2.99   10pt, up to 3 lines  (3 x 0.174 = 0.522)
  *
- * The last band ends at 4.16in inside a 4.17in card. Every reserved height
- * exceeds what its type can occupy at its declared maxLines, so overlap is
- * arithmetically impossible rather than merely unlikely — verify:proof asserts
- * both facts.
+ * Every reserved height exceeds what its type can occupy at its declared
+ * maxLines, so overlap is arithmetically impossible rather than merely
+ * unlikely — verify:proof asserts both facts.
+ *
+ * Optional fields render nothing at all when empty, rather than a label with a
+ * blank after it: `placeholder` is deliberately absent on the three optional
+ * bands.
  */
 const PROFILE_CARD = [
   {
-    type: "image",
-    field: "record:image",
-    x: 0, y: 0, width: 2.18, height: 2.35,
-    fitMode: "cover",
-    background: "paper",
-    placeholder: "portrait",
-  },
-  { type: "rule", x: 0, y: 2.46, width: 0.7, height: 0.018, background: "secondary" },
-  {
-    /* personName, not role:primaryText — it falls back to first + last when a
-       spreadsheet has no display_name column. */
+    /*
+     * personName resolves last_name + first_name in the template's own order,
+     * "Whitfield, Ava". It is composed from the two real columns at render
+     * time — no display_name column exists, and none is invented.
+     */
     type: "text", field: "personName",
-    x: 0, y: 2.6, width: 2.18, height: 0.5,
+    x: 0, y: 0, width: 2.18, height: 0.5,
     fontRole: "listingName", color: "ink",
     textFit: "shrink", maxLines: 2,
   },
+  { type: "rule", x: 0, y: 0.58, width: 0.7, height: 0.018, background: "secondary" },
   {
-    type: "text", field: "role:secondaryText",
-    x: 0, y: 3.16, width: 2.18, height: 0.41,
+    type: "text", field: "role:phone",
+    x: 0, y: 0.66, width: 2.18, height: 0.22,
     fontRole: "listingTitle", color: "secondary",
-    textFit: "clamp", maxLines: 2,
+    textFit: "truncate", maxLines: 1,
   },
   {
-    type: "text", field: "streetAddress",
-    x: 0, y: 3.63, width: 2.18, height: 0.35,
+    type: "text", field: "altPhoneLine",
+    x: 0, y: 0.94, width: 2.18, height: 0.19,
+    fontRole: "listingMeta", color: "ink", opacity: 0.62,
+    textFit: "truncate", maxLines: 1,
+  },
+  {
+    type: "text", field: "emailLine",
+    x: 0, y: 1.19, width: 2.18, height: 0.36,
     fontRole: "listingDetail", color: "ink", opacity: 0.72,
     textFit: "clamp", maxLines: 2,
   },
   {
-    type: "text", field: "cityStateLine",
-    x: 0, y: 3.99, width: 2.18, height: 0.17,
-    fontRole: "listingMeta", color: "ink", opacity: 0.62,
-    textFit: "truncate", maxLines: 1,
+    type: "text", field: "altEmailLine",
+    x: 0, y: 1.61, width: 2.18, height: 0.36,
+    fontRole: "listingDetail", color: "ink", opacity: 0.62,
+    textFit: "clamp", maxLines: 2,
+  },
+  {
+    type: "text", field: "addressLine",
+    x: 0, y: 2.03, width: 2.18, height: 0.36,
+    fontRole: "listingDetail", color: "ink", opacity: 0.72,
+    textFit: "clamp", maxLines: 2,
+  },
+  {
+    type: "text", field: "familyLine",
+    x: 0, y: 2.45, width: 2.18, height: 0.54,
+    fontRole: "listingDetail", color: "ink", opacity: 0.62,
+    textFit: "clamp", maxLines: 3,
   },
 ];
 
@@ -98,7 +121,7 @@ export const directoryClassic = {
   styleCategory: "traditional",
   inputMode: "csv",
   thumbnail: `${DIR}/thumbnail.png`,
-  schemas: ["people-directory"],
+  schemas: ["church-directory"],
   pageSize: { width: PAGE_W, height: PAGE_H, unit: "in" },
 
   fontRoles: {
@@ -255,7 +278,7 @@ export const directoryClassic = {
       backgroundColor: "paper",
       elements: [
         /* Left page furniture */
-        { type: "text", field: "role:grouping", x: 0.75, y: 0.72, width: 4.2, height: 0.3, fontRole: "eyebrow", color: "secondary", textFit: "truncate", placeholder: "Membership" },
+        { type: "text", field: "static:Households", x: 0.75, y: 0.72, width: 4.2, height: 0.3, fontRole: "eyebrow", color: "secondary", textFit: "truncate" },
         { type: "rule", x: 0.75, y: 1.1, width: 7.2, height: 0.014, background: "secondary", opacity: 0.5 },
 
         /* Right page furniture — the recto begins at 8.5in */
@@ -321,15 +344,22 @@ export const directoryClassic = {
       background: `${DIR}/profile-spread-background.svg`,
       backgroundColor: "paper",
       elements: [
-        /* Verso — a single large portrait, full bleed to the gutter. */
-        { type: "image", field: "record:image", x: 0, y: 0, width: 8.5, height: 11, fitMode: "cover", background: "primary", placeholder: "portrait", recordIndex: 0 },
+        /*
+         * Verso — a colour field, not a portrait.
+         *
+         * This page carried a full-bleed `record:image`. The church directory
+         * schema has no image column and the .indd has no portrait frame, so
+         * an image binding here would render a placeholder for every customer,
+         * for ever. A flat panel is honest about what the template holds.
+         */
+        { type: "block", x: 0, y: 0, width: 8.5, height: 11, background: "primary" },
 
         /* Recto — fixed heading block. */
         {
-          type: "text", field: "role:grouping",
+          type: "text", field: "static:Featured Household",
           x: 9.6, y: 1.5, width: 6.65, height: 0.3,
           fontRole: "eyebrow", color: "secondary", textFit: "truncate",
-          placeholder: "Featured Member", recordIndex: 0,
+          recordIndex: 0,
         },
         {
           type: "text", field: "personName",
@@ -339,16 +369,16 @@ export const directoryClassic = {
         },
         { type: "rule", x: 9.6, y: 3.1, width: 1.2, height: 0.022, background: "secondary" },
         {
-          type: "text", field: "role:secondaryText",
+          type: "text", field: "role:phone",
           x: 9.6, y: 3.4, width: 6.65, height: 0.45,
           fontRole: "listingTitle", color: "secondary",
           textFit: "clamp", maxLines: 2, recordIndex: 0,
         },
 
         /*
-         * Recto — flowing block. Biography first, then the contact group
-         * immediately beneath it. Any child with no value is skipped and its
-         * space reclaimed.
+         * Recto — flowing block, in the order the listing sets them. Any child
+         * with no value is skipped and its space reclaimed, so a household with
+         * no alternate contact simply has a shorter block.
          */
         {
           type: "stack",
@@ -357,18 +387,11 @@ export const directoryClassic = {
           groupGap: 0.36,
           recordIndex: 0,
           children: [
-            {
-              field: "role:bodyText",
-              fontRole: "body", color: "ink",
-              maxLines: 10, group: "bio",
-              /* Gives up lines first if the whole stack would overrun. */
-              flexible: true,
-            },
-            { field: "streetAddress", fontRole: "listingDetail", color: "ink", opacity: 0.75, maxLines: 2, group: "contact" },
-            { field: "cityStateLine", fontRole: "listingMeta", color: "ink", opacity: 0.75, maxLines: 1, group: "contact" },
-            { field: "role:phone", fontRole: "listingMeta", color: "ink", opacity: 0.75, maxLines: 1, group: "contact" },
-            { field: "role:email", fontRole: "listingMeta", color: "ink", opacity: 0.75, maxLines: 1, group: "contact" },
-            { field: "role:website", fontRole: "listingMeta", color: "ink", opacity: 0.75, maxLines: 1, group: "contact" },
+            { field: "familyLine", fontRole: "body", color: "ink", maxLines: 6, group: "family", flexible: true },
+            { field: "addressLine", fontRole: "listingDetail", color: "ink", opacity: 0.75, maxLines: 2, group: "contact" },
+            { field: "altPhoneLine", fontRole: "listingMeta", color: "ink", opacity: 0.75, maxLines: 1, group: "contact" },
+            { field: "emailLine", fontRole: "listingMeta", color: "ink", opacity: 0.75, maxLines: 2, group: "contact" },
+            { field: "altEmailLine", fontRole: "listingMeta", color: "ink", opacity: 0.75, maxLines: 2, group: "contact" },
           ],
         },
 

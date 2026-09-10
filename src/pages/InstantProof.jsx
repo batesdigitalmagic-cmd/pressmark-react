@@ -258,7 +258,18 @@ export default function InstantProof() {
    */
   const ingestCsv = useCallback(
     async (asset, publicationTypeId) => {
-      const schemaId = schemaIdsFor(publicationTypeId)[0] ?? "people-directory";
+      /*
+       * The DESIGN decides the schema, not the publication type.
+       *
+       * Directory Classic binds the eight merge fields of its .indd; choosing
+       * it under "Membership Directory" must still parse against
+       * `church-directory`, or the mapping step would offer columns the
+       * template cannot place and demand ones it never sets. The publication
+       * type is only a fallback for designs that serve several schemas.
+       */
+      const template = templateFor(projectRef.current.visual.templateId);
+      const schemaId =
+        template?.schemas?.[0] ?? schemaIdsFor(publicationTypeId)[0] ?? "people-directory";
       try {
         const table = await parseCsvFile(asset.file);
         const proposals = suggestMapping(table.headers, schemaId);

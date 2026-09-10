@@ -52,6 +52,108 @@ const SORT_ORDER = {
 /** @type {ContentSchema[]} */
 export const CONTENT_SCHEMAS = [
   {
+    /*
+     * The church directory, matching the production InDesign Data Merge
+     * template one-for-one.
+     *
+     * ── Why this is its own schema ──
+     *
+     * Directory Classic used to borrow `people-directory`, a deliberately broad
+     * schema that requires `record_id` and `display_name` and offers seventeen
+     * columns. None of that survives contact with the actual .indd: its merge
+     * fields are these eight and no others. Borrowing the general schema meant
+     * the upload step demanded two columns the template never places, asked for
+     * a photo filename it has no frame for, and offered fourteen mappings that
+     * could not affect the output.
+     *
+     * The fields below are exactly the merge fields in
+     * church-directory-classic.indd, in the order the listing sets them. If the
+     * .indd changes, this changes with it — that is the whole point of a
+     * template-specific schema.
+     *
+     * ── No record id, no display name, no image ──
+     *
+     * There is no `record_id`: nothing in the layout prints one and nothing
+     * needs one to sort, since the server orders by surname then forename.
+     *
+     * There is no `display_name`. The listing sets the name from `last_name`
+     * and `first_name` directly, so a display column would be a third source of
+     * truth that could disagree with the two real ones. Values are printed as
+     * given — nothing here invents or substitutes a name.
+     *
+     * There is no image field. The directory listing is text; the template has
+     * no portrait frame, so asking for a photo filename would be asking for a
+     * column we would then ignore.
+     */
+    id: "church-directory",
+    label: "Church Directory Records",
+    description:
+      "Households and members for Directory Classic: name, address and contact details, exactly as the InDesign template sets them.",
+    templateFile: "/csv-templates/pressmark-church-directory.csv",
+    fields: [
+      {
+        key: "last_name",
+        label: "Last name",
+        required: true,
+        aliases: ["last", "lastname", "surname", "family name", "familyname", "lname", "household"],
+        role: "lastName",
+        hint: "Printed first in the listing and used for alphabetical order.",
+      },
+      {
+        key: "first_name",
+        label: "First name",
+        required: true,
+        aliases: ["first", "firstname", "given name", "givenname", "fname"],
+        role: "firstName",
+      },
+      {
+        key: "address",
+        label: "Address",
+        required: true,
+        aliases: ["street", "street address", "address 1", "address1", "mailing address", "home address"],
+        role: "addressLine",
+        hint: "One line, as it should appear. The template does not split city, state and postcode.",
+      },
+      {
+        key: "phone",
+        label: "Phone",
+        required: true,
+        aliases: ["telephone", "tel", "phone number", "phonenumber", "home phone", "primary phone"],
+        role: "phone",
+      },
+      {
+        key: "email",
+        label: "Email",
+        required: true,
+        aliases: ["e-mail", "email address", "emailaddress", "mail", "primary email"],
+        role: "email",
+      },
+      {
+        key: "alternate_phone",
+        label: "Alternate phone",
+        required: false,
+        aliases: ["alt phone", "altphone", "second phone", "mobile", "cell", "cell phone", "work phone"],
+        role: "altPhone",
+      },
+      {
+        key: "alternate_email",
+        label: "Alternate email",
+        required: false,
+        aliases: ["alt email", "altemail", "second email", "work email", "other email"],
+        role: "altEmail",
+      },
+      {
+        key: "family_members",
+        label: "Family members",
+        required: false,
+        aliases: ["members", "household members", "family", "names", "children", "spouse"],
+        role: "familyMembers",
+        hint: "Free text, printed as supplied — for example \"Ava, Ben and Rosa\".",
+      },
+    ],
+  },
+
+  {
     id: "people-directory",
     label: "People and Directory Records",
     description:

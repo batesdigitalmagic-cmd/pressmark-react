@@ -93,18 +93,32 @@ export const PUBLICATION_CONFIGS = [
   },
   {
     id: "church-directory",
-    schemaIds: ["people-directory"],
+    /* Directory Classic's own schema — the eight merge fields of
+       church-directory-classic.indd, and nothing the template cannot place. */
+    schemaIds: ["church-directory"],
     label: "Church Directory",
     blurb: "Families, households and congregation contacts.",
     description:
       "A church photo directory built from family photographs and a household list, organized alphabetically with clear contact blocks.",
     requiredContent: [
       portraits("10–30 family or individual photographs."),
-      roster("Family and contact CSV", "Columns such as Family Name, Members, Address, Phone, Email."),
+      roster(
+        "Family and contact CSV",
+        "Exactly these columns: last_name, first_name, address, phone, email, plus optional alternate_phone, alternate_email and family_members."
+      ),
     ],
     optionalContent: [logo("Church logo"), candids],
     suggestedProofPages: 6,
-    dataFields: ["Family Name", "Members", "Address", "City / State", "Phone", "Email", "Photo File"],
+    dataFields: [
+      "last_name",
+      "first_name",
+      "address",
+      "phone",
+      "email",
+      "alternate_phone",
+      "alternate_email",
+      "family_members",
+    ],
     uploadInstructions:
       "Ten to thirty families is enough. The proof shows the listing layout, the alphabetical flow and the contact hierarchy.",
     sampleOutput: "A cover, a family listing spread and a section divider spread.",

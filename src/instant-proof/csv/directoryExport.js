@@ -1,37 +1,35 @@
 /*
- * Projecting a mapped record set down to the directory worker's CSV contract.
+ * Projecting mapped Directory Classic records onto the worker's CSV contract.
  *
- * ── Why this file exists ──
+ * ── What this is now ──
  *
- * There are two directory schemas in this repository and they do not agree:
+ * The browser schema (`church-directory`) and the worker contract are the same
+ * eight columns, in the same meaning, because both were derived from the merge
+ * fields of church-directory-classic.indd. This module's job is therefore no
+ * longer to translate between two disagreeing schemas — it is to emit those
+ * eight columns in the exact shape the InDesign script requires.
  *
- *   csv/schemas.js `people-directory`  17 columns, requires record_id and
- *                                      display_name, carries photo_filename,
- *                                      city/state/postal, title, bio, sort order.
+ * ── Values are passed through, never invented ──
  *
- *   lib/render-jobs/csv.js             8 columns, requires last_name and
- *                                      first_name, rejects EVERY other header
- *                                      outright.
+ * Every cell is the customer's own value. There is no display-name splitting,
+ * no record id, no inferring a forename from a surname, and no substituting one
+ * column for another. An earlier version did the last of these — a row with a
+ * surname and no forename had the surname copied into `first_name` so the
+ * upload would pass — which quietly printed the wrong thing in someone's
+ * directory. A row that cannot be printed honestly is reported instead.
  *
- * That disagreement was not cosmetic: the people-directory CSV template this
- * site offers for download was rejected by the very endpoint it feeds, with
- * "Unsupported headers: record_id, display_name, title, ...". Anyone following
- * our own instructions hit a hard 400.
+ * ── All eight headers, always ──
  *
- * Rather than narrow the browser (which would cost photo matching, sort order
- * and the whole alias-driven mapping UI) or widen the worker (which would move
- * the problem into the InDesign script), the browser keeps the rich schema and
- * *projects* it here, immediately before submission. The customer's spreadsheet
- * can be as rich as they like; the worker receives exactly the eight columns it
- * accepts, already mapped and already sorted.
+ * PressmarkDirectoryMerge.jsx validates that ALL EIGHT headers are present and
+ * fails the render if any is missing. This module previously omitted optional
+ * columns that were empty for every row, so a directory where nobody had an
+ * alternate phone produced a seven-column CSV and a failed render. The header
+ * row is now fixed and complete; empty cells are empty, which is what Data
+ * Merge expects.
  *
- * The rich record set stays the source of truth for the on-screen proof, so the
- * preview shows titles and portraits even though the production CSV cannot
- * carry them.
- *
- * Pure and browser-only. It imports nothing from lib/ or api/ — eslint.config.js
- * forbids that — so the header list below is duplicated deliberately. The
- * verification script asserts the two stay identical.
+ * Pure and browser-only. It imports nothing from lib/ or api/ — eslint forbids
+ * that — so the header list below is duplicated deliberately, and verify:proof
+ * asserts it still matches lib/render-jobs/csv.js.
  */
 
 import { sortRecords } from "./analyzeRecords.js";
@@ -39,10 +37,20 @@ import { resolveBinding } from "../render/bindings.js";
 
 /*
  * The worker's contract, mirrored. Must stay byte-identical to REQUIRED_HEADERS
- * and OPTIONAL_HEADERS in lib/render-jobs/csv.js; verify:proof fails if it drifts.
+ * and OPTIONAL_HEADERS in lib/render-jobs/csv.js, and to REQUIRED_HEADERS in
+ * scripts/indesign/PressmarkDirectoryMerge.jsx.
  */
-export const WORKER_REQUIRED_HEADERS = ["last_name", "first_name"];
-export const WORKER_OPTIONAL_HEADERS = [
+export const WORKER_REQUIRED_HEADERS = ["last_name", "first_name", "address", "phone", "email"];
+export const WORKER_OPTIONAL_HEADERS = ["alternate_phone", "alternate_email", "family_members"];
+
+/*
+ * The header row, in the order the InDesign template expects. Every one is
+ * emitted on every export — see the note above about the JSX requiring all
+ * eight.
+ */
+export const WORKER_HEADERS = [
+  "last_name",
+  "first_name",
   "address",
   "phone",
   "alternate_phone",
@@ -50,7 +58,6 @@ export const WORKER_OPTIONAL_HEADERS = [
   "alternate_email",
   "family_members",
 ];
-export const WORKER_HEADERS = [...WORKER_REQUIRED_HEADERS, ...WORKER_OPTIONAL_HEADERS];
 
 const text = (value) => String(value ?? "").trim();
 
@@ -59,85 +66,22 @@ const bind = (expression, record, schema) =>
   text(resolveBinding(expression, { record, schema })?.value);
 
 /**
- * Split a single display name into surname and forename.
+ * The worker's row for one record — the customer's values, unchanged.
  *
- * A directory display name is written one of two ways, and the comma is what
- * tells them apart:
- *
- *   "Whitfield, Ava"   already inverted for alphabetical listing  -> last, first
- *   "Ava Whitfield"    natural order                              -> first, last
- *
- * The last whitespace-separated word is taken as the surname in the natural
- * case, so "Ava Marie Whitfield" keeps "Ava Marie" together as the forename
- * rather than losing the middle name. A single word is treated as a surname,
- * because a directory sorts on it.
- */
-export function splitDisplayName(displayName) {
-  const value = text(displayName);
-  if (!value) return { last: "", first: "" };
-
-  const comma = value.indexOf(",");
-  if (comma !== -1) {
-    return {
-      last: value.slice(0, comma).trim(),
-      first: value.slice(comma + 1).trim(),
-    };
-  }
-
-  const parts = value.split(/\s+/);
-  if (parts.length === 1) return { last: parts[0], first: "" };
-  return { last: parts[parts.length - 1], first: parts.slice(0, -1).join(" ") };
-}
-
-/**
- * Surname and forename for one record.
- *
- * Explicit first_name/last_name columns win, because the customer stated them.
- * Only when a spreadsheet carries display_name alone do we split it — and a
- * record with just one of the two explicit columns still gets the other
- * inferred, so a sheet holding only `last_name` is not rejected for a missing
- * `first_name` it never had.
- */
-export function namePartsOf(record, schema) {
-  const first = bind("role:firstName", record, schema);
-  const last = bind("role:lastName", record, schema);
-  if (first && last) return { first, last };
-
-  const split = splitDisplayName(bind("role:primaryText", record, schema));
-  return { first: first || split.first, last: last || split.last };
-}
-
-/*
- * One address line, because the worker has one address column.
- *
- * The rich schema keeps street, city, state and postcode apart so the proof can
- * give each its own reserved line. The worker cannot express that, so they are
- * rejoined the way an envelope is written: street, then locality.
- */
-function addressOf(record, schema) {
-  const street = bind("streetAddress", record, schema);
-  const locality = bind("cityStateLine", record, schema);
-  return [street, locality].filter(Boolean).join(", ");
-}
-
-/**
- * Build the worker's row for one record. Values only — never a header.
- *
- * `alternate_phone`, `alternate_email` and `family_members` have no counterpart
- * in the rich schema, so they are deliberately empty rather than guessed at. A
- * fabricated second phone number would print in someone's directory.
+ * Each cell reads through its semantic role, so a customer who mapped
+ * "Home Phone" to `phone` gets their own value in the phone column without this
+ * module knowing what they called it.
  */
 function workerRow(record, schema) {
-  const { first, last } = namePartsOf(record, schema);
   return {
-    last_name: last,
-    first_name: first,
-    address: addressOf(record, schema),
+    last_name: bind("role:lastName", record, schema),
+    first_name: bind("role:firstName", record, schema),
+    address: bind("role:addressLine", record, schema),
     phone: bind("role:phone", record, schema),
-    alternate_phone: "",
+    alternate_phone: bind("role:altPhone", record, schema),
     email: bind("role:email", record, schema),
-    alternate_email: "",
-    family_members: "",
+    alternate_email: bind("role:altEmail", record, schema),
+    family_members: bind("role:familyMembers", record, schema),
   };
 }
 
@@ -153,20 +97,18 @@ function csvCell(value) {
  *
  * The server rejects the whole upload if a single row lacks a name, which from
  * the customer's side is one opaque 400 for a problem in row 84 of 300. Finding
- * them here means we can name the rows instead.
+ * them here means we can name the rows instead — and, crucially, we report them
+ * rather than papering over them by copying a value from another column.
  *
  * @returns {{index: number, reason: string}[]}
  */
 export function unexportableRecords(records, schema) {
   const problems = [];
   sortRecords(records ?? []).forEach((record, index) => {
-    const { first, last } = namePartsOf(record, schema);
-    if (!last && !first) {
-      problems.push({ index, reason: "no name in any recognised column" });
-    } else if (!last) {
-      problems.push({ index, reason: "no surname" });
-    } else if (!first) {
-      problems.push({ index, reason: "no first name" });
+    const row = workerRow(record, schema);
+    const missing = WORKER_REQUIRED_HEADERS.filter((header) => row[header] === "");
+    if (missing.length > 0) {
+      problems.push({ index, reason: `no ${missing.join(", ")}` });
     }
   });
   return problems;
@@ -175,13 +117,11 @@ export function unexportableRecords(records, schema) {
 /**
  * The production CSV, as text.
  *
- * Sorted by sort_order then file order (the same order the on-screen proof
- * uses, so the preview and the PDF agree), then re-sorted by the server into
- * surname order. Only columns that actually carry a value are emitted: every
- * optional header is optional to the worker, and shipping four empty columns
- * would suggest we lost data we never had.
+ * Sorted by sort order then file order — the same order the on-screen proof
+ * uses, so the preview and the PDF agree — then re-sorted by the server into
+ * surname order.
  *
- * Records without a usable name are dropped rather than allowed to fail the
+ * Rows missing a required value are dropped rather than allowed to fail the
  * whole upload; `unexportableRecords` is what tells the customer about them.
  *
  * @param {Record<string,string>[]} records  Canonical, mapped records.
@@ -189,30 +129,19 @@ export function unexportableRecords(records, schema) {
  * @returns {{text: string, rowCount: number, headers: string[], skipped: number}}
  */
 export function toDirectoryCsv(records, schema) {
-  const rows = sortRecords(records ?? [])
+  const sorted = sortRecords(records ?? []);
+  const rows = sorted
     .map((record) => workerRow(record, schema))
-    /* Both names are required by the worker; infer the missing half from the
-       one we have rather than discarding a real person over a blank column. */
-    .map((row) => {
-      if (row.last_name && !row.first_name) return { ...row, first_name: row.last_name };
-      if (!row.last_name && row.first_name) return { ...row, last_name: row.first_name };
-      return row;
-    })
-    .filter((row) => row.last_name && row.first_name);
+    .filter((row) => WORKER_REQUIRED_HEADERS.every((header) => row[header] !== ""));
 
-  const headers = WORKER_HEADERS.filter(
-    (header) =>
-      WORKER_REQUIRED_HEADERS.includes(header) || rows.some((row) => row[header] !== "")
-  );
-
-  const lines = [headers.join(",")];
-  for (const row of rows) lines.push(headers.map((header) => csvCell(row[header])).join(","));
+  const lines = [WORKER_HEADERS.join(",")];
+  for (const row of rows) lines.push(WORKER_HEADERS.map((header) => csvCell(row[header])).join(","));
 
   return {
     text: `${lines.join("\r\n")}\r\n`,
     rowCount: rows.length,
-    headers,
-    skipped: sortRecords(records ?? []).length - rows.length,
+    headers: [...WORKER_HEADERS],
+    skipped: sorted.length - rows.length,
   };
 }
 

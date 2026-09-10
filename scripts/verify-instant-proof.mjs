@@ -22,16 +22,24 @@ import { cellBox, frame, pageBox, pt } from "../src/instant-proof/render/geometr
 import { estimateLines, fitTypeSize } from "../src/instant-proof/render/fitting.js";
 import { resolveBinding } from "../src/instant-proof/render/bindings.js";
 import { planProof } from "../src/instant-proof/render/proofPlan.js";
-import { schemaFor } from "../src/instant-proof/csv/schemas.js";
+import {
+  columnsOf,
+  requiredColumnsOf,
+  schemaFor,
+} from "../src/instant-proof/csv/schemas.js";
 import { matchPhotos } from "../src/instant-proof/csv/photoMatching.js";
 import { parseCsv } from "../src/instant-proof/csv/parseCsv.js";
-import { applyMapping, mappingFromProposals, suggestMapping } from "../src/instant-proof/csv/columnMapping.js";
+import {
+  applyMapping,
+  isCanonical,
+  mappingFromProposals,
+  suggestMapping,
+} from "../src/instant-proof/csv/columnMapping.js";
 import { analyzeRecords } from "../src/instant-proof/csv/analyzeRecords.js";
 import {
   WORKER_HEADERS,
+  WORKER_OPTIONAL_HEADERS,
   WORKER_REQUIRED_HEADERS,
-  namePartsOf,
-  splitDisplayName,
   toDirectoryCsv,
   unexportableRecords,
 } from "../src/instant-proof/csv/directoryExport.js";
@@ -40,6 +48,7 @@ import {
 import {
   OPTIONAL_HEADERS as SERVER_OPTIONAL_HEADERS,
   REQUIRED_HEADERS as SERVER_REQUIRED_HEADERS,
+  SUPPORTED_HEADERS as SERVER_SUPPORTED_HEADERS,
   validateAndNormalizeCsv,
 } from "../lib/render-jobs/csv.js";
 import {
@@ -113,7 +122,10 @@ const RECORDS = [
   sort_order: String(i + 1),
 }));
 
-const SCHEMA = schemaFor("people-directory");
+/* Directory Classic's own schema — the eight InDesign merge fields. Every
+   geometry and binding assertion below is about THAT template, so it must
+   resolve against the schema that template declares. */
+const SCHEMA = schemaFor("church-directory");
 const DIRECTORY = templateFor("directory-classic");
 const LISTING = DIRECTORY.pages.find((p) => p.pageType === "listing-spread");
 const GRIDS = LISTING.elements.filter((e) => e.type === "repeater");
@@ -123,9 +135,13 @@ const CARD = GRIDS[0].cell;
 const CARD_BOX = cellBox(GRIDS[0]);
 const band = (field) => CARD.find((e) => e.field === field);
 const NAME = band("personName");
-const TITLE = band("role:secondaryText");
-const ADDRESS = band("streetAddress");
-const CITY = band("cityStateLine");
+const PHONE = band("role:phone");
+const ADDRESS = band("addressLine");
+/* The last reserved band on the card, whatever it is — used only to report how
+   much of the card is used, so it must not name a specific field. */
+const LAST_BAND = CARD.reduce((lowest, element) =>
+  element.y + element.height > lowest.y + lowest.height ? element : lowest
+);
 
 /* Height a text element can actually occupy at its declared maxLines. */
 const occupied = (element, template) => {
@@ -149,7 +165,7 @@ group("1. Profile elements stay inside their card");
     }
   }
   ok("all card elements within the card box", outside === 0,
-     `card ${CARD_BOX.widthIn} x ${CARD_BOX.heightIn}in, last band ends ${(CITY.y + CITY.height).toFixed(2)}in`);
+     `card ${CARD_BOX.widthIn} x ${CARD_BOX.heightIn}in, last band ends ${(LAST_BAND.y + LAST_BAND.height).toFixed(2)}in`);
 
   let tooTall = 0;
   for (const element of CARD) {
@@ -193,7 +209,7 @@ group("4. Second row clears the folio and footer");
   const grid = GRIDS[0];
   const { rows, gapY } = grid.repeat;
   const secondRowTop = grid.y + (rows - 1) * (CARD_BOX.heightIn + gapY);
-  const secondRowContentBottom = secondRowTop + CITY.y + CITY.height;
+  const secondRowContentBottom = secondRowTop + LAST_BAND.y + LAST_BAND.height;
   const gridBottom = grid.y + grid.height;
 
   const folio = LISTING.elements.find((e) => e.field === "static:12");
@@ -221,11 +237,13 @@ group("5-6. Reserved bands cannot overlap");
     }
   }
   ok("no two text bands overlap", overlaps === 0);
-  ok("name cannot reach the title", NAME.y + NAME.height <= TITLE.y,
-     `name ends ${(NAME.y + NAME.height).toFixed(2)}, title starts ${TITLE.y}`);
-  ok("title cannot reach the address", TITLE.y + TITLE.height <= ADDRESS.y,
-     `title ends ${(TITLE.y + TITLE.height).toFixed(2)}, address starts ${ADDRESS.y}`);
-  ok("portrait clears the name", 2.35 <= NAME.y, "portrait ends 2.35in");
+  ok("name cannot reach the phone", NAME.y + NAME.height <= PHONE.y,
+     `name ends ${(NAME.y + NAME.height).toFixed(2)}, phone starts ${PHONE.y}`);
+  ok("phone cannot reach the address band", PHONE.y + PHONE.height <= ADDRESS.y,
+     `phone ends ${(PHONE.y + PHONE.height).toFixed(2)}, address starts ${ADDRESS.y}`);
+  /* There is no portrait any more — the listing is text — so the name is the
+     first band and starts at the top of the card. */
+  ok("the name is the first band on the card", NAME.y === 0, `name starts ${NAME.y}in`);
 }
 
 /* ── 7 & 8. Long text is contained ── */
@@ -233,7 +251,7 @@ group("7-8. Long text stays within its line limit");
 {
   ok("name band allows exactly two lines", NAME.maxLines === 2);
   ok("address band allows exactly two lines", ADDRESS.maxLines === 2);
-  ok("city line allows exactly one", CITY.maxLines === 1);
+  ok("the phone line allows exactly one", PHONE.maxLines === 1);
 
   const nameRole = DIRECTORY.fontRoles[NAME.fontRole];
   const fitted = fitTypeSize(LONG_NAME, NAME.width, NAME.height, nameRole.size, NAME.maxLines, nameRole.lineHeight);
@@ -244,7 +262,7 @@ group("7-8. Long text stays within its line limit");
      (Math.min(estimateLines(LONG_NAME, NAME.width, fitted), NAME.maxLines) * fitted * nameRole.lineHeight) / 72 <= NAME.height + 1e-9);
   ok("name uses shrink-then-clamp", NAME.textFit === "shrink");
   ok("address clamps with an ellipsis", ADDRESS.textFit === "clamp");
-  ok("city truncates on one line", CITY.textFit === "truncate");
+  ok("the phone line truncates rather than wrapping", PHONE.textFit === "truncate");
 
   const addrRole = DIRECTORY.fontRoles[ADDRESS.fontRole];
   ok("a 50-character address needs no more than two lines at its size",
@@ -255,25 +273,39 @@ group("7-8. Long text stays within its line limit");
 /* ── 9. Missing fields collapse without disturbing the card ── */
 group("9. Missing fields collapse cleanly");
 {
-  const noTitle = RECORDS[7];
-  ok("record 8 genuinely has no title", noTitle.title === "");
-  ok("its title binding resolves to empty",
-     resolveBinding(TITLE.field, { record: noTitle, schema: SCHEMA }).value === "");
-  ok("its name still resolves", resolveBinding(NAME.field, { record: noTitle, schema: SCHEMA }).value === "Li, Wei");
-  ok("its address still resolves", resolveBinding(ADDRESS.field, { record: noTitle, schema: SCHEMA }).value === "412 Larkspur Lane");
+  const noAlternates = {
+    last_name: "Li", first_name: "Wei",
+    address: "412 Larkspur Lane", phone: "770-555-0142", email: "wei.li@example.org",
+    alternate_phone: "", alternate_email: "", family_members: "",
+  };
+  const bind = (field, record) => resolveBinding(field, { record, schema: SCHEMA }).value;
+
+  ok("an absent alternate phone resolves to empty", bind("altPhoneLine", noAlternates) === "");
+  ok("an absent alternate email resolves to empty", bind("altEmailLine", noAlternates) === "");
+  ok("an absent family list resolves to empty", bind("familyLine", noAlternates) === "");
+  ok("its name still resolves", bind(NAME.field, noAlternates) === "Li, Wei", bind(NAME.field, noAlternates));
+  ok("its phone still resolves", bind(PHONE.field, noAlternates) === "770-555-0142");
+  ok("its address still resolves",
+     bind(ADDRESS.field, noAlternates) === "Address: 412 Larkspur Lane", bind(ADDRESS.field, noAlternates));
+
   /* Bands are at fixed coordinates, so an empty one cannot move its neighbours.
      That is the guarantee — not that the renderer happens to reflow correctly. */
-  ok("the address band's position does not depend on the title", ADDRESS.y === 3.63);
+  const ALT_PHONE = band("altPhoneLine");
+  ok("the address band's position does not depend on the alternate phone",
+     ADDRESS.y === 2.03 && ALT_PHONE.y < ADDRESS.y,
+     `address at ${ADDRESS.y}in, alt phone at ${ALT_PHONE.y}in`);
 
-  const noAddress = { display_name: "Nobody, A", city: "", state: "", postal_code: "" };
-  ok("an absent address resolves to empty", resolveBinding(ADDRESS.field, { record: noAddress, schema: SCHEMA }).value === "");
-  ok("an absent city line resolves to empty", resolveBinding(CITY.field, { record: noAddress, schema: SCHEMA }).value === "");
+  const noAddress = { last_name: "Nobody", first_name: "A" };
+  ok("an absent address resolves to empty", bind(ADDRESS.field, noAddress) === "");
 
-  const partial = { first_name: "Ada", last_name: "Lovelace" };
-  ok("a name with no display_name falls back to first + last",
-     resolveBinding(NAME.field, { record: partial, schema: SCHEMA }).value === "Ada Lovelace");
-  ok("an empty record yields no name, not a placeholder",
-     resolveBinding(NAME.field, { record: null, schema: SCHEMA }).value === "");
+  /* The name is composed from the two real columns — there is no display_name
+     column in this schema, and none is invented. */
+  ok("a name is composed as Last, First from the customer's own columns",
+     bind(NAME.field, { last_name: "Lovelace", first_name: "Ada" }) === "Lovelace, Ada",
+     bind(NAME.field, { last_name: "Lovelace", first_name: "Ada" }));
+  ok("a record with only a surname prints that surname alone",
+     bind(NAME.field, { last_name: "Cher", first_name: "" }) === "Cher");
+  ok("an empty record yields no name, not a placeholder", bind(NAME.field, null) === "");
 }
 
 /* ── 10. Twelve records fill the spread in order ── */
@@ -375,9 +407,9 @@ group("13. Featured profile flows contact under the biography");
      `both end ${(stack.x + stack.width).toFixed(2)}in`);
 
   const fields = stack.children.map((c) => c.field);
-  ok("the biography comes first", fields[0] === "role:bodyText");
-  ok("contact fields follow it", fields.slice(1).join(",") ===
-     "streetAddress,cityStateLine,role:phone,role:email,role:website");
+  ok("the family list comes first", fields[0] === "familyLine", fields[0]);
+  ok("contact fields follow it, in listing order", fields.slice(1).join(",") ===
+     "addressLine,altPhoneLine,emailLine,altEmailLine", fields.slice(1).join(","));
   ok("contact is a distinct group", stack.children.slice(1).every((c) => c.group === "contact"));
   ok("crossing into contact uses a larger gap", stack.groupGap > stack.gap,
      `${stack.groupGap}in vs ${stack.gap}in`);
@@ -415,45 +447,56 @@ group("13. Featured profile flows contact under the biography");
     return { rows, used: cursor };
   };
 
-  const BIO = "Ava has served on the board since 2019 and chairs the planning committee. She previously led the capital campaign that funded the community hall.";
+  const FAMILY =
+    "Ava, Ben and Rosa Whitfield, with Marguerite Whitfield and the Larkspur Lane household.";
   const full = {
-    display_name: "Whitfield, Ava", title: "Board President", short_bio: BIO,
-    address: "412 Larkspur Lane", city: "Marietta", state: "GA", postal_code: "30060",
-    phone: "770-555-0142", email: "ava@example.org", website: "https://example.org",
+    last_name: "Whitfield",
+    first_name: "Ava",
+    address: "412 Larkspur Lane Marietta GA 30060",
+    phone: "770-555-0142",
+    email: "ava@example.org",
+    alternate_phone: "770-555-0143",
+    alternate_email: "a.whitfield@example.net",
+    family_members: FAMILY,
   };
 
   const a = layout(full);
-  ok("a complete record lays out all six lines", a.rows.length === 6);
-  ok("contact begins immediately below the biography",
+  ok("a complete record lays out all five lines", a.rows.length === 5,
+     a.rows.map((r) => r.field).join(" + "));
+  ok("contact begins immediately below the family list",
      Math.abs(a.rows[1].top - (a.rows[0].bottom + stack.groupGap)) < 1e-9,
-     `bio ends ${a.rows[0].bottom.toFixed(2)}in, contact starts ${a.rows[1].top.toFixed(2)}in`);
+     `family ends ${a.rows[0].bottom.toFixed(2)}in, contact starts ${a.rows[1].top.toFixed(2)}in`);
   ok("nothing runs past the region", a.used <= stack.height + 1e-9,
      `uses ${a.used.toFixed(2)}in of ${stack.height}in`);
 
-  const noContact = layout({ display_name: "Li, Wei", short_bio: "A long-standing member." });
-  ok("a record with no contact details lays out the biography alone", noContact.rows.length === 1);
-  ok("its biography still starts at the top of the region", noContact.rows[0].top === 0);
+  const familyOnly = layout({ last_name: "Li", first_name: "Wei", family_members: "Wei and Mei Li." });
+  ok("a record with no contact details lays out the family list alone", familyOnly.rows.length === 1);
+  ok("it still starts at the top of the region", familyOnly.rows[0].top === 0);
 
-  const sparse = layout({ display_name: "Nakamura, Kenji", short_bio: "Keeps the books.", phone: "770-555-0201" });
-  ok("absent address, email and website take no space", sparse.rows.length === 2,
+  const sparse = layout({
+    last_name: "Nakamura", first_name: "Kenji",
+    family_members: "Kenji and Aiko.", address: "5 Willow Bend",
+  });
+  ok("absent phone and emails take no space", sparse.rows.length === 2,
      sparse.rows.map((r) => r.field).join(" + "));
-  ok("the surviving contact line flows up to meet the biography",
+  ok("the surviving contact line flows up to meet the family list",
      Math.abs(sparse.rows[1].top - (sparse.rows[0].bottom + stack.groupGap)) < 1e-9,
-     `phone starts ${sparse.rows[1].top.toFixed(2)}in`);
+     `address starts ${sparse.rows[1].top.toFixed(2)}in`);
 
-  const noBio = layout({ display_name: "Osei, Daniel", address: "9 Peachtree Way", city: "Austell", state: "GA" });
-  ok("with no biography the contact block starts at the top", noBio.rows[0].top === 0);
-  ok("and it is the address", noBio.rows[0].field === "streetAddress");
+  const noFamily = layout({
+    last_name: "Osei", first_name: "Daniel", address: "9 Peachtree Way Austell GA",
+  });
+  ok("with no family list the contact block starts at the top", noFamily.rows[0].top === 0);
+  ok("and it is the address", noFamily.rows[0].field === "addressLine",
+     noFamily.rows[0].field);
 
-  /* An implausibly long biography must not push contact past the region. */
-  const huge = layout({ ...full, short_bio: "word ".repeat(600) });
-  ok("an overlong biography is trimmed rather than overflowing", huge.used <= stack.height + 1e-9,
-     `uses ${huge.used.toFixed(2)}in of ${stack.height}in`);
-  ok("the contact block survives the trim", huge.rows.length === 6);
-  ok("no two rows overlap in any case",
-     [a, sparse, noBio, huge].every((l) =>
-       l.rows.every((r, i) => i === 0 || r.top >= l.rows[i - 1].bottom - 1e-9)));
+  /* Nothing in this stack can print a bare label for a value the customer did
+     not supply. */
+  const empty = layout({ last_name: "Solo", first_name: "Ada" });
+  ok("a record with only a name lays out nothing in the stack", empty.rows.length === 0,
+     `${empty.rows.length} rows`);
 }
+
 
 /* ── 14. Empty image frames never show a stray icon ── */
 group("14. Image frames declare what belongs in them");
@@ -684,7 +727,7 @@ group("28. Spreadsheet mode retains every capability");
   ok("filename matching still runs",
      matchPhotos(rows, "photo_filename", [{ id: "a", name: rows[0].photo_filename, extension: ".jpg", size: 1, kind: "image" }], {}).exact === 1);
   ok("all six CSV templates are still downloadable",
-     ["people-directory", "yearbook-portraits", "editorial", "event-schedule", "annual-report-metrics", "sponsors"]
+     ["church-directory", "people-directory", "yearbook-portraits", "editorial", "event-schedule", "annual-report-metrics", "sponsors"]
        .every((id) => existsSync(resolve(ROOT, "public", schemaFor(id).templateFile.replace(/^\//, "")))));
 
   const dataProject = { ...emptyProject(), mode: PROOF_MODES.data, data: { ...emptyProject().data, records: rows } };
@@ -1261,45 +1304,109 @@ group("Data pipeline still sound");
 }
 
 
-/* ── The directory merge: rich browser schema -> narrow worker contract ── */
-group("Directory CSV export matches the worker contract");
+/* ── Directory Classic speaks exactly one schema, everywhere ── */
+group("Directory Classic uses the InDesign merge fields and nothing else");
 {
-  const schema = schemaFor("people-directory");
+  const template = templateFor("directory-classic");
+  const schema = schemaFor("church-directory");
 
-  /* The bug this whole module exists to close: the two header lists disagreed,
-     and nothing detected it because they live either side of the src/lib wall. */
-  ok(
-    "required headers mirror the server exactly",
+  ok("the template binds the church-directory schema",
+    template.schemas.length === 1 && template.schemas[0] === "church-directory",
+    template.schemas.join(","));
+
+  const columns = columnsOf(schema);
+  ok("its columns are the eight merge fields, in order",
+    JSON.stringify(columns) ===
+      JSON.stringify([
+        "last_name", "first_name", "address", "phone", "email",
+        "alternate_phone", "alternate_email", "family_members",
+      ]),
+    columns.join(","));
+
+  ok("required are exactly the five",
+    JSON.stringify(requiredColumnsOf(schema)) ===
+      JSON.stringify(["last_name", "first_name", "address", "phone", "email"]),
+    requiredColumnsOf(schema).join(","));
+
+  /* The point of the whole change: these are gone, not merely optional. */
+  for (const banished of ["record_id", "display_name", "photo_filename", "title", "city", "state", "postal_code", "website", "short_bio", "sort_order"]) {
+    ok(`${banished} is not in the schema`, !columns.includes(banished));
+  }
+  ok("the schema declares no image field", schema.imageField === undefined);
+
+  /* No element may bind a role this schema does not carry, or a customer sees
+     an empty band where a merge field should be. */
+  const roles = new Set(schema.fields.map((field) => field.role));
+  const bound = [];
+  for (const page of template.pages) {
+    const walk = (elements) => {
+      for (const element of elements ?? []) {
+        if (typeof element.field === "string" && element.field.startsWith("role:")) {
+          bound.push(element.field.slice(5));
+        }
+        walk(element.cell);
+        walk(element.children);
+      }
+    };
+    walk(page.elements);
+  }
+  const orphaned = [...new Set(bound)].filter((role) => !roles.has(role));
+  ok("every role the template binds exists in the schema", orphaned.length === 0, orphaned.join(","));
+
+  /* No image binding anywhere: the listing is text and no photo is requested. */
+  const imageBindings = [];
+  for (const page of template.pages) {
+    const walk = (elements) => {
+      for (const element of elements ?? []) {
+        if (element.field === "record:image") imageBindings.push(page.id);
+        walk(element.cell);
+        walk(element.children);
+      }
+    };
+    walk(page.elements);
+  }
+  ok("no page asks for a record image", imageBindings.length === 0, imageBindings.join(","));
+}
+
+group("The browser schema and the server contract are the same schema");
+{
+  ok("required headers match the server exactly",
     JSON.stringify(WORKER_REQUIRED_HEADERS) === JSON.stringify(SERVER_REQUIRED_HEADERS),
-    `browser ${WORKER_REQUIRED_HEADERS.join(",")} vs server ${SERVER_REQUIRED_HEADERS.join(",")}`
-  );
-  ok(
-    "the full header list mirrors the server exactly",
-    JSON.stringify(WORKER_HEADERS) ===
-      JSON.stringify([...SERVER_REQUIRED_HEADERS, ...SERVER_OPTIONAL_HEADERS]),
-    `browser ${WORKER_HEADERS.join(",")}`
-  );
+    `browser ${WORKER_REQUIRED_HEADERS.join(",")} vs server ${SERVER_REQUIRED_HEADERS.join(",")}`);
 
-  /* Regression: the CSV template this site hands out used to be rejected by the
-     endpoint it feeds, with "Unsupported headers: record_id, display_name, ...". */
-  const templatePath = resolve(ROOT, "public/csv-templates/pressmark-people-directory.csv");
-  const table = parseCsv(readFileSync(templatePath, "utf8"));
-  const mapping = mappingFromProposals(suggestMapping(table.headers, "people-directory"));
-  const records = applyMapping(table.rows, mapping);
-  ok("our own directory template still parses", records.length > 0, `${records.length} records`);
+  ok("optional headers match the server exactly",
+    JSON.stringify(WORKER_OPTIONAL_HEADERS) === JSON.stringify(SERVER_OPTIONAL_HEADERS),
+    `browser ${WORKER_OPTIONAL_HEADERS.join(",")} vs server ${SERVER_OPTIONAL_HEADERS.join(",")}`);
+
+  ok("the emitted header row is exactly the supported set",
+    [...WORKER_HEADERS].sort().join(",") === [...SERVER_SUPPORTED_HEADERS].sort().join(","),
+    WORKER_HEADERS.join(","));
+
+  /* PressmarkDirectoryMerge.jsx fails the render if any of the eight headers is
+     absent, so the export must never omit an all-empty optional column. */
+  const jsx = readFileSync(resolve(ROOT, "scripts/indesign/PressmarkDirectoryMerge.jsx"), "utf8");
+  const declared = [...jsx.matchAll(/^\s{8}"([a-z_]+)",?$/gm)].map((match) => match[1]);
+  ok("the InDesign script requires the same eight headers",
+    declared.length === 8 && declared.every((header) => WORKER_HEADERS.includes(header)),
+    declared.join(","));
+}
+
+group("Our own Directory Classic template CSV round-trips");
+{
+  const schema = schemaFor("church-directory");
+  const table = parseCsv(
+    readFileSync(resolve(ROOT, "public/csv-templates/pressmark-church-directory.csv"), "utf8")
+  );
+  const proposals = suggestMapping(table.headers, "church-directory");
+  const records = applyMapping(table.rows, mappingFromProposals(proposals));
+
+  ok("its headers are already canonical", isCanonical(proposals));
+  ok("it parses", records.length === 3, `${records.length} records`);
 
   const built = toDirectoryCsv(records, schema);
-  ok("every parsed record survives the projection", built.rowCount === records.length);
-  ok("no record is dropped", built.skipped === 0);
-  ok(
-    "only headers the worker accepts are emitted",
-    built.headers.every((header) => WORKER_HEADERS.includes(header)),
-    built.headers.join(",")
-  );
-  ok(
-    "empty optional columns are omitted rather than shipped blank",
-    !built.headers.includes("alternate_phone") && !built.headers.includes("family_members")
-  );
+  ok("every record survives the projection", built.rowCount === records.length);
+  ok("nothing is skipped", built.skipped === 0);
+  ok("all eight headers are emitted, always", built.headers.length === 8, built.headers.join(","));
 
   let accepted = null;
   try {
@@ -1307,95 +1414,118 @@ group("Directory CSV export matches the worker contract");
   } catch (error) {
     accepted = { error: error.message };
   }
-  ok(
-    "the server accepts our projected CSV",
-    accepted?.rowCount === records.length,
-    accepted?.error ?? `${accepted?.rowCount} rows`
-  );
+  ok("the server accepts it", accepted?.rowCount === records.length, accepted?.error ?? `${accepted?.rowCount} rows`);
 
-  /* Rich columns are deliberately not sent; they feed the on-screen proof only. */
-  ok("no bio, photo filename or record id reaches the worker",
-    !/short_bio|photo_filename|record_id/.test(built.text));
-
-  /* The address column is one line because the worker has one column for it. */
-  ok(
-    "street and locality are rejoined into the single address column",
-    built.text.includes("412 Larkspur Lane, Marietta, GA 30060")
-  );
+  ok("no record id or display name reaches the worker",
+    !/record_id|display_name|photo_filename/.test(built.text));
 }
 
-group("Directory names survive every spelling a customer uses");
+group("An all-empty optional column is still emitted");
 {
-  const cases = [
-    ["Whitfield, Ava", "Whitfield", "Ava"],
-    ["Ava Whitfield", "Whitfield", "Ava"],
-    ["Ava Marie Whitfield", "Whitfield", "Ava Marie"],
-    ["  Okonkwo ,  Benjamin  ", "Okonkwo", "Benjamin"],
-  ];
-  for (const [input, last, first] of cases) {
-    const split = splitDisplayName(input);
-    ok(`"${input}" -> ${last} / ${first}`, split.last === last && split.first === first,
-      `got ${split.last} / ${split.first}`);
-  }
-  ok("a single-word name is treated as a surname", splitDisplayName("Cher").last === "Cher");
-  ok("an empty name yields empty parts", splitDisplayName("").last === "");
-
-  const schema = schemaFor("people-directory");
-  /* Explicit columns beat the display name, because the customer stated them. */
-  const explicit = namePartsOf(
-    { first_name: "Ava", last_name: "Whitfield", display_name: "Somebody Else" },
-    schema
-  );
-  ok("explicit first/last columns win over display_name",
-    explicit.first === "Ava" && explicit.last === "Whitfield");
-
-  /* A sheet carrying display_name alone still produces both halves. */
-  const derived = namePartsOf({ display_name: "Whitfield, Ava" }, schema);
-  ok("display_name alone still yields both halves",
-    derived.first === "Ava" && derived.last === "Whitfield");
-}
-
-group("A nameless row is reported, not allowed to fail the whole upload");
-{
-  const schema = schemaFor("people-directory");
+  const schema = schemaFor("church-directory");
+  /* Regression: optional columns used to be dropped when no row filled them,
+     producing a seven-column CSV that the InDesign script refuses. */
   const records = [
-    { display_name: "Whitfield, Ava" },
-    { display_name: "" },
-    { display_name: "Okonkwo, Benjamin" },
+    { last_name: "Solo", first_name: "Ada", address: "1 Way", phone: "770-1", email: "a@x.test" },
   ];
+  const built = toDirectoryCsv(records, schema);
+  ok("the header row still has all eight columns", built.headers.length === 8, built.headers.join(","));
+  for (const optional of ["alternate_phone", "alternate_email", "family_members"]) {
+    ok(`${optional} is present though empty`, built.text.split("\r\n")[0].includes(optional));
+  }
+  ok("the server accepts it", validateAndNormalizeCsv(new TextEncoder().encode(built.text)).rowCount === 1);
+}
+
+group("Values are preserved exactly — nothing is invented or substituted");
+{
+  const schema = schemaFor("church-directory");
+
+  /* A surname with no forename used to have the surname COPIED into
+     first_name so the upload would pass, which printed the wrong thing in
+     someone's directory. It must be reported, not repaired. */
+  const records = [
+    { last_name: "Whitfield", first_name: "Ava", address: "412 Larkspur", phone: "770-1", email: "a@x.test" },
+    { last_name: "Nameless", first_name: "", address: "1 Way", phone: "770-2", email: "b@x.test" },
+    { last_name: "Okonkwo", first_name: "Benjamin", address: "88 Sycamore", phone: "770-3", email: "c@x.test" },
+  ];
+
   const problems = unexportableRecords(records, schema);
-  ok("the nameless record is identified", problems.length === 1, `${problems.length} found`);
-  ok("it is identified by position", problems[0]?.index === 1);
+  ok("the incomplete record is reported", problems.length === 1, `${problems.length} found`);
+  ok("and says which field is missing", /first_name/.test(problems[0]?.reason ?? ""), problems[0]?.reason);
 
   const built = toDirectoryCsv(records, schema);
-  ok("the two usable records are still exported", built.rowCount === 2);
-  ok("the unusable one is counted as skipped", built.skipped === 1);
+  ok("it is dropped rather than repaired", built.rowCount === 2);
+  ok("and counted as skipped", built.skipped === 1);
+  ok("its surname was NOT copied into first_name", !/Nameless,Nameless/.test(built.text), built.text);
 
-  /* The server would 400 the entire upload over that one row; we must not
-     hand it one. */
-  let ok400 = false;
-  try {
-    validateAndNormalizeCsv(new TextEncoder().encode(built.text));
-    ok400 = true;
-  } catch {
-    ok400 = false;
-  }
-  ok("what we send still passes the server", ok400);
+  /* Exact passthrough, including punctuation and quoting. */
+  const exact = toDirectoryCsv(
+    [{
+      last_name: "Reyes-Alvarado",
+      first_name: "María José",
+      address: '1207 Willow Bend Dr, Apt "4B"',
+      phone: "770-555-0168",
+      email: "m@x.test",
+      family_members: "María, José and Ana",
+    }],
+    schema
+  );
+  ok("a hyphenated surname is unchanged", exact.text.includes("Reyes-Alvarado"));
+  ok("an accented forename is unchanged", exact.text.includes("María José"));
+  ok("an embedded quote is escaped, not stripped", exact.text.includes('""4B""'), exact.text.split("\r\n")[1]);
+  ok("a comma-bearing family list is quoted intact",
+    exact.text.includes('"María, José and Ana"'));
+  const reparsed = validateAndNormalizeCsv(new TextEncoder().encode(exact.text)).records[0];
+  ok("and it survives the server round trip exactly",
+    reparsed.address === '1207 Willow Bend Dr, Apt "4B"' &&
+      reparsed.family_members === "María, José and Ana",
+    `${reparsed.address} | ${reparsed.family_members}`);
+}
 
-  /* A one-word name is a real person, not an error: it becomes both halves
-     rather than being dropped. */
-  const mononym = toDirectoryCsv([{ display_name: "Cher" }], schema);
-  ok("a single-word name is still exported", mononym.rowCount === 1);
+group("The proof prints the customer's own values");
+{
+  const schema = schemaFor("church-directory");
+  const record = {
+    last_name: "Whitfield",
+    first_name: "Ava",
+    address: "412 Larkspur Lane Marietta GA 30060",
+    phone: "770-555-0142",
+    email: "ava@example.org",
+    alternate_phone: "",
+    alternate_email: "",
+    family_members: "Ava, Ben and Rosa",
+  };
+  const bind = (expression) => resolveBinding(expression, { record, schema }).value;
+
+  /* Composed from the two real columns, in the template's order — not a
+     display_name, and not invented. */
+  ok("the name is Last, First", bind("personName") === "Whitfield, Ava", bind("personName"));
+  ok("the phone is the raw value", bind("role:phone") === "770-555-0142");
+  ok("the address is printed as supplied",
+    bind("addressLine") === "Address: 412 Larkspur Lane Marietta GA 30060", bind("addressLine"));
+  ok("family members are printed as supplied",
+    bind("familyLine") === "Family Members: Ava, Ben and Rosa", bind("familyLine"));
+
+  /* An empty optional collapses entirely rather than printing a bare label. */
+  ok("an empty alternate phone renders nothing", bind("altPhoneLine") === "");
+  ok("an empty alternate email renders nothing", bind("altEmailLine") === "");
+
+  /* A record with only one name half still prints the half it has. */
+  const halfName = resolveBinding("personName", {
+    record: { last_name: "Cher", first_name: "" },
+    schema,
+  }).value;
+  ok("a single-name record prints that name alone", halfName === "Cher", halfName);
 }
 
 /* ── The free proof itself: a directory CSV renders in the browser ── */
 group("A directory CSV produces an on-screen proof");
 {
   const template = templateFor("directory-classic");
-  const schema = schemaFor("people-directory");
-  const templatePath = resolve(ROOT, "public/csv-templates/pressmark-people-directory.csv");
+  const schema = schemaFor("church-directory");
+  const templatePath = resolve(ROOT, "public/csv-templates/pressmark-church-directory.csv");
   const table = parseCsv(readFileSync(templatePath, "utf8"));
-  const mapping = mappingFromProposals(suggestMapping(table.headers, "people-directory"));
+  const mapping = mappingFromProposals(suggestMapping(table.headers, "church-directory"));
   const records = applyMapping(table.rows, mapping);
 
   ok("directory-classic is a CSV-driven template", template.inputMode === "csv");
@@ -1415,8 +1545,9 @@ group("A directory CSV produces an on-screen proof");
   const name = resolveBinding("personName", { record: listing.records[0], schema });
   ok("a real name is bound into the page", name.value.includes("Whitfield"), name.value);
 
-  const address = resolveBinding("streetAddress", { record: listing.records[0], schema });
-  ok("the address is bound too", address.value === "412 Larkspur Lane", address.value);
+  const address = resolveBinding("addressLine", { record: listing.records[0], schema });
+  ok("the address is bound too",
+    address.value === "Address: 412 Larkspur Lane Marietta GA 30060", address.value);
 
   /* A directory with no spreadsheet at all must not crash the planner. */
   const empty = planProof(template, []);
@@ -1440,20 +1571,20 @@ group("The build method follows the chosen design");
    * renders photo records, so the customer's spreadsheet is silently ignored
    * and the proof shows their filenames instead of their members.
    */
-  const schema = schemaFor("people-directory");
+  const schema = schemaFor("church-directory");
   const table = parseCsv(
-    readFileSync(resolve(ROOT, "public/csv-templates/pressmark-people-directory.csv"), "utf8")
+    readFileSync(resolve(ROOT, "public/csv-templates/pressmark-church-directory.csv"), "utf8")
   );
   const records = applyMapping(
     table.rows,
-    mappingFromProposals(suggestMapping(table.headers, "people-directory"))
+    mappingFromProposals(suggestMapping(table.headers, "church-directory"))
   );
 
   const directoryProject = {
     ...emptyProject(),
     mode: modeForTemplate("directory-classic"),
     visual: { ...emptyProject().visual, templateId: "directory-classic" },
-    data: { ...emptyProject().data, schemaId: "people-directory", records },
+    data: { ...emptyProject().data, schemaId: "church-directory", records },
   };
   const resolved = recordsFor(directoryProject);
   ok("a directory project renders from the spreadsheet, not from photographs",
