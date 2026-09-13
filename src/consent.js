@@ -27,6 +27,7 @@
 
    A privacy policy is expected under GDPR/ePrivacy. This is the hook. */
 import { FONT_FAMILY } from "./fonts.js";
+import { ACCENT, BUTTON } from "./palette.js";
 
 const ENV = (typeof import.meta !== "undefined" && import.meta.env) || {};
 const PRIVACY_URL = ENV.VITE_PRIVACY_URL || "";
@@ -55,40 +56,44 @@ function storeConsent(value) {
   }
 }
 
-const ACCENT = "#aa7d48";
+/*
+ * The banner is on navy, so its accent is the pink half of the InDesign pair —
+ * maroon would not be readable against INK. Its buttons are the same Google
+ * key as the rest of the site; a light grey key reads on navy as well as on
+ * paper.
+ */
+const ACCENT_ON_INK = ACCENT.onDark;
 const INK = "#020814";
 
-function button(label, { primary }) {
+function button(label) {
   const el = document.createElement("button");
   el.type = "button";
   el.textContent = label;
   Object.assign(el.style, {
     font: "inherit",
-    fontSize: "0.72rem",
-    fontWeight: "700",
-    letterSpacing: "0.09em",
-    textTransform: "uppercase",
-    padding: "0.6rem 1.2rem",
+    fontSize: BUTTON.fontSize,
+    fontWeight: "400",
+    minHeight: BUTTON.height,
+    padding: `0 ${BUTTON.paddingX}`,
     cursor: "pointer",
     whiteSpace: "nowrap",
-    border: primary ? "none" : "1px solid rgba(255,255,255,0.35)",
-    background: primary ? ACCENT : "transparent",
-    color: primary ? "#000" : "rgba(255,255,255,0.85)",
-    transition: "background 0.2s, border-color 0.2s, color 0.2s",
+    border: `1px solid ${BUTTON.border}`,
+    borderRadius: BUTTON.radius,
+    background: BUTTON.background,
+    color: BUTTON.text,
+    transition: "border-color 0.1s, box-shadow 0.1s, color 0.1s",
   });
+  /* A banner that is usually dismissed by thumb gets the touch height. */
+  if (window.matchMedia?.("(pointer: coarse)").matches) el.style.minHeight = BUTTON.touchHeight;
   el.addEventListener("mouseenter", () => {
-    if (primary) el.style.background = "#96693a";
-    else {
-      el.style.borderColor = ACCENT;
-      el.style.color = ACCENT;
-    }
+    el.style.borderColor = BUTTON.borderHover;
+    el.style.boxShadow = BUTTON.shadowHover;
+    el.style.color = BUTTON.textHover;
   });
   el.addEventListener("mouseleave", () => {
-    if (primary) el.style.background = ACCENT;
-    else {
-      el.style.borderColor = "rgba(255,255,255,0.35)";
-      el.style.color = "rgba(255,255,255,0.85)";
-    }
+    el.style.borderColor = BUTTON.border;
+    el.style.boxShadow = "none";
+    el.style.color = BUTTON.text;
   });
   return el;
 }
@@ -122,7 +127,7 @@ export function mountConsentBanner(onChoice) {
       bottom: "0",
       zIndex: "2147483000",
       background: INK,
-      borderTop: `2px solid ${ACCENT}`,
+      borderTop: `2px solid ${ACCENT_ON_INK}`,
       color: "rgba(255,255,255,0.78)",
       fontFamily: FONT_FAMILY,
       fontSize: "0.85rem",
@@ -157,7 +162,7 @@ export function mountConsentBanner(onChoice) {
       link.href = PRIVACY_URL;
       link.textContent = "Privacy Policy";
       Object.assign(link.style, {
-        color: ACCENT,
+        color: ACCENT_ON_INK,
         textDecoration: "underline",
         textUnderlineOffset: "3px",
       });
@@ -175,10 +180,10 @@ export function mountConsentBanner(onChoice) {
       onChoice(value);
     };
 
-    const decline = button("Decline", { primary: false });
+    const decline = button("Decline");
     decline.addEventListener("click", () => decide(CONSENT_DENIED));
 
-    const accept = button("Accept", { primary: true });
+    const accept = button("Accept");
     accept.addEventListener("click", () => decide(CONSENT_GRANTED));
 
     actions.append(decline, accept);

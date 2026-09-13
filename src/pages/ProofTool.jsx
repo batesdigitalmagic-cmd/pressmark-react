@@ -287,7 +287,7 @@ export default function ProofTool() {
                   </li>
                 </ul>
                 <p>
-                  <a href="/guides">Data Merge guides</a> covers the spreadsheet side in more
+                  <a href="/blog">The Data Merge section</a> covers the spreadsheet side in more
                   detail, including what clean data does for the finished design.
                 </p>
               </div>

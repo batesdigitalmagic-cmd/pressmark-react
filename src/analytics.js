@@ -137,7 +137,7 @@ function gtag() {
    call) once GA4 Realtime is confirmed working. Logs carry no personal data —
    only the scrubbed URL that would be sent to Google anyway. */
 const DEBUG = true;
-const debug = (...args) => DEBUG && console.log("%c[GA4]", "color:#aa7d48", ...args);
+const debug = (...args) => DEBUG && console.log("%c[GA4]", "color:#460f21", ...args);
 const debugError = (...args) => DEBUG && console.error("[GA4]", ...args);
 
 let started = false;

@@ -70,6 +70,7 @@ import { captionFor, defaultTemplateFor, modeForTemplate } from "../src/instant-
 import { getSubscriptionService, isValidEmail } from "../src/instant-proof/services/subscriptionService.js";
 import { buildContactPayload } from "../src/instant-proof/services/contactRequests.js";
 import { __sanitizeForTest } from "../src/instant-proof/analytics.js";
+import { ACCENT as ACCENT_TOKENS, BUTTON as BUTTON_TOKENS } from "../src/palette.js";
 import {
   BRAND_COLOR_KEYS as BRAND_COLOR_ORDER,
   BRAND_COLORS,
@@ -837,7 +838,10 @@ group("33. Mobile layout");
      !/max-width[^}]*\.ip-methods \{ grid-template-columns: minmax\(0, 1fr\)/.test(css));
   ok("publication rows are at least 48px tall",
      Number((css.match(/\.ip-pub \{[\s\S]*?min-height: (\d+)px/) || [])[1]) >= 48);
-  ok("buttons are at least 44px", Number((css.match(/\.ip-btn \{[\s\S]*?min-height: (\d+)px/) || [])[1]) >= 44);
+  /* 36px on a mouse, as Google's key is; 44px wherever a thumb is the pointer. */
+  ok("buttons are 44px on a touch screen",
+     /@media \(pointer: coarse\) \{\s*\.ip-btn, \.ip-menu-btn \{ min-height: \$\{BUTTON\.touchHeight\}/.test(css) &&
+     BUTTON_TOKENS.touchHeight === "44px");
   ok("headings wrap rather than clip", /\.ip-h1 \{[\s\S]*?overflow-wrap: break-word/.test(css));
   ok("the action bar respects the home indicator", /env\(safe-area-inset-bottom/.test(css));
   ok("a spacer keeps the bar off the content", /\.ip-actions-spacer/.test(css));
@@ -850,7 +854,7 @@ group("33. Mobile layout");
 
   /* Tokens must not leak into the rest of the site. */
   ok("tokens are scoped to .ip-root, never :root",
-     /\.ip-root \{\s*--proof-gold/.test(readFileSync(resolve(ROOT, "src/instant-proof/tokens.js"), "utf8")) &&
+     /\.ip-root \{\s*--proof-accent/.test(readFileSync(resolve(ROOT, "src/instant-proof/tokens.js"), "utf8")) &&
      !/^\s*:root\s*\{/m.test(css));
 }
 /* ── The tool that is the homepage ── */
@@ -912,6 +916,10 @@ group("Church Directory Classic proof tool");
     ["the composer", composer],
     ["the job view", readFileSync(resolve(ROOT, "src/instant-proof/components/DirectoryRenderJob.jsx"), "utf8")],
     ["the sidebar", readFileSync(resolve(ROOT, "src/instant-proof/nav.js"), "utf8")],
+    /* The blog has its own nav bar, and it kept "Create a Proof" after the
+       sidebar changed — which is why it is checked here too. */
+    ["the Data Merge section", readFileSync(resolve(ROOT, "src/blog/shell.jsx"), "utf8") +
+      readFileSync(resolve(ROOT, "src/pages/Blog.jsx"), "utf8")],
   ];
   for (const [name, source] of chrome) {
     /* Comments explain why the word is gone; only rendered text is checked. */
@@ -1042,7 +1050,7 @@ group("Workspace shell");
 
   const order = [...nav.matchAll(/href: "([^"]+)"/g)].map((match) => match[1]);
   ok("the sidebar is in the specified order",
-     order.join(" ") === "/ /directory-designs /guides /blog /services /pricing /contact",
+     order.join(" ") === "/ /directory-designs /blog /services /pricing /contact",
      order.join(" "));
   ok("the privacy line is in the sidebar",
      /Your uploaded files are processed privately\./.test(shell));
@@ -1441,7 +1449,9 @@ group("The mark");
   const mark = readFileSync(resolve(dir, "pressmark-studio-mark.svg"), "utf8");
   const shell = readFileSync(resolve(ROOT, "src/instant-proof/components/AppShell.jsx"), "utf8");
   const boot = readFileSync(resolve(ROOT, "src/instant-proof/components/BootScreen.jsx"), "utf8");
-  const blog = readFileSync(resolve(ROOT, "src/blog/components.jsx"), "utf8");
+  const blog = readFileSync(resolve(ROOT, "src/blog/shell.jsx"), "utf8") +
+    readFileSync(resolve(ROOT, "src/pages/Blog.jsx"), "utf8") +
+    readFileSync(resolve(ROOT, "src/pages/Article.jsx"), "utf8");
 
   ok("three cuts of one mark are available",
     /viewBox="0 0 138\.75 186\.63"/.test(lockup) && /viewBox="0 0 138\.75 164\.41"/.test(mark));
@@ -1462,8 +1472,10 @@ group("The mark");
     /pressmark-studio-logo\.svg/.test(shell) && /pressmark-studio-mark\.svg/.test(shell));
   ok("the launch screen shows the light cut",
     /pressmark-studio-logo-light\.svg/.test(boot));
-  ok("the blog chrome uses the same mark",
-    /pressmark-studio-mark\.svg/.test(blog) && /pressmark-studio-logo-light\.svg/.test(blog));
+  /* The section has no chrome of its own any more: it is drawn by AppShell,
+     so it cannot show a different mark. */
+  ok("the Data Merge section is drawn in the shell, so it carries the shell's mark",
+    /AppShell/.test(blog) && !/<img[^>]*logo/.test(blog));
   ok("no page still reaches for the old raster logo",
     !/logo main\.png/.test(shell + boot + blog));
 
@@ -1493,7 +1505,8 @@ group("Asking for a price");
     "src/pages/Privacy.jsx",
     "src/pages/Article.jsx",
     "src/instant-proof/nav.js",
-    "src/blog/components.jsx",
+    "src/blog/shell.jsx",
+    "src/pages/Blog.jsx",
     "contact.html",
   ];
   for (const page of pages) {
@@ -1562,6 +1575,129 @@ group("Typography");
     !/fonts\.googleapis\.com/.test(readFileSync(resolve(ROOT, "src/instant-proof/styles.js"), "utf8")));
 }
 
+group("The Data Merge section");
+{
+  const blog = await import("../src/data/blogPosts.js");
+  const read = (path) => readFileSync(resolve(ROOT, path), "utf8");
+  const index = read("src/pages/Blog.jsx");
+  const article = read("src/pages/Article.jsx");
+  const shellParts = read("src/blog/shell.jsx");
+  const vercel = JSON.parse(read("vercel.json"));
+
+  ok("/blog is the Data Merge section", blog.BLOG_BASE === "/blog" && blog.BLOG_META.name === "Data Merge");
+  ok("written for organisations buying it, and says so",
+    /data merge services/i.test(blog.BLOG_META.tagline) && /have a studio do it/i.test(blog.BLOG_META.intro));
+
+  /* It leads with data merge… */
+  const dm = blog.DATA_MERGE_CATEGORIES;
+  ok("the lead article is a data merge article", dm.includes(blog.getFeaturedPost().category),
+    blog.getFeaturedPost().slug);
+  ok("the filter lists the data merge topics first",
+    JSON.stringify(blog.CATEGORIES.slice(1, 1 + dm.length)) === JSON.stringify(dm), blog.CATEGORIES.join(" | "));
+  /* By the headings' ids, not their words — the file's own header comment
+     mentions "More from the studio" before either heading appears. */
+  ok("the index shows data merge before everything else",
+    index.indexOf('id="bl-dm"') > 0 && index.indexOf('id="bl-dm"') < index.indexOf('id="bl-more"'));
+
+  /* …without moving anything that is already indexed. */
+  ok("every other article stays in the section, under its own topic",
+    blog.POSTS.filter((post) => !dm.includes(post.category)).length === 10);
+  ok("every topic in the filter has articles, and every article's topic is in it",
+    blog.CATEGORIES.filter((c) => c !== "All").every((c) => blog.POSTS.some((post) => post.category === c)) &&
+    blog.POSTS.every((post) => blog.CATEGORIES.includes(post.category)));
+
+  /* The route to a price is on every page of the section. */
+  ok("the hire card asks for a price and links pricing",
+    /href="\/contact"[\s\S]*?Request a price/.test(shellParts) && /href="\/pricing"/.test(shellParts));
+  ok("the index offers it", /<HireUs/.test(index));
+  ok("and so does every article", /<HireUs/.test(article));
+
+  /* Guides folded in, not left overlapping. */
+  ok("the separate guides page is gone",
+    !existsSync(resolve(ROOT, "guides.html")) && !existsSync(resolve(ROOT, "src/pages/Guides.jsx")));
+  ok("and /guides sends old links to the section",
+    vercel.redirects.some((r) => r.source === "/guides" && r.destination === "/blog" && r.permanent));
+  ok("the sidebar has one entry for it",
+    (read("src/instant-proof/nav.js").match(/href: "\/(blog|guides)"/g) || []).length === 1);
+
+  /* In the shell, like every page. */
+  ok("the index and articles are drawn by AppShell", /<AppShell current="\/blog"/.test(index) && /<AppShell current="\/blog"/.test(article));
+  ok("the old editorial chrome is retired", !existsSync(resolve(ROOT, "src/blog/components.jsx")));
+  ok("a filtered view survives a reload and can be shared", /categoryFromHash/.test(index) && /hashchange/.test(index));
+}
+
+group("Maroon accent and Google buttons");
+{
+  const read = (path) => readFileSync(resolve(ROOT, path), "utf8");
+  ok("the accent is InDesign maroon", ACCENT_TOKENS.ink === "#460f21");
+  ok("with InDesign's pink as its pair for dark grounds", ACCENT_TOKENS.onDark === "#ef3b6a");
+
+  /* Gold used to live in five places and drifted between them. None may keep
+     a copy now: the four JS stylesheets read src/palette.js, and Buy.css spells
+     the same maroon. */
+  const sheets = [
+    "src/instant-proof/tokens.js",
+    "src/instant-proof/theme.css.js",
+    "src/blog/theme.js",
+    "src/blog/shell.jsx",
+    "src/blog/styles.css.js",
+    "src/storefront/theme.js",
+    "src/consent.js",
+    "src/pages/Buy.css",
+    "src/pages/Buy.jsx",
+    "src/components/HomeLink.jsx",
+  ];
+  const goldValue = /#aa7d48|#96693a|#8e6738|#c47b20|#e6ad3b|#9a5719|#9f5b17|#f6c957|#9a5a16|rgba\(170, ?125, ?72/i;
+  for (const sheet of sheets) {
+    const text = read(sheet);
+    ok(`no gold left in ${sheet.split("/").pop()}`, !goldValue.test(text),
+      (text.match(goldValue) || ["none"])[0]);
+  }
+  for (const sheet of ["src/instant-proof/tokens.js", "src/blog/theme.js", "src/storefront/theme.js", "src/consent.js"]) {
+    ok(`${sheet.split("/").pop()} takes its accent from src/palette.js`, /from "\.\.?\/palette\.js"/.test(read(sheet)));
+  }
+
+  /* Maroon on the site's navy is about 1.3:1 — invisible, so anything on a dark
+     ground uses the pink. The blog's navy blocks went when it moved into the
+     shell; the consent banner is the dark ground that remains. */
+  ok("the consent banner, on navy, uses the pink", /ACCENT_ON_INK = ACCENT\.onDark/.test(read("src/consent.js")));
+  const blogCss = read("src/blog/styles.css.js");
+  ok("the Data Merge section is on the light ground, so it takes the maroon",
+    /var\(--proof-accent\)/.test(blogCss) && !/accentOnDark|#ef3b6a|#020814/i.test(blogCss));
+  ok("a selected topic chip is white on maroon",
+    /\.bl-chip\[aria-pressed="true"\] \{[\s\S]*?background: var\(--proof-accent\);[\s\S]*?color: #fff/.test(blogCss));
+
+  /* One button, everywhere. */
+  ok("the button is the Google Search key",
+    BUTTON_TOKENS.background === "#f8f9fa" && BUTTON_TOKENS.borderHover === "#dadce0" &&
+    BUTTON_TOKENS.text === "#3c4043" && BUTTON_TOKENS.radius === "8px");
+  for (const sheet of ["src/instant-proof/theme.css.js", "src/blog/theme.js", "src/storefront/theme.js", "src/consent.js"]) {
+    ok(`${sheet.split("/").pop()} builds its buttons from BUTTON`, /BUTTON\.background/.test(read(sheet)));
+  }
+  const buy = read("src/pages/Buy.css");
+  ok("Buy.css spells the same key", /\.bc-btn \{[\s\S]*?background: #f8f9fa/.test(buy) && !/linear-gradient\(180deg, #9a5719/.test(buy));
+  /*
+   * Regular size only. No full-width buttons, no oversized purchase keys, no
+   * second line of text inside a button — the Buy page's notes sit beneath
+   * their keys instead. 44px exists only for a coarse pointer.
+   */
+  const toolCss = read("src/instant-proof/theme.css.js");
+  ok("there is no full-width button style", !/\.ip-btn-block/.test(toolCss) && !/ip-btn-block/.test(read("src/instant-proof/components/Composer.jsx")));
+  ok("the round keys are the regular height on a mouse",
+    /\.ip-icon-btn \{[\s\S]*?width: 36px;[\s\S]*?height: 36px;/.test(toolCss));
+  ok("the storefront pages' button is not stretched",
+    !/btnPrimary: \{[\s\S]*?width: "100%"/.test(read("src/storefront/theme.js")));
+  const buyMarkup = read("src/pages/Buy.jsx");
+  ok("no Buy page button carries a second line inside it",
+    !/bc-btn-sub/.test(buyMarkup + buy) && /bc-btn-note/.test(buyMarkup));
+  ok("and none of them is taller or wider than the regular key",
+    !/\.bc-cta-row \.bc-btn \{/.test(buy) && !/\.bc-btn \{[^}]*width: 100%/.test(buy) &&
+    !/\.bc-btn \{[^}]*min-height: (4[0-9]|5[0-9]|6[0-9])px/.test(buy.replace(/@media \(pointer: coarse\) \{[^}]*\}\s*\}/g, "")));
+
+  ok("buttons are sentence case, not tracked capitals",
+    /\.ip-btn,\s*\.ip-menu-btn \{[\s\S]*?text-transform: none/.test(read("src/instant-proof/theme.css.js")));
+}
+
 group("The InDesign scheme");
 {
   const tokens = readFileSync(resolve(ROOT, "src/instant-proof/tokens.js"), "utf8");
@@ -1578,8 +1714,8 @@ group("The InDesign scheme");
   };
   ok("the step you are on is the deep maroon", /var\(--proof-id-ink\)/.test(railRule("current")));
   ok("a finished step is the pink", /var\(--proof-id-pink\)/.test(railRule("done")));
-  ok("neither marker is the gold any more",
-    !/--proof-gold/.test(railRule("current") + railRule("done")));
+  ok("neither marker borrows the site accent",
+    !/--proof-accent/.test(railRule("current") + railRule("done")));
 
   /*
    * The scheme marks progress and stops there — the gold is still the accent

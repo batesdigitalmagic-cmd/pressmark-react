@@ -1,4 +1,5 @@
 import { FONT_FAMILY } from "../fonts.js";
+import { ACCENT } from "../palette.js";
 
 /*
  * Instant Proof design tokens.
@@ -22,11 +23,12 @@ import { FONT_FAMILY } from "../fonts.js";
 
 export const PROOF_TOKENS = {
   /* Neutral chrome. The workspace is paper-coloured and everything structural
-     is drawn in near-black or a hairline; the gold is reserved for accents. */
+     is drawn in near-black or a hairline; the maroon is reserved for accents. */
   border: "rgba(17, 20, 24, 0.12)",
-  gold: "#aa7d48",
-  goldDeep: "#8e6738",
-  goldSoft: "rgba(170, 125, 72, 0.12)",
+  /* InDesign maroon, from src/palette.js. Was the brand gold. */
+  accent: ACCENT.ink,
+  accentDeep: ACCENT.deep,
+  accentSoft: ACCENT.soft,
   navy: "#1b2a44",
   navyDeep: "#111c2e",
   ink: "#000000",
@@ -34,7 +36,7 @@ export const PROOF_TOKENS = {
   muted: "#55585d",
   paper: "#fdfcfa",
   surface: "#ffffff",
-  line: "rgba(170, 125, 72, 0.55)",
+  line: ACCENT.line,
   hairline: "rgba(0, 0, 0, 0.12)",
   danger: "#b3261e",
 
@@ -45,7 +47,7 @@ export const PROOF_TOKENS = {
    *
    * Used for progress only. This is what the tool is doing (setting a document
    * in InDesign) rather than what Pressmark is, so it marks the steps and stops
-   * there; the gold stays the brand accent everywhere else.
+   * there; the maroon accent carries everything else.
    */
   idPink: "#ef3b6a",
   idInk: "#460f21",
@@ -61,9 +63,9 @@ export const THUMB_W = 145;
 
 export const PROOF_TOKENS_CSS = `
   .ip-root {
-    --proof-gold: ${PROOF_TOKENS.gold};
-    --proof-gold-deep: ${PROOF_TOKENS.goldDeep};
-    --proof-gold-soft: ${PROOF_TOKENS.goldSoft};
+    --proof-accent: ${PROOF_TOKENS.accent};
+    --proof-accent-deep: ${PROOF_TOKENS.accentDeep};
+    --proof-accent-soft: ${PROOF_TOKENS.accentSoft};
     --proof-navy: ${PROOF_TOKENS.navy};
     --proof-navy-deep: ${PROOF_TOKENS.navyDeep};
     --proof-ink: ${PROOF_TOKENS.ink};
@@ -103,9 +105,9 @@ export const PROOF_TOKENS_CSS = `
     /*
      * A neutral hairline, distinct from --proof-line.
      *
-     * --proof-line is gold: it is the editorial rule that separates sections and
+     * --proof-line is the accent: it is the editorial rule that separates sections and
      * it belongs to the brand. Card and control edges must not be — a workspace
-     * outlined in gold on every panel is the opposite of restrained, and the one
+     * outlined in maroon on every panel is the opposite of restrained, and the one
      * accent colour stops meaning anything when everything wears it.
      */
     --proof-border: rgba(17, 20, 24, 0.12);

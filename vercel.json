@@ -1,6 +1,15 @@
 {
   "cleanUrls": true,
   "redirects": [
-    { "source": "/instant-proof", "destination": "/", "permanent": true }
+    {
+      "source": "/instant-proof",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/guides",
+      "destination": "/blog",
+      "permanent": true
+    }
   ]
 }

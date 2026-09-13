@@ -75,7 +75,7 @@ body {
 }
 
 .bc-page :focus-visible {
-  outline: 2px solid var(--bc-accent, #aa7d48);
+  outline: 2px solid var(--bc-accent, #460f21);
   outline-offset: 3px;
 }
 
@@ -123,7 +123,7 @@ body {
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--bc-accent, #aa7d48);
+  color: var(--bc-accent, #460f21);
   margin: 0;
 }
 
@@ -146,7 +146,7 @@ body {
 ───────────────────────────────────────────── */
 
 .bc-header {
-  border-bottom: 1px solid var(--bc-border, rgba(170, 125, 72, 0.3));
+  border-bottom: 1px solid var(--bc-border, rgba(70, 15, 33, 0.3));
   background: var(--bc-cream, #faf8f5);
 }
 
@@ -181,7 +181,7 @@ body {
 }
 
 .bc-product-brand:hover {
-  color: var(--bc-accent, #aa7d48);
+  color: var(--bc-accent, #460f21);
 }
 
 .bc-nav {
@@ -200,7 +200,7 @@ body {
   width: 1px;
   height: 0.85em;
   margin-inline: 0.9rem;
-  background: var(--bc-border, rgba(170, 125, 72, 0.3));
+  background: var(--bc-border, rgba(70, 15, 33, 0.3));
   vertical-align: -0.1em;
 }
 
@@ -214,112 +214,80 @@ body {
 }
 
 .bc-nav a:hover {
-  color: var(--bc-accent, #aa7d48);
+  color: var(--bc-accent, #460f21);
 }
 
 /* ─────────────────────────────────────────────
    BUTTONS
 ───────────────────────────────────────────── */
 
+/*
+ * The Google Search key, as on every other page — values from BUTTON in
+ * src/palette.js, spelled out because this is plain CSS. The glossy gold and
+ * navy bevels are gone; the free and paid buttons are the same key now, and
+ * the price or plan line underneath each one is what tells them apart.
+ */
 .bc-btn {
   display: inline-flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.2rem;
+  min-height: 36px;
+  padding: 0 16px;
+  white-space: nowrap;
   font-family: var(--bc-sans);
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.045em;
-  text-transform: uppercase;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
   text-align: center;
   text-decoration: none;
-  padding: 1rem 1.9rem;
-  border: 2px solid #f6c957;
-  border-radius: 16px;
+  color: #3c4043;
+  background: #f8f9fa;
+  /*
+   * Visible at rest, unlike Google's. Their key's border matches its fill
+   * because it sits on pure white, where the grey alone reads as a key. This
+   * page is cream (#faf8f5), and without the hairline the key had no edge at
+   * all — the purchase buttons read as loose text.
+   */
+  border: 1px solid #dadce0;
+  border-radius: 8px;
   cursor: pointer;
-  color: #fff;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.46) 0%, rgba(255,255,255,.08) 18%, transparent 46%),
-    linear-gradient(180deg, #9a5719 0%, #c47b20 50%, #e6ad3b 76%, #9f5b17 100%);
-  box-shadow:
-    inset 0 2px 0 rgba(255,255,255,.75),
-    inset 0 -3px 5px rgba(105,48,5,.3),
-    0 0 0 1px #9a5a16,
-    0 3px 6px rgba(80,39,3,.22);
-  text-shadow: 0 2px 3px rgba(62,29,2,.82);
-  transition: filter 0.18s, box-shadow 0.18s, transform 0.18s;
+  transition: border-color 0.1s, box-shadow 0.1s, color 0.1s;
 }
 
-.bc-btn-sub {
-  font-size: 0.74rem;
-  font-weight: 500;
-  letter-spacing: 0.03em;
-  opacity: 0.78;
+.bc-btn:hover:not(:disabled) {
+  color: #202124;
+  border-color: #c4c7c5;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 
-.bc-btn-primary {
-  color: #fff;
-}
-
-.bc-btn-primary:hover:not(:disabled) {
-  filter: brightness(1.12) saturate(1.08);
-  transform: translateY(-1px);
-}
-
-.bc-btn-primary:active:not(:disabled) {
-  transform: translateY(1px);
-}
-
-.bc-btn-primary:disabled {
-  opacity: 0.6;
+.bc-btn:disabled {
+  color: #9aa0a6;
   cursor: default;
-}
-
-.bc-btn-secondary {
-  color: #fff;
-}
-
-.bc-btn-secondary:hover {
-  color: #fff;
-  filter: brightness(1.12) saturate(1.08);
-  transform: translateY(-1px);
 }
 
 .bc-cta-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.85rem;
+  gap: 0.85rem 1.25rem;
 }
 
-.bc-cta-row .bc-btn {
-  flex: 1 1 15rem;
-  min-height: 76px;
-  font-size: 1.35rem;
+/* A regular key with its note underneath. The note used to be a second line
+   inside the button, which made these the largest buttons on the site. */
+.bc-cta {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
 }
 
-.bc-cta-row .bc-btn-free-featured {
-  min-height: 76px;
-  padding: 1.2rem 2rem;
-  border-width: 2px;
-  border-color: #a9b6c8;
-  color: #fff;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.48) 0%, rgba(255,255,255,.1) 18%, transparent 46%),
-    linear-gradient(180deg, #27364a 0%, #34465d 50%, #59697d 76%, #1b2839 100%);
-  font-size: 1.35rem;
-  font-weight: 700;
-  box-shadow:
-    inset 0 2px 0 rgba(255,255,255,.76),
-    inset 0 -3px 5px rgba(3,12,25,.38),
-    0 0 0 1px #152236,
-    0 3px 6px rgba(2,8,20,.24);
+.bc-btn-note {
+  font-size: 12px;
+  color: #5f6368;
 }
 
-.bc-cta-row .bc-btn-free-featured:hover {
-  color: #fff;
-  filter: brightness(1.12) saturate(1.08);
-  transform: translateY(-1px);
+@media (pointer: coarse) {
+  .bc-btn { min-height: 44px; }
 }
 
 .bc-product-version {
@@ -329,10 +297,6 @@ body {
   text-transform: none;
   color: var(--bc-ink, #020814);
   margin-bottom: 1.25rem;
-}
-
-.bc-purchase-cta {
-  width: 100%;
 }
 
 /* ─────────────────────────────────────────────
@@ -387,7 +351,7 @@ body {
   height: 18px;
   margin-top: 0.16rem;
   border-radius: 2px;
-  background: var(--bc-accent, #aa7d48);
+  background: var(--bc-accent, #460f21);
   color: #fff;
   font-size: 0.62rem;
   font-weight: 500;
@@ -403,7 +367,7 @@ body {
   flex-wrap: wrap;
   gap: 0.2rem 0.75rem;
   padding-left: 1.1rem;
-  border-left: 3px solid var(--bc-accent, #aa7d48);
+  border-left: 3px solid var(--bc-accent, #460f21);
 }
 
 .bc-price-amount {
@@ -419,7 +383,7 @@ body {
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--bc-accent, #aa7d48);
+  color: var(--bc-accent, #460f21);
 }
 
 .bc-price-note {
@@ -438,8 +402,8 @@ body {
 .bc-notice {
   padding: 1rem 1.15rem;
   background: #fff;
-  border: 1px solid var(--bc-border, rgba(170, 125, 72, 0.3));
-  border-left: 3px solid var(--bc-accent, #aa7d48);
+  border: 1px solid var(--bc-border, rgba(70, 15, 33, 0.3));
+  border-left: 3px solid var(--bc-accent, #460f21);
   border-radius: var(--bc-radius);
 }
 
@@ -497,7 +461,7 @@ body {
   padding: 2rem 1.5rem;
   text-align: center;
   background: #fff;
-  border: 1px dashed var(--bc-accent, #aa7d48);
+  border: 1px dashed var(--bc-accent, #460f21);
   border-radius: 6px;
   color: var(--bc-muted, #4b5563);
 }
@@ -510,7 +474,7 @@ body {
 .bc-shot-placeholder code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.78rem;
-  color: var(--bc-accent, #aa7d48);
+  color: var(--bc-accent, #460f21);
   word-break: break-all;
 }
 
@@ -536,7 +500,7 @@ body {
   width: 30px;
   height: 30px;
   padding: 0;
-  border: 1px solid var(--bc-border, rgba(170, 125, 72, 0.3));
+  border: 1px solid var(--bc-border, rgba(70, 15, 33, 0.3));
   border-radius: 50%;
   background: transparent;
   color: var(--bc-ink, #020814);
@@ -547,8 +511,8 @@ body {
 }
 
 .bc-arrow:hover {
-  border-color: var(--bc-accent, #aa7d48);
-  color: var(--bc-accent, #aa7d48);
+  border-color: var(--bc-accent, #460f21);
+  color: var(--bc-accent, #460f21);
 }
 
 .bc-dots {
@@ -565,7 +529,7 @@ body {
   width: 9px;
   height: 9px;
   padding: 0;
-  border: 1px solid var(--bc-accent, #aa7d48);
+  border: 1px solid var(--bc-accent, #460f21);
   border-radius: 50%;
   background: transparent;
   cursor: pointer;
@@ -573,7 +537,7 @@ body {
 }
 
 .bc-dot[data-active='true'] {
-  background: var(--bc-accent, #aa7d48);
+  background: var(--bc-accent, #460f21);
   transform: scale(1.25);
 }
 
@@ -600,7 +564,7 @@ body {
 
 .bc-section-light {
   background: #fff;
-  border-block: 1px solid var(--bc-border, rgba(170, 125, 72, 0.3));
+  border-block: 1px solid var(--bc-border, rgba(70, 15, 33, 0.3));
 }
 
 .bc-section-dark {
@@ -641,8 +605,8 @@ body {
 }
 
 .bc-compare-card.is-win {
-  border-color: var(--bc-accent, #aa7d48);
-  background: rgba(170, 125, 72, 0.09);
+  border-color: var(--bc-accent, #460f21);
+  background: rgba(70, 15, 33, 0.09);
 }
 
 .bc-compare-label {
@@ -654,7 +618,7 @@ body {
 }
 
 .bc-compare-card.is-win .bc-compare-label {
-  color: var(--bc-accent, #aa7d48);
+  color: var(--bc-accent, #460f21);
 }
 
 .bc-compare-title {
@@ -706,7 +670,7 @@ body {
   font-weight: 500;
   letter-spacing: 0.02em;
   padding: 0.5rem 1rem;
-  border: 1px solid var(--bc-border, rgba(170, 125, 72, 0.3));
+  border: 1px solid var(--bc-border, rgba(70, 15, 33, 0.3));
   border-radius: 999px;
   background: transparent;
   color: var(--bc-muted, #4b5563);
@@ -715,13 +679,13 @@ body {
 }
 
 .bc-tab:hover {
-  border-color: var(--bc-accent, #aa7d48);
-  color: var(--bc-accent, #aa7d48);
+  border-color: var(--bc-accent, #460f21);
+  color: var(--bc-accent, #460f21);
 }
 
 .bc-tab[aria-selected='true'] {
-  background: var(--bc-accent, #aa7d48);
-  border-color: var(--bc-accent, #aa7d48);
+  background: var(--bc-accent, #460f21);
+  border-color: var(--bc-accent, #460f21);
   color: #fff;
 }
 
@@ -742,7 +706,7 @@ body {
 .bc-stage-frame {
   position: relative;
   aspect-ratio: 1 / 1;
-  border: 1px solid var(--bc-border, rgba(170, 125, 72, 0.3));
+  border: 1px solid var(--bc-border, rgba(70, 15, 33, 0.3));
   border-radius: var(--bc-radius);
   overflow: hidden;
   background: #fff;
@@ -789,7 +753,7 @@ body {
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--bc-accent, #aa7d48);
+  color: var(--bc-accent, #460f21);
 }
 
 .bc-stage-name {
@@ -828,7 +792,7 @@ body {
   font-size: 0.88rem;
   font-weight: 500;
   padding: 0.55rem 1.05rem;
-  border: 1px solid var(--bc-border, rgba(170, 125, 72, 0.3));
+  border: 1px solid var(--bc-border, rgba(70, 15, 33, 0.3));
   border-radius: 999px;
   background: var(--bc-cream, #faf8f5);
 }
@@ -844,8 +808,8 @@ body {
   margin-bottom: 1rem;
   padding: 1rem 1.2rem;
   color: var(--bc-ink, #020814);
-  background: color-mix(in srgb, var(--bc-accent, #aa7d48) 10%, #fff);
-  border: 1px solid var(--bc-border, rgba(170, 125, 72, 0.3));
+  background: color-mix(in srgb, var(--bc-accent, #460f21) 10%, #fff);
+  border: 1px solid var(--bc-border, rgba(70, 15, 33, 0.3));
   border-radius: var(--bc-radius);
 }
 
@@ -866,8 +830,8 @@ body {
   align-items: center;
   padding: clamp(1.75rem, 4vw, 3rem);
   background: #fff;
-  border: 1px solid var(--bc-border, rgba(170, 125, 72, 0.3));
-  border-top: 3px solid var(--bc-accent, #aa7d48);
+  border: 1px solid var(--bc-border, rgba(70, 15, 33, 0.3));
+  border-top: 3px solid var(--bc-accent, #460f21);
   border-radius: var(--bc-radius);
   box-shadow: 0 14px 34px -20px rgba(2, 8, 20, 0.3);
 }
@@ -893,7 +857,7 @@ body {
 /* ── Footer ── */
 
 .bc-footer {
-  border-top: 1px solid var(--bc-border, rgba(170, 125, 72, 0.3));
+  border-top: 1px solid var(--bc-border, rgba(70, 15, 33, 0.3));
   padding-block: 2rem;
 }
 
@@ -917,7 +881,7 @@ body {
 .bc-footer-links li + li::before {
   content: '|';
   margin-inline: 0.7rem;
-  color: var(--bc-border, rgba(170, 125, 72, 0.3));
+  color: var(--bc-border, rgba(70, 15, 33, 0.3));
 }
 
 .bc-footer a {
@@ -926,7 +890,7 @@ body {
 }
 
 .bc-footer a:hover {
-  color: var(--bc-accent, #aa7d48);
+  color: var(--bc-accent, #460f21);
 }
 
 .bc-footer ul {
@@ -1102,16 +1066,6 @@ body {
     padding-inline: 0.1rem;
   }
 
-  .bc-cta-row .bc-btn {
-    flex-basis: 100%;
-  }
-
-  .bc-btn {
-    width: 100%;
-    min-height: 52px;
-    padding: 0.9rem 1.1rem;
-  }
-
   .bc-price {
     width: 100%;
   }
@@ -1139,10 +1093,6 @@ body {
   }
 
   .bc-purchase-side,
-  .bc-purchase-side .bc-btn {
-    width: 100%;
-  }
-
   .bc-footer-inner {
     justify-content: center;
     text-align: center;

@@ -33,25 +33,45 @@ export const SITE_URL = "https://pressmark.studio";
 export const BLOG_BASE = "/blog";
 export const AUTHOR = "Pressmark Studio";
 
+/*
+ * ── The section's audience ──
+ *
+ * /blog is the Data Merge section, written for organisations that want data
+ * merge done FOR them: a church office with a membership spreadsheet, a school
+ * with four hundred portraits, an association with a member list and a print
+ * deadline. It explains what data merge is, what it takes to get right, and
+ * when to hand it to a studio — and every page ends at "Request a price".
+ *
+ * Articles on other subjects (Photoshop automation, yearbook design, print
+ * production) stay here under their own categories and at their own URLs, so
+ * nothing already indexed moves. The section simply leads with data merge.
+ */
 export const BLOG_META = {
-  name: "Pressmark Insights",
-  tagline: "Publication Design, Automation & Print Production Resources",
+  name: "Data Merge",
+  tagline: "Data Merge Services for Directories, Yearbooks & Member Publications",
   intro:
-    "Practical guides for creating better yearbooks, directories, publications, and production-ready files. Learn how smarter design systems, automation, data merge, and print-production workflows can save time and reduce costly mistakes.",
+    "For organisations that need a directory, yearbook or member publication built from a spreadsheet. What data merge is, what it takes to get right, what it costs to get wrong, and when it pays to have a studio do it for you.",
   heroSupport:
-    "Explore practical strategies for designing, automating, preparing, and producing publications that have to be right.",
+    "Pressmark Studio builds data merge publications for churches, schools, associations and nonprofits — from a spreadsheet to a print-ready file.",
 };
 
-/* Order matters — this is the filter bar, left to right. */
+/*
+ * The categories that ARE data merge. The index leads with these, and the
+ * filter bar lists them first; everything else follows under "More from the
+ * studio". Adding a data merge category means adding it here as well as below.
+ */
+export const DATA_MERGE_CATEGORIES = ["Data Merge", "Directories"];
+
+/* Order matters — this is the filter bar, left to right. Data merge leads. */
 export const CATEGORIES = [
   "All",
-  "Publication Production",
-  "Yearbooks",
-  "InDesign Automation",
-  "Publication Design",
-  "Print Production",
-  "Photoshop Automation",
+  "Data Merge",
   "Directories",
+  "Yearbooks",
+  "Print Production",
+  "Publication Design",
+  "Publication Production",
+  "Photoshop Automation",
 ];
 
 /*
@@ -71,7 +91,6 @@ export const CLUSTERS = {
 export const POSTS = [
   {
     slug: "microsoft-publisher-retiring-october-2026",
-    featured: true,
     cluster: "production",
     category: "Publication Production",
     title: "Microsoft Publisher Is Retiring: How to Save Your Publications Before October 2026",
@@ -475,9 +494,8 @@ export const POSTS = [
 
   {
     slug: "automate-yearbook-pages-indesign-data-merge",
-    featured: true,
     cluster: "automation",
-    category: "InDesign Automation",
+    category: "Data Merge",
     title: "How to Automate Yearbook Pages with InDesign Data Merge",
     seoTitle:
       "How to Automate Yearbook Pages with InDesign Data Merge | Pressmark Studio",
@@ -605,8 +623,10 @@ export const POSTS = [
 
   {
     slug: "what-is-indesign-data-merge",
+    /* The section's lead article: the question a buyer asks first. */
+    featured: true,
     cluster: "automation",
-    category: "InDesign Automation",
+    category: "Data Merge",
     title: "What Is InDesign Data Merge and When Should You Use It?",
     seoTitle: "What Is InDesign Data Merge and When Should You Use It? | Pressmark Studio",
     metaDescription:
@@ -1512,7 +1532,7 @@ export const POSTS = [
   {
     slug: "spreadsheet-to-print-ready-pdf",
     cluster: "directories",
-    category: "Directories",
+    category: "Data Merge",
     title: "From Spreadsheet to Print-Ready PDF: How Automated Directories Work",
     seoTitle: "From Spreadsheet to Print-Ready PDF: How Automated Directories Work | Pressmark Studio",
     metaDescription:

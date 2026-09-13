@@ -12,6 +12,7 @@
  */
 
 import { FONT_FAMILY } from "../fonts.js";
+import { ACCENT, BUTTON } from "../palette.js";
 
 export const PALETTE = {
   base: "#ffffff",
@@ -20,14 +21,17 @@ export const PALETTE = {
   ink: "#020814",
   inkSoft: "#051225",
   inkDeep: "#010611",
-  accent: "#aa7d48",
-  accentDeep: "#96693a",
+  /* InDesign maroon, from src/palette.js. `accentOnDark` is its pair for the
+     navy hero, note and CTA blocks, where maroon would not be readable. */
+  accent: ACCENT.ink,
+  accentDeep: ACCENT.deep,
+  accentOnDark: ACCENT.onDark,
   text: "#020814",
   textMuted: "#4b5563",
   textOnDark: "rgba(255,255,255,0.78)",
   textOnDarkMuted: "rgba(255,255,255,0.45)",
-  border: "rgba(170,125,72,0.3)",
-  borderOnDark: "rgba(170,125,72,0.35)",
+  border: ACCENT.line,
+  borderOnDark: ACCENT.lineOnDark,
   hairline: "#e8e4dd",
   white: "#ffffff",
   paper: "#faf8f5",
@@ -104,32 +108,34 @@ export const S = {
   btnPrimary: {
     display: "inline-block",
     fontFamily: TITLE_FONT_STACK,
-    fontSize: "0.78rem",
-    fontWeight: 700,
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
+    fontSize: BUTTON.fontSize,
+    fontWeight: 400,
+    lineHeight: BUTTON.height,
     textDecoration: "none",
-    color: "#000000",
-    background: PALETTE.accent,
-    padding: "0.95rem 1.9rem",
-    border: "none",
+    color: BUTTON.text,
+    background: BUTTON.background,
+    padding: `0 ${BUTTON.paddingX}`,
+    border: `1px solid ${BUTTON.border}`,
+    borderRadius: BUTTON.radius,
     cursor: "pointer",
-    transition: "background 0.2s",
+    transition: "border-color 0.1s, box-shadow 0.1s, color 0.1s",
   },
   btnGhost: {
     display: "inline-block",
+    /* The same key as btnPrimary. It used to be a white outline for dark
+       grounds; the grey key reads on navy and on paper alike. */
     fontFamily: TITLE_FONT_STACK,
-    fontSize: "0.78rem",
-    fontWeight: 700,
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
+    fontSize: BUTTON.fontSize,
+    fontWeight: 400,
+    lineHeight: BUTTON.height,
     textDecoration: "none",
-    color: PALETTE.white,
-    background: "transparent",
-    border: `1px solid rgba(255,255,255,0.35)`,
-    padding: "0.95rem 1.9rem",
+    color: BUTTON.text,
+    background: BUTTON.background,
+    padding: `0 ${BUTTON.paddingX}`,
+    border: `1px solid ${BUTTON.border}`,
+    borderRadius: BUTTON.radius,
     cursor: "pointer",
-    transition: "all 0.2s",
+    transition: "border-color 0.1s, box-shadow 0.1s, color 0.1s",
   },
 };
 
@@ -140,12 +146,21 @@ export const GLOBAL_CSS = `
   html { scroll-behavior: smooth; }
   body { background: ${PALETTE.base}; overflow-x: hidden; }
   a { color: ${PALETTE.accent}; }
+  /* The pink, not the maroon: a focus ring has to show on the navy header as
+     well as on the white article, and the pink clears both. */
   button:focus-visible, a:focus-visible {
-    outline: 2px solid ${PALETTE.accent};
+    outline: 2px solid ${PALETTE.accentOnDark};
     outline-offset: 3px;
   }
-  .pm-btn-primary:hover { background: ${PALETTE.accentDeep} !important; }
-  .pm-btn-ghost:hover { border-color: ${PALETTE.accent} !important; color: ${PALETTE.accent} !important; }
+  .pm-btn-primary:hover,
+  .pm-btn-ghost:hover {
+    border-color: ${BUTTON.borderHover} !important;
+    box-shadow: ${BUTTON.shadowHover};
+    color: ${BUTTON.textHover} !important;
+  }
+  @media (pointer: coarse) {
+    .pm-btn-primary, .pm-btn-ghost { line-height: ${BUTTON.touchHeight} !important; }
+  }
   .pm-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
   .pm-card:hover { transform: translateY(-4px); box-shadow: 0 18px 48px rgba(2,8,20,0.13); }
   .pm-card:hover .pm-card-title { color: ${PALETTE.accent}; }
@@ -184,5 +199,5 @@ export const BLOG_RESPONSIVE_CSS = `
   @media (max-width: 640px) {
     .blog-grid { grid-template-columns: minmax(0, 1fr) !important; }
   }
-  .blog-nav-link:hover { color: #aa7d48 !important; }
+  .blog-nav-link:hover { color: ${PALETTE.accentOnDark} !important; }
 `;

@@ -1,5 +1,5 @@
-import { BLOG_RESPONSIVE_CSS, FONT_STACK, GLOBAL_CSS, PAGE_X, PALETTE, PROSE_W, S } from "../blog/theme.js";
-import { SiteFooter, SiteHeader } from "../blog/components.jsx";
+import AppShell from "../instant-proof/components/AppShell.jsx";
+import { BLOG_CSS } from "../blog/styles.css.js";
 
 /*
  * /privacy
@@ -152,100 +152,54 @@ const slug = (text) =>
   text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 export default function Privacy() {
+  /*
+   * In the site shell, like every other page.
+   *
+   * This page used to borrow the blog's own navy header and footer. The blog
+   * has moved into the shell, and leaving Privacy behind would have made it the
+   * one page on the site with a different navigation — including a link to
+   * /guides, which no longer exists. The policy text itself is unchanged.
+   */
   return (
-    <div style={S.page}>
-      <style>{GLOBAL_CSS + BLOG_RESPONSIVE_CSS}</style>
-      <SiteHeader />
+    <AppShell current="/privacy">
+      <style>{BLOG_CSS}</style>
 
-      <header
-        style={{
-          background: PALETTE.ink,
-          color: PALETTE.white,
-          padding: `clamp(7rem, 13vw, 9.5rem) ${PAGE_X} clamp(2.5rem, 6vw, 4rem)`,
-          borderBottom: `1px solid ${PALETTE.borderOnDark}`,
-        }}
-      >
-        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
-          <div style={{ ...S.eyebrow, marginBottom: "1.25rem" }}>
-            <span style={S.eyebrowLine} />
-            Pressmark Studio
-          </div>
-          <h1 style={{ ...S.h1, color: PALETTE.white, marginBottom: "1rem" }}>Privacy Policy</h1>
-          <p style={{ fontSize: "0.92rem", color: PALETTE.textOnDarkMuted, letterSpacing: "0.04em" }}>
-            Last Updated: {LAST_UPDATED}
-          </p>
-        </div>
-      </header>
+      <p className="ip-crumb">Pressmark Studio</p>
+      <h1 className="ip-h1">Privacy Policy</h1>
+      <p className="bl-meta">Last updated: {LAST_UPDATED}</p>
 
-      <main style={{ padding: `clamp(2.5rem, 6vw, 4.5rem) ${PAGE_X} clamp(3rem, 7vw, 5rem)` }}>
-        <div style={{ maxWidth: PROSE_W, margin: "0 auto" }}>
-          <p style={{ ...S.lead, marginBottom: "2.5rem" }}>
-            This explains what information Pressmark Studio collects, why, and what you can
-            do about it. We have tried to write it in plain language rather than legal
-            boilerplate. If anything here is unclear, email{" "}
-            <a href={`mailto:${CONTACT}`}>{CONTACT}</a> and we will explain it.
-          </p>
+      <div className="bl-prose" style={{ marginTop: "var(--proof-space-6)" }}>
+        <p>
+          This explains what information Pressmark Studio collects, why, and what you can do
+          about it. We have tried to write it in plain language rather than legal boilerplate. If
+          anything here is unclear, email <a href={`mailto:${CONTACT}`}>{CONTACT}</a> and we will
+          explain it.
+        </p>
 
-          {SECTIONS.map((section, index) => (
-            <section key={section.heading} style={{ marginBottom: "2.5rem" }}>
-              <h2
-                id={slug(section.heading)}
-                style={{
-                  ...S.h2,
-                  fontSize: "clamp(1.35rem, 2.8vw, 1.75rem)",
-                  marginBottom: "1rem",
-                  scrollMarginTop: "6rem",
-                }}
-              >
-                <span style={{ color: PALETTE.accent, fontSize: "0.7em" }}>{index + 1}. </span>
-                {section.heading}
-              </h2>
+        {SECTIONS.map((section, index) => (
+          <section key={section.heading}>
+            <h2 id={slug(section.heading)}>
+              {index + 1}. {section.heading}
+            </h2>
 
-              {section.body?.map((paragraph) => (
-                <p
-                  key={paragraph.slice(0, 40)}
-                  style={{ margin: "0 0 1.1rem", fontSize: "1rem", lineHeight: 1.85, color: PALETTE.textMuted }}
-                >
-                  {paragraph}
-                </p>
-              ))}
+            {section.body?.map((paragraph) => (
+              <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+            ))}
 
-              {section.list && (
-                <ul style={{ margin: "0 0 1.1rem", paddingLeft: "1.35rem", color: PALETTE.textMuted, fontSize: "1rem", lineHeight: 1.8 }}>
-                  {section.list.map((item) => (
-                    <li key={item.slice(0, 40)} style={{ marginBottom: "0.5rem" }}>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              )}
+            {section.list && (
+              <ul>
+                {section.list.map((item) => (
+                  <li key={item.slice(0, 40)}>{item}</li>
+                ))}
+              </ul>
+            )}
 
-              {section.after?.map((paragraph) => (
-                <p
-                  key={paragraph.slice(0, 40)}
-                  style={{ margin: "0 0 1.1rem", fontSize: "1rem", lineHeight: 1.85, color: PALETTE.textMuted }}
-                >
-                  {paragraph}
-                </p>
-              ))}
-            </section>
-          ))}
-
-          <p
-            style={{
-              borderTop: `1px solid ${PALETTE.hairline}`,
-              paddingTop: "1.75rem",
-              fontFamily: FONT_STACK,
-              fontSize: "1.05rem",
-              color: PALETTE.text,
-            }}
-          >
-            <a href="/" style={{ textDecoration: "none" }}>← Back to Pressmark Studio</a>
-          </p>
-        </div>
-      </main>
-
-      <SiteFooter />
-    </div>
+            {section.after?.map((paragraph) => (
+              <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+            ))}
+          </section>
+        ))}
+      </div>
+    </AppShell>
   );
 }

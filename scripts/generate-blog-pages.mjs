@@ -89,7 +89,7 @@ ${headHtml}
 function breadcrumbLd(post) {
   const items = [
     { name: "Home", url: SITE_URL },
-    { name: "Insights", url: `${SITE_URL}${BLOG_BASE}` },
+    { name: BLOG_META.name, url: `${SITE_URL}${BLOG_BASE}` },
     { name: post.category, url: `${SITE_URL}${BLOG_BASE}#${encodeURIComponent(post.category)}` },
     { name: post.title, url: `${SITE_URL}${BLOG_BASE}/${post.slug}` },
   ];
@@ -142,7 +142,12 @@ writeFileSync(
   page({
     entry: "/src/blog.jsx",
     headHtml: head({
-      title: `${BLOG_META.name} — ${BLOG_META.tagline} | Pressmark Studio`,
+      /* The tagline already leads with the section's name ("Data Merge Services
+         for…"), so prefixing the name as well read "Data Merge — Data Merge
+         Services". The name is only added when the tagline does not carry it. */
+      title: BLOG_META.tagline.includes(BLOG_META.name)
+        ? `${BLOG_META.tagline} | Pressmark Studio`
+        : `${BLOG_META.name} — ${BLOG_META.tagline} | Pressmark Studio`,
       description: BLOG_META.intro,
       canonical: `${SITE_URL}${BLOG_BASE}`,
       image: POSTS.find((p) => p.featured)?.featuredImage,
@@ -197,7 +202,6 @@ const staticRoutes = [
   "/",
   "/directory-designs",
   "/how-it-works",
-  "/guides",
   "/services",
   "/pricing",
   "/contact",

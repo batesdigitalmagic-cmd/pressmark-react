@@ -2,8 +2,8 @@
  * The Instant Proof visual system.
  *
  * One stylesheet rather than inline styles scattered across twenty components:
- * the redesign is a system — gold labels, black display type, outlined option
- * buttons, thin gold rules — and a system belongs in one place where it can be
+ * the redesign is a system — maroon labels, black display type, quiet grey
+ * buttons, thin maroon rules — and a system belongs in one place where it can be
  * kept consistent.
  *
  * Everything is scoped under .ip-root. The marketing site, blog and storefront
@@ -13,6 +13,7 @@
  */
 
 import { FONT_FAMILY } from "../fonts.js";
+import { BUTTON } from "../palette.js";
 import { PROOF_TOKENS_CSS } from "./tokens.js";
 
 export const PROOF_CSS = `
@@ -70,7 +71,7 @@ ${PROOF_TOKENS_CSS}
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--proof-gold);
+    color: var(--proof-accent);
     margin: 0;
   }
   .ip-h1 {
@@ -102,7 +103,7 @@ ${PROOF_TOKENS_CSS}
     font-weight: 700;
     letter-spacing: 0.045em;
     text-transform: uppercase;
-    color: var(--proof-gold);
+    color: var(--proof-accent);
     margin: 0 0 var(--proof-space-3);
   }
   .ip-note { font-size: 0.88rem; line-height: 1.5; color: var(--proof-ink-soft); margin: 0; }
@@ -152,9 +153,9 @@ ${PROOF_TOKENS_CSS}
     justify-content: center;
     text-align: center;
     padding: var(--proof-space-3) var(--proof-space-2);
-    border: 2px solid var(--proof-gold);
+    border: 2px solid var(--proof-accent);
     border-radius: var(--proof-radius);
-    background: var(--proof-gold);
+    background: var(--proof-accent);
     color: var(--proof-ink);
     font-family: var(--proof-display);
     font-weight: 700;
@@ -197,9 +198,9 @@ ${PROOF_TOKENS_CSS}
     transition: border-color 0.15s ease, background 0.15s ease;
   }
   .ip-pub[aria-checked="true"] {
-    border-color: var(--proof-gold);
-    background: var(--proof-gold-soft);
-    box-shadow: inset 0 0 0 1px var(--proof-gold);
+    border-color: var(--proof-accent);
+    background: var(--proof-accent-soft);
+    box-shadow: inset 0 0 0 1px var(--proof-accent);
   }
   /* A tick, so selection survives greyscale and colour blindness. */
   .ip-pub-tick {
@@ -212,7 +213,7 @@ ${PROOF_TOKENS_CSS}
     color: transparent;
   }
   .ip-pub[aria-checked="true"] .ip-pub-tick {
-    background: var(--proof-gold); border-color: var(--proof-gold); color: #fff;
+    background: var(--proof-accent); border-color: var(--proof-accent); color: #fff;
   }
 
   /* ── Design carousel ──────────────────────────────────────────── */
@@ -259,7 +260,7 @@ ${PROOF_TOKENS_CSS}
   }
   .ip-slide-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .ip-slide[aria-checked="true"] .ip-slide-frame {
-    border-color: var(--proof-gold);
+    border-color: var(--proof-accent);
     transform: scale(1.03);
   }
   .ip-slide[aria-checked="false"] .ip-slide-frame { opacity: 0.72; }
@@ -278,9 +279,9 @@ ${PROOF_TOKENS_CSS}
     min-height: 44px;
     margin: 0 auto;
     padding: 0 var(--proof-space-5);
-    border: 2px solid var(--proof-gold);
+    border: 2px solid var(--proof-accent);
     border-radius: var(--proof-radius);
-    background: var(--proof-gold);
+    background: var(--proof-accent);
     color: var(--proof-ink);
     font-size: 0.82rem; font-weight: 700; letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -297,24 +298,53 @@ ${PROOF_TOKENS_CSS}
 
   /* ── Buttons ──────────────────────────────────────────────────── */
 
-  .ip-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-height: 48px;
-    padding: 0 var(--proof-space-5);
-    border-radius: var(--proof-radius);
+  /*
+   * Every button is the Google Search key: light grey, sentence case, regular
+   * weight, a hairline and a one-pixel shadow that appear only on hover. The
+   * values come from BUTTON in src/palette.js, which the blog, the storefront
+   * and the consent banner read too.
+   *
+   * The primary, ghost and gold variants used to be three different colours.
+   * They are one look now; the classes stay only because markup still names
+   * them, and a variant that meant something would need a reason to exist.
+   */
+  .ip-btn,
+  .ip-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: ${BUTTON.height};
+    padding: 0 ${BUTTON.paddingX};
+    border: 1px solid ${BUTTON.border};
+    border-radius: ${BUTTON.radius};
+    background: ${BUTTON.background};
+    color: ${BUTTON.text};
     font-family: var(--proof-body);
-    font-size: 0.88rem; font-weight: 700; letter-spacing: 0.06em;
-    text-transform: uppercase;
-    cursor: pointer; text-decoration: none;
-    border: 2px solid transparent;
-    transition: background 0.15s ease, border-color 0.15s ease;
+    font-size: ${BUTTON.fontSize};
+    font-weight: 400;
+    letter-spacing: normal;
+    text-transform: none;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.1s ease, box-shadow 0.1s ease, color 0.1s ease;
   }
-  .ip-btn-primary { background: var(--proof-navy); color: #fff; border-color: var(--proof-navy); }
-  .ip-btn-primary:hover:not(:disabled) { background: var(--proof-navy-deep); }
-  .ip-btn-primary:disabled { background: var(--proof-hairline); border-color: transparent; color: var(--proof-muted); cursor: not-allowed; }
-  .ip-btn-ghost { background: transparent; color: var(--proof-ink); border-color: var(--proof-line); }
-  .ip-btn-gold { background: var(--proof-gold); color: var(--proof-ink); border-color: var(--proof-gold); }
-  .ip-btn-block { width: 100%; }
+  .ip-btn:hover:not(:disabled):not([aria-disabled="true"]),
+  .ip-menu-btn:hover {
+    border-color: ${BUTTON.borderHover};
+    box-shadow: ${BUTTON.shadowHover};
+    color: ${BUTTON.textHover};
+  }
+
+  /* Google's page can afford 36px because nobody taps that button on a phone.
+     Every button here is a way through the tool, so a touch screen gets 44. */
+  @media (pointer: coarse) {
+    .ip-btn, .ip-menu-btn { min-height: ${BUTTON.touchHeight}; }
+    .ip-icon-btn { width: ${BUTTON.touchHeight}; height: ${BUTTON.touchHeight}; }
+  }
 
   /* ── Sticky action bar ────────────────────────────────────────── */
 
@@ -366,10 +396,10 @@ ${PROOF_TOKENS_CSS}
   }
   .ip-template-download:hover,
   .ip-template-download:focus-visible {
-    border-color: var(--proof-gold);
+    border-color: var(--proof-accent);
     background: var(--proof-paper);
   }
-  .ip-template-arrow { font-size: 1.5rem; color: var(--proof-gold); }
+  .ip-template-arrow { font-size: 1.5rem; color: var(--proof-accent); }
   .ip-template-kind {
     /* 12.5px. Anything under 12px is uncomfortable on a phone, and a caps
        label with letter-spacing reads smaller than its size suggests. */
@@ -507,22 +537,9 @@ export const SHELL_CSS = `
   .ip-topbar-logo img { display: block; height: 30px; width: auto; }
 
   /* A 44px square that reads as a control without a border around it. */
-  .ip-menu-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-height: 44px;
-    min-width: 44px;
-    padding: 0 12px;
-    background: transparent;
-    border: 1px solid var(--proof-border);
-    border-radius: var(--proof-radius);
-    color: var(--proof-ink);
-    font: inherit;
-    font-size: 0.85rem;
-    cursor: pointer;
-  }
+  /* The Menu button's skin is the shared one under "Buttons" above. It only
+     sits in the phone bar, so it always gets the 44px touch height. */
+  .ip-menu-btn { min-height: 44px; min-width: 44px; padding: 0 12px; }
   .ip-menu-bars { display: grid; gap: 3px; }
   .ip-menu-bars span { display: block; width: 16px; height: 2px; background: currentColor; }
 
@@ -645,12 +662,16 @@ export const SHELL_CSS = `
     width: var(--nav-dot);
     height: var(--nav-dot);
     border-radius: 50%;
-    background: var(--proof-gold);
+    background: var(--proof-accent);
     opacity: 0;
     flex: 0 0 auto;
   }
   .ip-nav-item[aria-current="page"] .ip-nav-dot { opacity: 1; }
 
+  /* Outside the workspace, so the default link style never reached it and it
+     rendered in the browser's own blue. */
+  .ip-sidebar-foot a { color: var(--proof-muted); text-underline-offset: 2px; }
+  .ip-sidebar-foot a:hover { color: var(--proof-accent); }
   .ip-sidebar-foot {
     margin-top: auto;
     display: grid;
@@ -909,7 +930,7 @@ export const SHELL_CSS = `
     position: absolute;
     inset: -30%;
     background:
-      radial-gradient(38% 30% at 50% 42%, rgba(170, 125, 72, 0.22), transparent 70%),
+      radial-gradient(38% 30% at 50% 42%, rgba(239, 59, 106, 0.16), transparent 70%),
       radial-gradient(60% 45% at 50% 58%, rgba(255, 255, 255, 0.05), transparent 70%);
     animation: ip-boot-breathe 3.2s ease-in-out infinite;
   }
@@ -1002,13 +1023,13 @@ export const SHELL_CSS = `
     font-size: 0.82rem;
     color: var(--proof-muted);
   }
-  /* Its own row at the foot of the bar, so it is the same size at every width. */
-  .ip-composer-go { margin-top: var(--proof-space-3); gap: var(--proof-space-2); }
+  /* Its own line at the foot of the bar, at the regular size. */
+  .ip-composer-go { display: flex; width: max-content; margin-top: var(--proof-space-3); }
 
   .ip-icon-btn {
     flex: 0 0 auto;
-    width: 44px;
-    height: 44px;
+    width: 36px;
+    height: 36px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1019,8 +1040,14 @@ export const SHELL_CSS = `
     color: var(--proof-ink);
     cursor: pointer;
   }
-  .ip-icon-btn:hover { background: rgba(17, 20, 24, 0.04); }
-  .ip-icon-btn[aria-expanded="true"] { background: rgba(17, 20, 24, 0.07); border-color: var(--proof-border-strong); }
+  /* The round keys wear the same skin as every other button. */
+  .ip-icon-btn { background: ${BUTTON.background}; border-color: ${BUTTON.border}; color: ${BUTTON.text}; }
+  .ip-icon-btn:hover,
+  .ip-icon-btn[aria-expanded="true"] {
+    border-color: ${BUTTON.borderHover};
+    box-shadow: ${BUTTON.shadowHover};
+    color: ${BUTTON.textHover};
+  }
 
   /* ── Popovers ── */
 
@@ -1210,14 +1237,15 @@ export const SHELL_CSS = `
     accent-color: var(--proof-ink);
   }
 
-  /* Disabled, for every variant rather than just the primary one. The gold
+  /* Disabled, for every variant rather than just the primary one. The create
      button is the one that submits, so it is the one that spends time
      disabled. */
   .ip-btn:disabled,
   .ip-btn[aria-disabled="true"] {
-    background: var(--proof-hairline);
-    border-color: transparent;
-    color: var(--proof-muted);
+    background: ${BUTTON.background};
+    border-color: ${BUTTON.border};
+    box-shadow: none;
+    color: ${BUTTON.textDisabled};
     cursor: not-allowed;
   }
 
@@ -1228,13 +1256,20 @@ export const SHELL_CSS = `
    * are anchors — a download and a "create a proof" link both need to look like
    * the button they behave as.
    */
-  .ip-workspace a:not(.ip-btn):not(.ip-menu-item) {
+  /*
+   * :where() on purpose. This is the DEFAULT look of a link, and a default must
+   * lose to any component that styles its own — .ip-workspace a:not():not()
+   * weighs 0-3-1, which beat every such rule and underlined every word inside
+   * the Data Merge section's whole-card links. Inside :where() it weighs 0-1-0,
+   * so a single class wins, and ordinary prose links are unchanged.
+   */
+  .ip-workspace :where(a:not(.ip-btn):not(.ip-menu-item)) {
     color: var(--proof-ink);
     text-decoration: underline;
-    text-decoration-color: var(--proof-gold);
+    text-decoration-color: var(--proof-accent);
     text-underline-offset: 2px;
   }
-  .ip-workspace a:not(.ip-btn):not(.ip-menu-item):hover { color: var(--proof-gold-deep); }
+  .ip-workspace :where(a:not(.ip-btn):not(.ip-menu-item)):hover { color: var(--proof-accent-deep); }
   .ip-card-title a { text-decoration: none; }
   .ip-card-title a:hover { text-decoration: underline; }
 

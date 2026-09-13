@@ -71,7 +71,6 @@ export default defineConfig({
         main: 'index.html',
         directoryDesigns: 'directory-designs.html',
         howItWorks: 'how-it-works.html',
-        guides: 'guides.html',
         services: 'services.html',
         pricing: 'pricing.html',
         contact: 'contact.html',

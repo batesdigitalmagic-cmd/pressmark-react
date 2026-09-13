@@ -346,18 +346,35 @@ export default function Buy() {
     }
   };
 
+  /*
+   * Buttons are one line at the regular size, everywhere. What used to be a
+   * second line inside each key — the price, "No card required" — now sits
+   * directly under it as a note, which is what had made these two buttons the
+   * largest on the site.
+   */
+  const trialButton = (
+    <span className="bc-cta">
+      <a className="bc-btn" href={TRIAL_URL}>
+        Download Free Trial
+      </a>
+      <span className="bc-btn-note">No card required</span>
+    </span>
+  );
+
   const buyButton = (
-    <button type="button" className="bc-btn bc-btn-primary" onClick={checkout} disabled={busy}>
-      {busy ? "Opening checkout…" : "Buy BatchCutout"}
-      {!busy && <span className="bc-btn-sub">One-time purchase · instant download · {PRICE}</span>}
-    </button>
+    <span className="bc-cta">
+      <button type="button" className="bc-btn" onClick={checkout} disabled={busy}>
+        {busy ? "Opening checkout…" : "Buy BatchCutout"}
+      </button>
+      <span className="bc-btn-note">One-time purchase · instant download · {PRICE}</span>
+    </span>
   );
 
   /* PALETTE feeds the stylesheet, so theme.js remains the one place colours
      are defined for the storefront. */
   const tokens = {
     "--bc-accent": PALETTE.accent,
-    "--bc-accent-dark": "#96693a",
+    "--bc-accent-dark": PALETTE.accentDeep,
     "--bc-ink": PALETTE.text,
     "--bc-muted": PALETTE.textMuted,
     "--bc-cream": PALETTE.keyBg,
@@ -428,10 +445,7 @@ export default function Buy() {
               )}
 
               <div className="bc-cta-row">
-                <a className="bc-btn bc-btn-secondary bc-btn-free-featured" href={TRIAL_URL}>
-                  Download Free Trial
-                  <span className="bc-btn-sub">No card required</span>
-                </a>
+                {trialButton}
                 {buyButton}
               </div>
 
@@ -575,21 +589,9 @@ export default function Buy() {
                   export + Torn Paper + Rough Edge + Sticker styles + Version 1.x updates.
                 </p>
 
-                <div className="bc-cta-row bc-purchase-cta">
-                  <a className="bc-btn bc-btn-secondary bc-btn-free-featured" href={TRIAL_URL}>
-                    Download Free Trial
-                    <span className="bc-btn-sub">No card required</span>
-                  </a>
-
-                  <button
-                    type="button"
-                    className="bc-btn bc-btn-primary"
-                    onClick={checkout}
-                    disabled={busy}
-                  >
-                    {busy ? "Opening checkout…" : "Buy BatchCutout"}
-                    {!busy && <span className="bc-btn-sub">One-time purchase · instant download · {PRICE}</span>}
-                  </button>
+                <div className="bc-cta-row">
+                  {trialButton}
+                  {buyButton}
                 </div>
 
                 {error && (

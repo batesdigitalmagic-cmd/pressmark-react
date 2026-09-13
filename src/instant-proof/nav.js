@@ -17,8 +17,9 @@ export const NAV_GROUPS = [
   [
     { label: "Create a PDF", href: "/" },
     { label: "Directory Designs", href: "/directory-designs" },
-    { label: "Data Merge Guides", href: "/guides" },
-    { label: "Blog", href: "/blog" },
+    /* One entry. "Data Merge Guides" and "Blog" were two doors into overlapping
+       material; the guides now live in the section. */
+    { label: "Data Merge", href: "/blog" },
   ],
   [
     { label: "Services", href: "/services" },

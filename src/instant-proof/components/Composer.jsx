@@ -160,16 +160,14 @@ export default function Composer({
       )}
 
       {/*
-        * Last, and the full width of the bar.
-        *
-        * It reads in the order the customer acts: what they have, what they can
-        * change, what they are agreeing to, then the one thing that finishes it.
-        * Sharing a row with the icons also made it the smallest it could be on a
-        * phone, which is the wrong thing to shrink.
+        * Last, on its own line, at the regular size every button on the site
+        * shares. It reads in the order the customer acts: what they have, what
+        * they can change, what they are agreeing to, then the one thing that
+        * finishes it.
         */}
       <button
         type="button"
-        className="ip-btn ip-btn-gold ip-btn-block ip-touch ip-composer-go"
+        className="ip-btn ip-composer-go"
         disabled={Boolean(blocking)}
         aria-describedby={blocking ? "create-why" : undefined}
         onClick={onSubmit}

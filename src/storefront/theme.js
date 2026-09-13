@@ -7,14 +7,18 @@
  */
 
 import { FONT_FAMILY } from "../fonts.js";
+import { ACCENT, BUTTON } from "../palette.js";
 
 export const PALETTE = {
   base: "#ffffff",
   panel: "#ffffff",
-  accent: "#aa7d48",
+  /* InDesign maroon, from src/palette.js. Every storefront page is on a light
+     ground, so the maroon is used as is. */
+  accent: ACCENT.ink,
+  accentDeep: ACCENT.deep,
   text: "#020814",
   textMuted: "#4b5563",
-  border: "rgba(170,125,72,0.3)",
+  border: ACCENT.line,
   danger: "#b3261e",
   black: "#000000",
   white: "#ffffff",
@@ -67,23 +71,26 @@ export const S = {
     color: PALETTE.textMuted,
     margin: "0 0 1.75rem",
   },
+  /* The Google Search key at its regular size, like every button on the site.
+     Values from BUTTON in src/palette.js. */
   btnPrimary: {
-    display: "block",
-    width: "100%",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
     boxSizing: "border-box",
     fontFamily: TITLE_FONT_STACK,
-    fontSize: "0.8rem",
-    fontWeight: 700,
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
+    fontSize: BUTTON.fontSize,
+    fontWeight: 400,
     textAlign: "center",
     textDecoration: "none",
-    color: PALETTE.black,
-    background: PALETTE.accent,
-    padding: "1.05rem 1.75rem",
-    border: "none",
+    color: BUTTON.text,
+    background: BUTTON.background,
+    minHeight: BUTTON.height,
+    padding: `0 ${BUTTON.paddingX}`,
+    border: `1px solid ${BUTTON.border}`,
+    borderRadius: BUTTON.radius,
     cursor: "pointer",
-    transition: "background 0.2s",
+    transition: "border-color 0.1s, box-shadow 0.1s, color 0.1s",
   },
   list: {
     margin: "0 0 2rem",
@@ -140,8 +147,13 @@ export const GLOBAL_CSS = `
     outline: 2px solid ${PALETTE.accent};
     outline-offset: 2px;
   }
-  .pm-btn:hover:not(:disabled) { background: #96693a !important; }
-  .pm-btn:disabled { opacity: 0.6; cursor: default; }
+  .pm-btn:hover:not(:disabled) {
+    border-color: ${BUTTON.borderHover} !important;
+    box-shadow: ${BUTTON.shadowHover};
+    color: ${BUTTON.textHover} !important;
+  }
+  .pm-btn:disabled { color: ${BUTTON.textDisabled} !important; cursor: default; }
+  @media (pointer: coarse) { .pm-btn { min-height: ${BUTTON.touchHeight} !important; } }
   .pm-copy:hover { background: ${PALETTE.keyBg} !important; color: ${PALETTE.text} !important; }
   @media (prefers-reduced-motion: reduce) { .pm-skeleton { animation: none !important; } }
   @keyframes pm-pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.45 } }
