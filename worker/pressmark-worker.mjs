@@ -235,6 +235,41 @@ async function processJob(api, config, claimed, indesign = indesignDriver) {
   }
 }
 
+/*
+ * How long to wait between checks while InDesign has a dialog open. Long enough
+ * not to pester an application someone is using, short enough that a customer's
+ * job starts within half a minute of the dialog being closed.
+ */
+const DIALOG_WAIT_MS = 15 * 1000;
+
+/**
+ * Should the worker claim a job right now?
+ *
+ * Claiming increments a job's attempt count, and a render that meets an open
+ * dialog fails instantly — so a job claimed while InDesign is blocked is a job
+ * thrown away. This decides BEFORE claiming, and leaves the job on the queue
+ * untouched when InDesign cannot run it.
+ *
+ * InDesign is only probed when there is something to do. With an empty queue
+ * the worker sends it nothing, so someone designing on this Mac is not
+ * interrupted every few seconds by an idle worker checking on it.
+ *
+ * Every uncertain answer falls through to "take": a status call that fails, a
+ * probe that times out, InDesign not running. Only a definite "blocked" holds
+ * work back; nothing else may stop the worker from doing its job.
+ *
+ * @returns {Promise<{take: boolean, reason: "idle"|"blocked"|"ready"}>}
+ */
+async function readyForWork(api, config, indesign = indesignDriver) {
+  const status = await api.status();
+  if (status && status.queued === 0 && status.active === 0) {
+    return { take: false, reason: "idle" };
+  }
+  const dialog = await indesign.indesignDialogState(config);
+  if (dialog === "blocked") return { take: false, reason: "blocked" };
+  return { take: true, reason: "ready" };
+}
+
 async function main() {
   const config = loadConfig();
   const problems = validateConfig(config);
@@ -256,9 +291,34 @@ async function main() {
      count rather than as an unbroken wall of identical lines. */
   let consecutiveFailures = 0;
 
+  /* When InDesign became blocked, so the wait is reported once with its length
+     rather than as a line every fifteen seconds. */
+  let blockedSince = null;
+
   while (!stopping && !forced) {
     try {
-      const claimed = await api.claim();
+      const ready = await readyForWork(api, config);
+
+      if (ready.reason === "blocked") {
+        if (blockedSince === null) {
+          blockedSince = Date.now();
+          const waiting = await api.status();
+          log.warn("InDesign has a dialog open; leaving jobs queued until it is closed", {
+            waiting: waiting?.queued,
+            hint: "Bring InDesign to the front and dismiss the dialog",
+          });
+        }
+        await sleep(DIALOG_WAIT_MS);
+        continue;
+      }
+      if (blockedSince !== null) {
+        log.info("InDesign is free again; taking jobs", {
+          waitedSeconds: Math.round((Date.now() - blockedSince) / 1000),
+        });
+        blockedSince = null;
+      }
+
+      const claimed = ready.take ? await api.claim() : null;
 
       if (claimed) {
         if (consecutiveFailures > 0) {
@@ -353,4 +413,4 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(im
   });
 }
 
-export { processJob, startHeartbeat };
+export { processJob, readyForWork, startHeartbeat };

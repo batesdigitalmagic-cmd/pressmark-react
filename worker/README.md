@@ -274,6 +274,38 @@ one worker per machine.
 
 ---
 
+### Jobs are waiting and nothing is rendering
+
+Look for this line in the log:
+
+```
+InDesign has a dialog open; leaving jobs queued until it is closed
+```
+
+A dialog is open in InDesign — Missing Fonts, Preferences, a save prompt,
+anything modal. While one is up, InDesign refuses every scripting call that
+changes something, so no render can run. The worker checks before it claims a
+job and leaves the queue untouched instead of failing it; customers' jobs simply
+wait. Bring InDesign to the front and dismiss the dialog. Within fifteen seconds
+the log reports `InDesign is free again` and work resumes.
+
+The health check shows the same thing:
+
+```
+FAIL InDesign free      A DIALOG IS OPEN — jobs wait until it is dismissed
+```
+
+This Mac is also someone's workstation, which is why this matters: before the
+check, one forgotten dialog failed a customer's job permanently in about two
+seconds, because the worker retries at once and all three attempts met the
+same dialog.
+
+How the check works: the worker writes InDesign's dialog preference back to the
+value it already has. Nothing changes, but the write is refused exactly while a
+dialog is open — read-only calls still succeed then, which is why a simple "is
+InDesign responding?" test says everything is fine. InDesign is only checked
+when there is work queued, and a closed InDesign is never launched to be checked.
+
 ## 10. Tests
 
 ```sh

@@ -20,7 +20,7 @@ import path from "node:path";
 
 import { describe, loadConfig, validateConfig } from "../config.mjs";
 import { log, redact, shortJobId } from "../log.mjs";
-import { runInDesignJob, swatchHandoff, verifyPdf, writeHandoff } from "../indesign.mjs";
+import { indesignDialogState, parseDialogProbe, runInDesignJob, swatchHandoff, verifyPdf, writeHandoff } from "../indesign.mjs";
 
 const TOKEN = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
@@ -235,6 +235,88 @@ test("a render works on a copy of the template, never the operator's file", asyn
   assert.equal(outcome.status, "failed");
   assert.ok(existsSync(path.join(jobDir, "template.indd")), "the per-job copy should exist");
   assert.equal(await readFile(template, "utf8"), original, "the source template must be byte-identical");
+});
+
+/* ── Never claim a job InDesign cannot run ── */
+
+test("the dialog probe's output is read strictly", () => {
+  assert.equal(parseDialogProbe("free"), "free");
+  assert.equal(parseDialogProbe("blocked\n"), "blocked");
+  /* Anything else is inconclusive, and inconclusive must not hold work back. */
+  assert.equal(parseDialogProbe(""), "unknown");
+  assert.equal(parseDialogProbe("execution error: -1708"), "unknown");
+});
+
+test("a closed InDesign is never launched just to be checked", async () => {
+  const sent = [];
+  const exec = async (script) => {
+    sent.push(script);
+    return { ok: true, stdout: "false\n" };
+  };
+  assert.equal(await indesignDialogState({ indesignBundleId: "com.adobe.InDesign" }, { exec }), "not-running");
+  /* `is running` does not start an application; `do script` would. Only the
+     first may be sent when InDesign is closed. */
+  assert.equal(sent.length, 1);
+  assert.match(sent[0], /is running$/);
+});
+
+test("a running InDesign is probed, and its answer is reported", async () => {
+  const replies = [{ ok: true, stdout: "true\n" }, { ok: true, stdout: "blocked\n" }];
+  const exec = async () => replies.shift();
+  assert.equal(await indesignDialogState({ indesignBundleId: "com.adobe.InDesign" }, { exec }), "blocked");
+
+  const failing = async () => ({ ok: false, stdout: "" });
+  assert.equal(await indesignDialogState({ indesignBundleId: "com.adobe.InDesign" }, { exec: failing }), "unknown");
+});
+
+async function decide({ status, dialog }) {
+  const { readyForWork } = await import("../pressmark-worker.mjs");
+  let probed = 0;
+  const api = { status: async () => status };
+  const indesign = {
+    indesignDialogState: async () => {
+      probed += 1;
+      return dialog;
+    },
+  };
+  const verdict = await readyForWork(api, {}, indesign);
+  return { ...verdict, probed };
+}
+
+test("with an open dialog, a queued job is left on the queue", async () => {
+  /* The failure this exists for: a forgotten dialog used to burn all three of a
+     customer's attempts in about two seconds. */
+  const verdict = await decide({ status: { queued: 1, active: 0 }, dialog: "blocked" });
+  assert.equal(verdict.take, false);
+  assert.equal(verdict.reason, "blocked");
+});
+
+test("with InDesign free, or closed, or unreadable, the worker takes the job", async () => {
+  for (const dialog of ["free", "not-running", "unknown"]) {
+    const verdict = await decide({ status: { queued: 2, active: 0 }, dialog });
+    assert.equal(verdict.take, true, `expected to take work when InDesign is ${dialog}`);
+  }
+});
+
+test("an idle worker leaves InDesign alone", async () => {
+  /* Nothing queued, nothing held: no probe, so someone designing on this Mac is
+     not interrupted every few seconds by a worker with nothing to do. */
+  const verdict = await decide({ status: { queued: 0, active: 0 }, dialog: "blocked" });
+  assert.equal(verdict.take, false);
+  assert.equal(verdict.reason, "idle");
+  assert.equal(verdict.probed, 0);
+});
+
+test("a held job still gets the claim that recovers a crashed worker's lease", async () => {
+  /* active > 0 with an empty queue is a lease that may need recovering, and the
+     claim endpoint is what runs that recovery. */
+  const verdict = await decide({ status: { queued: 0, active: 1 }, dialog: "free" });
+  assert.equal(verdict.take, true);
+});
+
+test("if the queue cannot be read, the worker falls back to claiming as before", async () => {
+  const verdict = await decide({ status: null, dialog: "free" });
+  assert.equal(verdict.take, true);
 });
 
 /* ── The job loop ──

@@ -120,6 +120,69 @@ export function swatchHandoff(brandColors = {}) {
   return lines;
 }
 
+/*
+ * ── Is InDesign free to take a job? ──
+ *
+ * A render can only run while InDesign has no dialog open. With one up — a
+ * Missing Fonts alert, Preferences, a save prompt left by someone working on
+ * this Mac — every scripting call that CHANGES anything is refused with
+ * "Cannot handle the request because a modal dialog or alert is active". The
+ * worker retries a failed render immediately, so a single forgotten dialog used
+ * to fail a customer's job permanently in about two seconds.
+ *
+ * The probe writes the dialog preference back to the value it already holds.
+ * Nothing changes, but the write is refused exactly when a dialog is open —
+ * which reads cannot tell you, because they still succeed. Measured on this
+ * Mac: with a dialog up, reading the level worked and setting it threw.
+ */
+const DIALOG_PROBE =
+  "var level = app.scriptPreferences.userInteractionLevel; " +
+  "try { app.scriptPreferences.userInteractionLevel = level; 'free'; } " +
+  "catch (probeError) { 'blocked'; }";
+
+/**
+ * What the probe printed, as a state. Anything unrecognised is "unknown", and
+ * the caller treats unknown as free: an inconclusive check must never stop the
+ * worker taking jobs.
+ *
+ * @returns {"free"|"blocked"|"unknown"}
+ */
+export function parseDialogProbe(output) {
+  const text = String(output ?? "").trim();
+  if (text === "free") return "free";
+  if (text === "blocked") return "blocked";
+  return "unknown";
+}
+
+const runOsascript = (script, timeoutMs) =>
+  new Promise((resolve) => {
+    execFile("osascript", ["-e", script], { timeout: timeoutMs }, (error, stdout) => {
+      resolve({ ok: !error, stdout: String(stdout ?? "") });
+    });
+  });
+
+/**
+ * InDesign's state, without disturbing it.
+ *
+ * `is running` is asked first, and it does not launch the application: if
+ * InDesign is closed there is no dialog to wait for, and the render will start
+ * it itself. Only a running InDesign is sent the probe.
+ *
+ * @returns {Promise<"not-running"|"free"|"blocked"|"unknown">}
+ */
+export async function indesignDialogState(config, { exec = runOsascript } = {}) {
+  const quote = (value) => String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  const running = await exec(`application id "${quote(config.indesignBundleId)}" is running`, 10000);
+  if (!running.ok) return "unknown";
+  if (running.stdout.trim() !== "true") return "not-running";
+
+  const probe = await exec(
+    `tell application id "${quote(config.indesignBundleId)}" to do script "${quote(DIALOG_PROBE)}" language javascript`,
+    15000
+  );
+  return probe.ok ? parseDialogProbe(probe.stdout) : "unknown";
+}
+
 /**
  * Run one render.
  *

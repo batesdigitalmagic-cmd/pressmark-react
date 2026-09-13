@@ -29,6 +29,7 @@ import { execFile } from "node:child_process";
 import { access } from "node:fs/promises";
 import { constants } from "node:fs";
 import { describe, loadConfig, validateConfig } from "./config.mjs";
+import { indesignDialogState } from "./indesign.mjs";
 
 const exists = (target) =>
   access(target, constants.R_OK).then(
@@ -93,11 +94,13 @@ async function checkApi(config) {
 const config = loadConfig();
 const problems = validateConfig(config);
 
-const [templateFound, scriptFound, indesignFound, api] = await Promise.all([
+const [templateFound, scriptFound, indesignFound, api, indesignState] = await Promise.all([
   config.templatePath ? exists(config.templatePath) : Promise.resolve(false),
   config.scriptPath ? exists(config.scriptPath) : Promise.resolve(false),
   inDesignInstalled(config.indesignBundleId),
   checkApi(config),
+  /* Never launches InDesign: a closed application reports "not-running". */
+  indesignDialogState(config),
 ]);
 
 const report = {
@@ -112,10 +115,14 @@ const report = {
   queueWaiting: api.queue?.queued ?? null,
   queueHeldByWorker: api.queue?.active ?? null,
   jobsHoldingFiles: api.queue?.tracked ?? null,
+  /* "blocked" means a dialog is open in InDesign and no job can render until it
+     is dismissed. The worker waits rather than failing jobs, but nothing moves. */
+  indesignState,
 };
 
 const healthy =
-  problems.length === 0 && templateFound && scriptFound && indesignFound && api.reachable && api.authorized;
+  problems.length === 0 && templateFound && scriptFound && indesignFound && api.reachable && api.authorized &&
+  indesignState !== "blocked";
 report.healthy = healthy;
 
 if (process.argv.includes("--json")) {
@@ -130,6 +137,14 @@ if (process.argv.includes("--json")) {
     `  ${mark(templateFound)} InDesign template   ${report.templatePath}`,
     `  ${mark(scriptFound)} merge script        ${report.scriptPath}`,
     `  ${mark(indesignFound)} InDesign installed  ${report.indesignBundleId}`,
+    `  ${mark(indesignState !== "blocked")} InDesign free      ${
+      {
+        free: "no dialog open",
+        "not-running": "not running (a render will start it)",
+        blocked: "A DIALOG IS OPEN — jobs wait until it is dismissed",
+        unknown: "could not tell",
+      }[indesignState]
+    }`,
     `  ${mark(api.reachable)} API reachable       ${report.apiUrl}`,
     `  ${mark(api.authorized)} API authorized      ${api.detail}`,
     "",
