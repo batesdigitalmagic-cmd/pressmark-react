@@ -532,8 +532,24 @@
          * those alerts.
          */
         if (jobSpec !== null) {
-            previousInteraction = app.scriptPreferences.userInteractionLevel;
-            app.scriptPreferences.userInteractionLevel = UserInteractionLevels.NEVER_INTERACT;
+            /*
+             * Best effort, never fatal.
+             *
+             * Changing this preference is refused ("Cannot handle the request
+             * because a modal dialog or alert is active") whenever a dialog is
+             * already open in InDesign — while read-only calls such as
+             * app.documents.length still succeed, which makes the state easy to
+             * misdiagnose. Failing here is not a reason to stop: the render then
+             * behaves exactly as it did before suppression existed, and if the
+             * dialog is still up, app.open reports that below with a clearer step.
+             */
+            try {
+                previousInteraction = app.scriptPreferences.userInteractionLevel;
+                app.scriptPreferences.userInteractionLevel = UserInteractionLevels.NEVER_INTERACT;
+            } catch (interactionError) {
+                previousInteraction = null;
+                log("Could not suppress dialogs (" + interactionError.message + "); rendering with the current setting.");
+            }
         }
 
         step = "opening a protected copy of the template";

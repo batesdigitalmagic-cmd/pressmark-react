@@ -1868,7 +1868,11 @@ group("Brand colours");
   ok("an unattended render suppresses InDesign's dialogs",
     /UserInteractionLevels\.NEVER_INTERACT/.test(jsx));
   ok("only in job mode, so an operator at the keyboard still sees them",
-    /if \(jobSpec !== null\) \{\s*previousInteraction = app\.scriptPreferences\.userInteractionLevel/.test(jsx));
+    /if \(jobSpec !== null\) \{[\s\S]{0,1200}?previousInteraction = app\.scriptPreferences\.userInteractionLevel/.test(jsx));
+  /* Found on the first production render: InDesign refused the assignment with a
+     "modal dialog" error while none was open, and the job aborted. */
+  ok("and failing to suppress them never aborts the render",
+    /try \{\s*previousInteraction = app\.scriptPreferences\.userInteractionLevel;[\s\S]*?\} catch \(interactionError\) \{\s*previousInteraction = null;/.test(jsx));
   ok("and the operator's setting is restored however the script ends",
     /\} finally \{[\s\S]*userInteractionLevel = previousInteraction/.test(jsx));
   ok("a substituted font fails the render and is named, never shipped silently",
