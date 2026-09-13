@@ -223,7 +223,7 @@ export const POSTS = [
       },
       {
         type: "p",
-        text: "If the current document already has inconsistent styles, damaged links, improvised margins, or print problems, migration and [publication cleanup](/#services) should happen together. Recreating a broken workflow perfectly only preserves the breakage.",
+        text: "If the current document already has inconsistent styles, damaged links, improvised margins, or print problems, migration and [publication cleanup](/services) should happen together. Recreating a broken workflow perfectly only preserves the breakage.",
       },
 
       { type: "h2", text: "A practical migration timeline" },
@@ -285,7 +285,7 @@ export const POSTS = [
       {
         type: "cta",
         label: "Request a Publisher Rescue Review",
-        href: "/#contact",
+        href: "/contact",
       },
     ],
   },
@@ -598,7 +598,7 @@ export const POSTS = [
       },
       {
         type: "p",
-        text: "If you would rather not build the whole workflow yourself, [see what we do](/#services) — data merge, portrait organisation, and production-ready delivery are the core of it.",
+        text: "If you would rather not build the whole workflow yourself, [see what we do](/services) — data merge, portrait organisation, and production-ready delivery are the core of it.",
       },
     ],
   },
@@ -669,7 +669,7 @@ export const POSTS = [
       },
       {
         type: "p",
-        text: "We handle data merge work as a service if the setup is more than you want to take on — [see our services](/#services).",
+        text: "We handle data merge work as a service if the setup is more than you want to take on — [see our services](/services).",
       },
     ],
   },
@@ -739,7 +739,7 @@ export const POSTS = [
       },
       {
         type: "p",
-        text: "Directories are a core part of what we produce, from data cleanup through to print-ready files. [See our directory work](/#services).",
+        text: "Directories are a core part of what we produce, from data cleanup through to print-ready files. [See our directory work](/services).",
       },
     ],
   },
@@ -808,7 +808,7 @@ export const POSTS = [
       },
       {
         type: "p",
-        text: "Once photographs are organised and named to match your roster, portrait pages can be [built automatically with Data Merge](/blog/automate-yearbook-pages-indesign-data-merge). We also take this on directly — [see how we help](/#services).",
+        text: "Once photographs are organised and named to match your roster, portrait pages can be [built automatically with Data Merge](/blog/automate-yearbook-pages-indesign-data-merge). We also take this on directly — [see how we help](/services).",
       },
     ],
   },
@@ -876,7 +876,7 @@ export const POSTS = [
       },
       {
         type: "p",
-        text: "If a book has already gone wrong, publication cleanup is one of the things we do — [see our services](/#services).",
+        text: "If a book has already gone wrong, publication cleanup is one of the things we do — [see our services](/services).",
       },
     ],
   },
@@ -946,7 +946,7 @@ export const POSTS = [
       },
       {
         type: "p",
-        text: "We provide print-ready review as a standalone service if you would rather have a second pair of eyes — [see our services](/#services).",
+        text: "We provide print-ready review as a standalone service if you would rather have a second pair of eyes — [see our services](/services).",
       },
     ],
   },
@@ -1373,6 +1373,424 @@ export const POSTS = [
       {
         type: "p",
         text: "AI background removal at production scale is not about a smarter cutout. It is about never opening the file in the first place. Turn Photoshop into a high-volume background-removal pipeline with [Pressmark BatchCutout](/buy).",
+      },
+    ],
+  },
+  {
+    slug: "how-to-fill-out-csv-church-directory",
+    cluster: "directories",
+    category: "Directories",
+    title: "How to Fill Out a CSV File for a Church Directory",
+    seoTitle: "How to Fill Out a CSV File for a Church Directory | Pressmark Studio",
+    metaDescription:
+      "A step-by-step guide to filling out a church directory CSV: what a CSV actually is, why the heading row must not change, and how to handle blanks, families and exports.",
+    excerpt:
+      "A CSV is just a spreadsheet saved plainly. This walks through filling one out for a church directory — the heading row, one household per row, what to do about blanks, and how to save it so it works.",
+    author: AUTHOR,
+    publishedDate: "2026-09-12",
+    updatedDate: "2026-09-12",
+    readingTime: 7,
+    featuredImage: "/blog/create-photo-directory-from-csv.jpg",
+    featuredImageAlt: "A membership spreadsheet beside a printed church directory listing page",
+    relatedPosts: [
+      "clean-data-better-directory-designs",
+      "what-is-indesign-data-merge",
+      "spreadsheet-to-print-ready-pdf",
+    ],
+    content: [
+      {
+        type: "p",
+        text: "If someone has asked you for a CSV and you are not sure what that is, the answer is reassuring: it is a spreadsheet. Not a special file, not a database, not something you need new software for. A CSV is what you get when you save an ordinary spreadsheet in the plainest possible way — rows, columns, and nothing else.",
+      },
+      {
+        type: "p",
+        text: "This guide walks through filling one out for a church directory, using [the blank template on our directory tool](/) as the starting point.",
+      },
+      { type: "h2", text: "What a CSV actually is" },
+      {
+        type: "p",
+        text: "CSV stands for comma separated values. Open one in a text editor and you would see a line of column names, then one line per record with commas between the values. Open the same file in Excel, Numbers or Google Sheets and you see a normal grid of cells, because that is exactly what it is.",
+      },
+      {
+        type: "p",
+        text: "What a CSV deliberately does not carry is formatting. No bold, no colours, no column widths, no formulas, no multiple sheets. That sounds like a limitation and it is precisely the point: a file that carries only information can be read reliably by any program on any machine, which is what makes it the standard way to move data into a page layout.",
+      },
+      { type: "note", text: "You never need to type commas yourself. You work in the spreadsheet as normal, and the commas appear only when you save as CSV." },
+      { type: "h2", text: "Start from the template, not a blank sheet" },
+      {
+        type: "p",
+        text: "The single most useful thing you can do is begin with the file we hand you rather than building your own. The template's first row already contains the exact column names the directory design expects. Get those right and nothing else can really go wrong; get them wrong and nothing else matters.",
+      },
+      {
+        type: "ol",
+        items: [
+          "Download the template from the directory tool.",
+          "Open it in Excel, Numbers or Google Sheets — double-clicking it usually does the right thing.",
+          "Leave row 1 exactly as it is.",
+          "Replace the example rows underneath with your own households.",
+        ],
+      },
+      { type: "h2", text: "Why the heading row must not change" },
+      {
+        type: "p",
+        text: "The heading row is not a label for human readers. It is the join between your spreadsheet and the design. Every text frame in the InDesign template is bound to a heading by name: the frame that sets the surname is looking for a column called last_name, and it will find it whether that column is first, last, or somewhere in the middle.",
+      },
+      {
+        type: "p",
+        text: "Which means renaming a column breaks the connection. So does adding a space, capitalising it, or replacing an underscore with a hyphen. To the design, Last_Name and last_name are two different things, and one of them does not exist.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Do not rename a column, even to something clearer.",
+          "Do not delete a column you have no data for — leave its cells empty instead.",
+          "Do not add columns of your own; they will be rejected rather than ignored.",
+          "Do not reorder them if you can help it, though order alone will not break a merge.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Our tool checks all of this in your browser before anything is sent, and names the specific column that is wrong. A misspelling is caught in a second rather than surfacing later as an unexplained blank in a printed book.",
+      },
+      { type: "h2", text: "One household per row" },
+      {
+        type: "p",
+        text: "A church directory usually lists households rather than individuals: one entry for the Abernathy family, with the family members named inside it. So each row is a household, and the family_members column is where the names within it go.",
+      },
+      {
+        type: "p",
+        text: "Write that column the way you want it to read in print — David, Ruth, Caleb and Mercy prints exactly as typed. If you would rather list people individually, give each person their own row; the design handles either, but be consistent. Half a directory of households and half of individuals reads as a mistake even when every row is correct.",
+      },
+      { type: "h2", text: "Empty cells are fine" },
+      {
+        type: "p",
+        text: "Not every household has a second phone number or an email address. Leave the cell empty. An empty optional field is a normal directory entry, not an error, and the layout closes up around it rather than printing a gap.",
+      },
+      {
+        type: "p",
+        text: "Two fields do have to be filled on every row: last_name and first_name. The directory is alphabetised on them, so a row without a name has nowhere to go.",
+      },
+      { type: "h3", text: "Things that quietly cause trouble" },
+      {
+        type: "ul",
+        items: [
+          "Trailing spaces after a name — they sort differently and are invisible on screen.",
+          "A phone number the spreadsheet has helpfully turned into a number, dropping a leading zero. Format those columns as text.",
+          "Two rows for the same household, usually left over from an earlier list.",
+          "Notes typed into an unrelated column because there was space there.",
+        ],
+      },
+      { type: "h2", text: "Saving it correctly" },
+      {
+        type: "p",
+        text: "The last step is the one most often missed. Your spreadsheet program will happily keep working in its own format, and a file called directory.xlsx is not a CSV no matter how it is filled in.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Excel: File → Save As, and choose CSV UTF-8 (Comma delimited).",
+          "Numbers: File → Export To → CSV.",
+          "Google Sheets: File → Download → Comma-separated values.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Excel may warn you that some features cannot be saved in this format. That warning is about formatting and formulas, not your data. Continue.",
+      },
+      { type: "h2", text: "Then what happens" },
+      {
+        type: "p",
+        text: "Your completed CSV is merged into a production InDesign template — the same process described in [what Adobe InDesign Data Merge is](/blog/what-is-indesign-data-merge) — and exported as a print-ready PDF. If you want to see the whole route from here to a printed book, [we have written it up end to end](/blog/spreadsheet-to-print-ready-pdf).",
+      },
+      {
+        type: "p",
+        text: "Ready to try it? [Download the template and upload your directory](/). It is free, and what you get is a real InDesign export rather than a preview.",
+      },
+    ],
+  },
+
+  {
+    slug: "spreadsheet-to-print-ready-pdf",
+    cluster: "directories",
+    category: "Directories",
+    title: "From Spreadsheet to Print-Ready PDF: How Automated Directories Work",
+    seoTitle: "From Spreadsheet to Print-Ready PDF: How Automated Directories Work | Pressmark Studio",
+    metaDescription:
+      "What actually happens between uploading a CSV and downloading a directory PDF — validation, data merge, typesetting and print-ready export, explained without jargon.",
+    excerpt:
+      "The route from a spreadsheet to a book you can hand to a printer, one stage at a time — and why an automated directory is more consistent than one laid out by hand.",
+    author: AUTHOR,
+    publishedDate: "2026-09-12",
+    updatedDate: "2026-09-12",
+    readingTime: 6,
+    featuredImage: "/blog/automate-yearbook-pages-indesign-data-merge.jpg",
+    featuredImageAlt: "Spreadsheet rows flowing into laid-out publication pages",
+    relatedPosts: [
+      "how-to-fill-out-csv-church-directory",
+      "what-is-indesign-data-merge",
+      "yearbook-print-ready-pdf-checklist",
+    ],
+    content: [
+      {
+        type: "p",
+        text: "A directory looks like a design problem and is mostly a data problem. Four hundred households have to appear in the same shape, in the right order, with nothing missing — and then the whole thing has to survive the trip to a printing press. Here is what actually happens between a spreadsheet and a finished PDF.",
+      },
+      {
+        type: "pipeline",
+        steps: [
+          "Your spreadsheet, saved as CSV",
+          "Validation — headings, required values, sorting",
+          "Data merge into the InDesign template",
+          "Typesetting: one record per listing, page after page",
+          "Print-ready PDF export",
+        ],
+      },
+      { type: "h2", text: "1. Validation, before anything else" },
+      {
+        type: "p",
+        text: "The first thing that happens to your file is that it is checked, and it is checked twice: once in your browser, so a wrong column name is caught the instant you choose the file, and again on the server, because the browser is not the only thing that can send a file.",
+      },
+      {
+        type: "p",
+        text: "The check is deliberately strict. A column that is not recognised is refused rather than ignored, because a misspelled frist_name would otherwise disappear quietly and show up as a missing required column — sending you hunting for the wrong problem. Records are also sorted here, alphabetically by surname and then first name, so the order in the finished book does not depend on the order you happened to type them in.",
+      },
+      { type: "h2", text: "2. The merge" },
+      {
+        type: "p",
+        text: "The layout itself is one page. Not four hundred pages — one, built with a listing that has a slot for each field: a name here, an address beneath it, phone numbers alongside. Data merge fills that slot pattern once per record and generates the pages needed to hold them all. This is a standard Adobe InDesign feature, described in more detail in [what Data Merge is and when to use it](/blog/what-is-indesign-data-merge).",
+      },
+      {
+        type: "p",
+        text: "It is worth being clear about what this buys you. A person laying out four hundred listings by hand will produce four hundred listings that are almost identical. Automation produces four hundred that are exactly identical, and it does it again in seconds when eleven families are added in March.",
+      },
+      { type: "h2", text: "3. Typesetting decisions the template already made" },
+      {
+        type: "p",
+        text: "The template carries the judgement calls: how much space a listing gets, what happens to a name too long for one line, how columns break across a page, where section headings fall. Those were decided once, by a designer, and they apply identically to every record — which is why an automated directory tends to look more considered than a hand-built one, not less.",
+      },
+      {
+        type: "p",
+        text: "Colour works the same way. Where our tool offers a primary and an accent colour, those are two named swatches inside the template, applied throughout it. Changing them recolours the publication coherently, because every element that should follow them already does.",
+      },
+      { type: "h2", text: "4. Print-ready export" },
+      {
+        type: "p",
+        text: "The last stage turns the laid-out document into a PDF a commercial printer can accept: high-resolution images, the right colour handling, and fonts embedded so the file sets identically on someone else's machine.",
+      },
+      {
+        type: "p",
+        text: "Print-ready is a real technical standard rather than a marketing phrase, and if you are taking a file to a printer yourself it is worth understanding what it involves — [our print-ready PDF checklist](/blog/yearbook-print-ready-pdf-checklist) covers it, and [bleed, trim and safe area](/blog/bleed-trim-safe-area) explains the part that catches most people out.",
+      },
+      { type: "h2", text: "How long it takes" },
+      {
+        type: "p",
+        text: "Validation is instant. The merge and the export are not: they run in Adobe InDesign on a real machine, and your directory waits its turn in a queue before taking a few minutes to set. We would rather tell you which of those two you are waiting on than show you a progress bar that is really just a timer.",
+      },
+      { type: "note", text: "Automation removes the repetition, not the craft. Someone still has to design the listing, decide the hierarchy and set the type — it just happens once instead of four hundred times." },
+      { type: "h2", text: "Try it with your own data" },
+      {
+        type: "p",
+        text: "The whole pipeline above runs free for a church directory. [Download the template, fill it in and upload it](/) — you get the finished PDF, not a mock-up. If your publication is bigger or stranger than a directory, [tell us what you are making](/contact).",
+      },
+    ],
+  },
+
+  {
+    slug: "clean-data-better-directory-designs",
+    cluster: "directories",
+    category: "Directories",
+    title: "Why Clean Data Creates Better Directory Designs",
+    seoTitle: "Why Clean Data Creates Better Directory Designs | Pressmark Studio",
+    metaDescription:
+      "Inconsistent capitalisation, stray spaces and mixed phone formats all show up in print. Why tidy spreadsheet data produces a better-looking directory, and how to tidy it.",
+    excerpt:
+      "Every inconsistency in a spreadsheet becomes a visible inconsistency on the page. What messy data actually does to a layout, and the short list of fixes that matter most.",
+    author: AUTHOR,
+    publishedDate: "2026-09-12",
+    updatedDate: "2026-09-12",
+    readingTime: 6,
+    featuredImage: "/blog/organize-yearbook-photos.jpg",
+    featuredImageAlt: "A spreadsheet being tidied before a directory layout is generated",
+    relatedPosts: [
+      "how-to-fill-out-csv-church-directory",
+      "spreadsheet-to-print-ready-pdf",
+      "create-photo-directory-from-csv",
+    ],
+    content: [
+      {
+        type: "p",
+        text: "There is a rule worth internalising before you build any publication from a spreadsheet: the design cannot be tidier than the data. A layout is a machine for displaying what it is given, faithfully. Give it three different ways of writing a phone number and it will print all three, in the same typeface, on the same page, looking exactly as deliberate as everything else.",
+      },
+      { type: "h2", text: "What inconsistency looks like in print" },
+      {
+        type: "p",
+        text: "On screen, in a spreadsheet with gridlines and a scroll bar, small differences are invisible. Set into a column of listings at nine point, they are the first thing a reader notices.",
+      },
+      {
+        type: "ul",
+        items: [
+          "MCDONALD, McDonald and Mcdonald in the same alphabetical run.",
+          "(555) 010-8842 above 555-010-8842 above 5550108842.",
+          "1 Chapel Ln beside 18 Chapel Lane beside 18 chapel lane.",
+          "A trailing space that sorts Abernathy after Adams for no visible reason.",
+          "Smart quotes from one contributor and straight quotes from another.",
+        ],
+      },
+      {
+        type: "p",
+        text: "None of these is a layout fault, and none can be fixed in the layout. They are all decisions that were never made — and a directory is four hundred opportunities to make them inconsistently.",
+      },
+      { type: "h2", text: "Why it matters more in an automated publication" },
+      {
+        type: "p",
+        text: "When someone types a directory by hand, they normalise as they go without noticing: they capitalise the name properly because it looked wrong, they add the missing area code. Automation does not do that. It reproduces exactly what it is given, four hundred times, at speed.",
+      },
+      {
+        type: "p",
+        text: "That is a feature, not a shortcoming. A tool that silently rewrote your members' names would be far worse. But it does move the work: the effort that used to be spread invisibly across the typing now belongs in the spreadsheet, before the merge.",
+      },
+      { type: "h2", text: "The fixes worth doing" },
+      {
+        type: "p",
+        text: "You do not need a perfectly normalised database. Four passes over the file will get you most of the way.",
+      },
+      {
+        type: "ol",
+        items: [
+          "Trim spaces. Every leading and trailing space, in every column. This is the most common cause of wrong alphabetical order, and it is invisible until you look for it.",
+          "Pick one phone format and apply it to the whole column. Any format. Consistency is the entire requirement.",
+          "Fix capitalisation by eye rather than automatically — a blanket title-case pass turns McDonald into Mcdonald and O'Brien into O'brien.",
+          "Decide how addresses are abbreviated. St or Street, Apt or Apartment; choose once.",
+        ],
+      },
+      { type: "note", text: "Sort the file by each column in turn before you start. Inconsistent values end up next to each other, which makes them far easier to spot than scrolling through the sheet as it stands." },
+      { type: "h3", text: "Duplicates and stragglers" },
+      {
+        type: "p",
+        text: "Most membership lists carry a few households twice — usually one entry from an old list and one from a newer form, differing by a middle initial or an old address. They are hard to see in a spreadsheet and impossible to miss in print, on facing pages. Sorting by surname brings them together.",
+      },
+      {
+        type: "p",
+        text: "The other common straggler is the note typed into whatever column had room: moved — check with Susan, sitting in an address field. It will print.",
+      },
+      { type: "h2", text: "Blank is not messy" },
+      {
+        type: "p",
+        text: "One thing worth saying plainly, because people over-correct: an empty cell is not dirty data. A household with no email address is a normal directory entry, and a well-built listing closes up around a missing field rather than leaving a hole. Do not invent a placeholder, and never type N/A — that prints too.",
+      },
+      { type: "h2", text: "The payoff" },
+      {
+        type: "p",
+        text: "An hour spent tidying a membership list produces a better-looking book than an hour spent adjusting a layout, because the layout was already right. It also produces a file you can reuse next year, and the year after — which is the real return on doing it once, properly.",
+      },
+      {
+        type: "p",
+        text: "If you are still assembling the file, [how to fill out a CSV for a church directory](/blog/how-to-fill-out-csv-church-directory) covers the structure. When it is ready, [upload it and see the proof](/).",
+      },
+    ],
+  },
+
+  {
+    slug: "prepare-photos-church-directory",
+    cluster: "directories",
+    category: "Directories",
+    title: "How to Prepare Photos for a Church Directory",
+    seoTitle: "How to Prepare Photos for a Church Directory | Pressmark Studio",
+    metaDescription:
+      "Naming, cropping, resolution and colour: how to prepare member photographs so a printed church directory looks consistent, with a workable plan for mixed submissions.",
+    excerpt:
+      "Photographs are where a directory project usually stalls. How to name, crop, size and check member photos so they print consistently — and what to do when half of them arrive from phones.",
+    author: AUTHOR,
+    publishedDate: "2026-09-12",
+    updatedDate: "2026-09-12",
+    readingTime: 7,
+    featuredImage: "/blog/prepare-images-yearbook-printing.jpg",
+    featuredImageAlt: "Member portraits being reviewed and prepared for a printed directory",
+    relatedPosts: [
+      "create-photo-directory-from-csv",
+      "clean-data-better-directory-designs",
+      "prepare-images-yearbook-printing",
+    ],
+    content: [
+      {
+        type: "p",
+        text: "Text is the easy half of a directory. Photographs are where these projects stall, and almost always for the same reason: two hundred images arrive from two hundred people, in every size, orientation, lighting and file format that exists, named IMG_4471.jpg.",
+      },
+      {
+        type: "p",
+        text: "The work below is what turns that into a directory where every portrait sits in the same box and looks like it belongs to the same book.",
+      },
+      { type: "note", text: "Our directory tool currently produces the text-based Church Directory Classic. A photo-led design is in production — the guidance here is what to do now so the photographs are ready when it lands." },
+      { type: "h2", text: "1. Naming is the whole ballgame" },
+      {
+        type: "p",
+        text: "Automation matches a photograph to a record by filename. Not by looking at the picture, and not by the order files sit in a folder — by name, exactly. Which makes a naming scheme the first decision, not the last.",
+      },
+      {
+        type: "p",
+        text: "Use something derived from the data you already have, so the name can be produced by a formula rather than typed: surname-firstname.jpg, or the household number if your records carry one. Then whatever the file arrives as, it is renamed once, on receipt.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Lower case throughout — some systems treat Smith.jpg and smith.jpg as different files, and the ones that do will find neither.",
+          "No spaces; use hyphens.",
+          "One extension convention: .jpg, not a mix of .jpg and .jpeg.",
+          "Handle duplicate surnames deliberately: smith-john.jpg and smith-jonathan.jpg, never smith2.jpg.",
+        ],
+      },
+      { type: "h2", text: "2. Crop to one shape" },
+      {
+        type: "p",
+        text: "A directory prints portraits in identical frames. If the underlying images are a mix of landscape phone snaps and tall studio portraits, the layout has to crop them for you — and an automatic crop takes the middle, which is how you end up with a page of foreheads and shoulders.",
+      },
+      {
+        type: "p",
+        text: "Crop them yourself to a consistent aspect ratio, with the eyes roughly a third of the way down the frame. That one convention does more for the finished look of a directory than anything else, because it is what makes a grid of faces read as a set rather than a collection.",
+      },
+      { type: "h2", text: "3. Resolution: enough, and not more" },
+      {
+        type: "p",
+        text: "Print needs about 300 pixels per inch at final size. A portrait printed two inches wide therefore wants around 600 pixels across — a low bar that almost any modern phone clears comfortably.",
+      },
+      {
+        type: "p",
+        text: "The commoner mistake runs the other way: two hundred untouched twelve-megapixel photographs make a document that is slow to open, slow to merge and enormous to export, for no visible gain on paper. Resize to roughly twice the printed size and stop there. [Preparing images for printing](/blog/prepare-images-yearbook-printing) covers the arithmetic in more depth.",
+      },
+      { type: "h3", text: "What cannot be rescued" },
+      {
+        type: "p",
+        text: "A photograph taken as a screenshot of a text message, or saved from social media, has already lost the detail. Enlarging it puts nothing back. It is kinder to ask for another than to print a soft, blocky portrait among sharp ones — the contrast makes it look worse than it would on its own.",
+      },
+      { type: "h2", text: "4. Colour and consistency" },
+      {
+        type: "p",
+        text: "Photographs from a hall on a grey afternoon are cooler and flatter than photographs from a sunny doorway. Side by side on a page, that reads as a fault in the book rather than in the light.",
+      },
+      {
+        type: "p",
+        text: "A light touch is enough: bring the obviously dark ones up, cool down the obviously orange ones, and leave the rest. Consistency across the set matters far more than the quality of any single image. Bear in mind too that print is CMYK and screens are RGB — vivid colours reproduce more softly on paper, which [RGB versus CMYK for print](/blog/rgb-vs-cmyk-print) explains.",
+      },
+      { type: "h2", text: "5. A workable plan for real submissions" },
+      {
+        type: "p",
+        text: "You will not get two hundred well-lit, correctly cropped portraits by asking nicely. Plan for the reality instead.",
+      },
+      {
+        type: "ol",
+        items: [
+          "Ask for the original photograph, not one pasted into a document or sent through an app that recompresses it.",
+          "Collect into one folder, and rename on arrival rather than at the end.",
+          "Keep a column in the spreadsheet for the photo filename, and fill it as each one lands. That column is also your list of who has not sent one.",
+          "Offer a photo session for anyone without a picture. It is faster than chasing, and it fills the gaps with consistent images.",
+          "Decide early what a missing photo looks like — a silhouette, an initial, or simply a listing without one. Decide it once, and apply it everywhere.",
+        ],
+      },
+      { type: "note", text: "Whatever you do about missing photographs, do it the same way every time. A handful of obviously improvised placeholders is more conspicuous than a hundred listings that share one." },
+      { type: "h2", text: "Doing it at volume" },
+      {
+        type: "p",
+        text: "Renaming, cropping and resizing hundreds of images by hand is exactly the sort of work that should be batched. [Building a photo directory from a CSV](/blog/create-photo-directory-from-csv) covers the matching side, and if the volume is beyond what you want to take on, [it is part of what we do](/services).",
       },
     ],
   },
