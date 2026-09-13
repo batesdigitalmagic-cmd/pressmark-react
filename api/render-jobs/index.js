@@ -7,6 +7,7 @@
  */
 
 import { randomBytes } from "node:crypto";
+import { BRAND_COLOR_KEYS, validateBrandColors } from "../../src/instant-proof/colors.js";
 import { clientIp, rateLimit, tooManyRequests } from "../../lib/rate-limit.js";
 import { validateAndNormalizeCsv } from "../../lib/render-jobs/csv.js";
 import { apiError, json, publicJob, safeOriginalFilename } from "../../lib/render-jobs/http.js";
@@ -51,6 +52,23 @@ async function handler(request) {
       return json({ error: `CSV files must be no larger than ${MAX_CSV_BYTES} bytes.` }, 413);
     }
 
+    /*
+     * Brand colours.
+     *
+     * Any subset of the six is legitimate, and none at all is the commonest
+     * case: the page submits only the swatches the customer actually changed,
+     * so an untouched colour is left exactly as the template has it rather than
+     * being repainted with a value nobody chose. Present but malformed is a
+     * different thing entirely and is refused — an unvalidated string must
+     * never reach the handoff file the InDesign script parses.
+     */
+    const submitted = Object.fromEntries(
+      BRAND_COLOR_KEYS.map((key) => [key, form.get(key)]).filter(([, value]) => value !== null)
+    );
+    const validated = validateBrandColors(submitted);
+    if (!validated.ok) return json({ error: validated.error }, 400);
+    const colors = validated.colors;
+
     let normalized;
     try {
       normalized = validateAndNormalizeCsv(new Uint8Array(await upload.arrayBuffer()));
@@ -83,6 +101,9 @@ async function handler(request) {
       csvKey: inputCsvPath(jobId),
       pdfKey: outputPdfPath(jobId),
       mockOutput: false,
+      /* Stored under one key so the job record cannot collide with a field of
+         our own, and so a seventh colour needs no change here. */
+      brandColors: colors,
     });
 
     return json(publicJob(job), 201);

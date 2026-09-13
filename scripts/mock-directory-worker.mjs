@@ -25,7 +25,7 @@ const form = new FormData();
 form.set("status", "completed");
 form.set("workerId", workerId);
 form.set("mockOutput", "true");
-form.set("pdf", new Blob([preview], { type: "application/pdf" }), "church-directory-classic-proof.pdf");
+form.set("pdf", new Blob([preview], { type: "application/pdf" }), "directory-classic-proof.pdf");
 const result = await fetch(`${baseUrl}/api/render-jobs/worker/${job.jobId}/result`, { method: "POST", headers: authorization, body: form });
 if (!result.ok) throw new Error(`Completion failed (${result.status}).`);
 console.log(`Completed ${job.jobId} with the local sample PDF (not an InDesign render).`);

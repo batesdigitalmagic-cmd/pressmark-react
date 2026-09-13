@@ -128,7 +128,7 @@ async function processJob(api, config, claimed, indesign = indesignDriver) {
 
   try {
     const csvPath = path.join(jobDir, "input.csv");
-    const pdfPath = path.join(jobDir, "church-directory-classic-proof.pdf");
+    const pdfPath = path.join(jobDir, "directory-classic-proof.pdf");
     const resultPath = path.join(jobDir, "result.txt");
 
     const csv = await api.downloadInput(jobId);
@@ -139,9 +139,21 @@ async function processJob(api, config, claimed, indesign = indesignDriver) {
     heartbeat.state.stage = "Merging records in InDesign";
     heartbeat.state.progress = 45;
 
+    /* The colours the customer changed travel with the job. A colour is a design
+       choice rather than personal data, but only which swatches were touched is
+       logged — the log is for diagnosing a render, not recording a design. */
+    log.info("Brand colours", { job: short, changed: Object.keys(claimed.brandColors ?? {}).length });
+
     const outcome = await indesign.runInDesignJob(
       config,
-      { jobId, jobDir, csvPath, pdfPath, resultPath },
+      {
+        jobId,
+        jobDir,
+        csvPath,
+        pdfPath,
+        resultPath,
+        brandColors: claimed.brandColors,
+      },
       {
         onStage: (stage) => {
           heartbeat.state.stage = stage;

@@ -20,7 +20,7 @@ import path from "node:path";
 
 import { describe, loadConfig, validateConfig } from "../config.mjs";
 import { log, redact, shortJobId } from "../log.mjs";
-import { verifyPdf, writeHandoff } from "../indesign.mjs";
+import { runInDesignJob, swatchHandoff, verifyPdf, writeHandoff } from "../indesign.mjs";
 
 const TOKEN = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
@@ -158,12 +158,91 @@ test("only a real, non-trivial PDF is accepted", async () => {
   assert.ok(realResult.bytes.length > 400);
 });
 
+/* ── Brand colours ── */
+
+test("brand colours become swatch lines the ExtendScript can parse", () => {
+  /* The key names the swatch, so the script needs no list of its own. */
+  assert.deepEqual(swatchHandoff({ primaryColor: "#7A1F35", lightTint: "#E6E6E6" }), {
+    "swatch.PM_Primary": "0,75,57,52",
+    "swatch.PM_LightTint": "0,0,0,10",
+  });
+
+  /* Pure black is K only. A rich black under body text and hairline rules is a
+     production mistake, so the conversion must not produce one. */
+  assert.equal(swatchHandoff({ textColor: "#000000" })["swatch.PM_Text"], "0,0,0,100");
+  assert.equal(swatchHandoff({ backgroundColor: "#FFFFFF" })["swatch.PM_Background"], "0,0,0,0");
+
+  /* Every value is a single line of digits and commas — the handoff format has
+     no escaping, so anything else would corrupt the file the script parses. */
+  const all = swatchHandoff({
+    primaryColor: "#12ab34",
+    secondaryColor: "#FE0102",
+    accentColor: "#0099FF",
+    textColor: "#111111",
+    backgroundColor: "#FAFAFA",
+    lightTint: "#DDDDDD",
+  });
+  assert.equal(Object.keys(all).length, 6);
+  for (const [key, value] of Object.entries(all)) {
+    assert.match(key, /^swatch\.PM_[A-Za-z]+$/);
+    assert.match(value, /^\d{1,3},\d{1,3},\d{1,3},\d{1,3}$/);
+  }
+
+  /* The normal case: the customer changed nothing, so the document is never
+     touched and the template renders in its own colours. */
+  assert.deepEqual(swatchHandoff({}), {});
+  assert.deepEqual(swatchHandoff(undefined), {});
+
+  /* A key we do not know, or a value that is not a colour, means the server and
+     this file disagree about what a validated job looks like. Fail loudly
+     rather than paint a directory in something nobody chose. */
+  assert.throws(() => swatchHandoff({ borderColor: "#7A1F35" }), /unknown brand colour/);
+  assert.throws(() => swatchHandoff({ primaryColor: "puce" }), /not a six-digit hex/);
+});
+
+test("a render works on a copy of the template, never the operator's file", async () => {
+  const jobDir = await mkdtemp(path.join(tmp, "copyjob-"));
+  const template = path.join(tmp, "production-template.indd");
+  const original = `INDD${"x".repeat(200)}`;
+  await writeFile(template, original);
+
+  /*
+   * No InDesign, on purpose. A bundle id nothing answers to makes osascript
+   * fail immediately, which is all this test needs: the copy and the handoff
+   * are written BEFORE osascript is invoked, so the failure path still proves
+   * the operator's template was never opened.
+   */
+  const outcome = await runInDesignJob(
+    {
+      templatePath: template,
+      scriptPath: path.join(tmp, "nothing.jsx"),
+      handoffPath: path.join(jobDir, "handoff.txt"),
+      indesignBundleId: "test.pressmark.no-such-application",
+      renderTimeoutMs: 10000,
+    },
+    {
+      jobId: "b".repeat(64),
+      jobDir,
+      csvPath: path.join(jobDir, "input.csv"),
+      pdfPath: path.join(jobDir, "out.pdf"),
+      resultPath: path.join(jobDir, "result.txt"),
+      brandColors: { primaryColor: "#7A1F35" },
+    }
+  );
+
+  /* No result file, because nothing ran — reported as a failure the worker may
+     retry rather than as a render that failed. */
+  assert.equal(outcome.status, "failed");
+  assert.ok(existsSync(path.join(jobDir, "template.indd")), "the per-job copy should exist");
+  assert.equal(await readFile(template, "utf8"), original, "the source template must be byte-identical");
+});
+
 /* ── The job loop ──
    InDesign is injected so each outcome it can produce is exercised for real. */
 
 async function runProcessJob({ renderOutcome, pdfContents, apiOverrides = {} }) {
   const workDir = await mkdtemp(path.join(tmp, "work-"));
-  const calls = { completed: null, failed: null, heartbeats: 0 };
+  const calls = { completed: null, failed: null, heartbeats: 0, rendered: null };
 
   const api = {
     async downloadInput() {
@@ -198,6 +277,7 @@ async function runProcessJob({ renderOutcome, pdfContents, apiOverrides = {} }) 
      outcome. Everything else in processJob runs unmodified. */
   const indesign = {
     async runInDesignJob(_config, job) {
+      calls.rendered = job;
       if (pdfContents !== undefined) await writeFile(job.pdfPath, pdfContents);
       return { pdfPath: job.pdfPath, ...renderOutcome };
     },
@@ -205,9 +285,19 @@ async function runProcessJob({ renderOutcome, pdfContents, apiOverrides = {} }) 
   };
 
   const { processJob } = await import("../pressmark-worker.mjs");
-  await processJob(api, config, { jobId: "a".repeat(64), rowCount: 2, attempts: 1 }, indesign);
+  await processJob(
+    api,
+    config,
+    {
+      jobId: "a".repeat(64),
+      rowCount: 2,
+      attempts: 1,
+      brandColors: { primaryColor: "#22503C", lightTint: "#B08A78" },
+    },
+    indesign
+  );
 
-  return { calls, workDir };
+  return { calls, workDir, rendered: calls.rendered };
 }
 
 test("a successful render uploads the PDF and completes the job", async () => {
@@ -219,6 +309,14 @@ test("a successful render uploads the PDF and completes the job", async () => {
   assert.equal(calls.failed, null);
   assert.match(calls.completed.bytes.subarray(0, 5).toString(), /^%PDF-/);
   assert.deepEqual(await listDirs(workDir), [], "the job directory must be removed");
+});
+
+test("the colours chosen on the site are the colours handed to InDesign", async () => {
+  const { rendered } = await runProcessJob({
+    renderOutcome: { status: "completed", message: "", timedOut: false },
+    pdfContents: `%PDF-1.5\n${"x".repeat(800)}`,
+  });
+  assert.deepEqual(rendered.brandColors, { primaryColor: "#22503C", lightTint: "#B08A78" });
 });
 
 test("a render that InDesign reports as failed fails the job", async () => {

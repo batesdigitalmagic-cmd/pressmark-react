@@ -7,7 +7,7 @@
 
 (function () {
     var SCRIPT_NAME = "Pressmark Directory Merge";
-    var OUTPUT_NAME = "church-directory-classic-proof.pdf";
+    var OUTPUT_NAME = "directory-classic-proof.pdf";
 
     /*
      * ── Two modes, one layout engine ──
@@ -32,6 +32,23 @@
      * double-click can never be captured by a stale job. A file older than
      * STALE_JOB_MINUTES is ignored for the same reason.
      *
+     * ── Brand colours ──
+     *
+     * Any number of `swatch.<Name>` keys may be present, each carrying four whole
+     * percentages, "c,m,y,k", already converted by the worker — the arithmetic
+     * belongs where it can be unit-tested, not in ES3. Each recolours the named
+     * swatch on the per-job COPY of the template the worker hands over.
+     *
+     *     swatch.PM_Primary=100,90,10,0
+     *
+     * The swatch is named in the key rather than mapped from a list kept here,
+     * so a colour added to the site needs no change to this script. The names
+     * come from the site's own allow-list, never from anything a customer typed.
+     *
+     * When no swatch key is present the document is not touched at all and the
+     * template renders in its own colours — which is the normal case, because the
+     * site only sends the swatches a customer actually changed.
+     *
      * ── Format ──
      *
      * Plain key=value lines, not JSON: ExtendScript's ES3 host has no JSON
@@ -41,6 +58,13 @@
     var JOB_HANDOFF_PATH = Folder.userData.fsName +
         "/Pressmark/current-render-job.txt";
     var STALE_JOB_MINUTES = 30;
+    /* Handoff keys that name a swatch to recolour. Every swatch must already
+       exist in the template as a CMYK process colour; this script recolours
+       them, it never creates them. */
+    var SWATCH_PREFIX = "swatch.";
+    /* InDesign's own swatches. Named here so the guard below reads as the rule
+       it enforces rather than as an accident of which names we happen to use. */
+    var PROTECTED_SWATCHES = ["[Paper]", "[Black]", "[Registration]", "[None]"];
     var REQUIRED_HEADERS = [
         "last_name",
         "first_name",
@@ -278,6 +302,91 @@
     }
 
     /*
+     * "c,m,y,k" as four whole percentages, or null if it is anything else.
+     *
+     * The worker validated and converted these, so a value that fails here means
+     * the two sides have drifted apart. Returning null makes that a clear failure
+     * rather than a render in a colour nobody chose.
+     */
+    function parseCmyk(text) {
+        var parts = String(text).split(",");
+        var values = [];
+        var index;
+        var piece;
+        var number;
+
+        if (parts.length !== 4) {
+            return null;
+        }
+        for (index = 0; index < 4; index += 1) {
+            piece = trim(parts[index]);
+            if (!/^[0-9]{1,3}$/.test(piece)) {
+                return null;
+            }
+            number = parseInt(piece, 10);
+            if (number < 0 || number > 100) {
+                return null;
+            }
+            values.push(number);
+        }
+        return values;
+    }
+
+    function isProtectedSwatch(name) {
+        var index;
+        for (index = 0; index < PROTECTED_SWATCHES.length; index += 1) {
+            if (PROTECTED_SWATCHES[index] === name) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /*
+     * Recolour one named swatch, or fail saying exactly what is wrong with it.
+     *
+     * `document.colors` rather than `document.swatches`: the swatches collection
+     * also holds gradients, tints and mixed inks, which have no colour space to
+     * check and would throw on the comparison below. Looking only at colours
+     * means a gradient that happens to carry the name is reported as a missing
+     * colour swatch, which is the truth.
+     *
+     * A wrong space or model is a hard failure rather than something to convert
+     * on the fly. An RGB swatch in a document destined for print is a production
+     * problem the operator needs to fix in the template, and silently converting
+     * it would hide that from the one person who can.
+     */
+    function applyBrandColor(document, name, values) {
+        var swatch;
+
+        /*
+         * The name arrives in a handoff key rather than as a constant here, so
+         * it is checked before it is used. It comes from the site's own
+         * allow-list and never from anything a customer typed, but a swatch
+         * name is the one thing in this file that is not fixed, and InDesign's
+         * reserved swatches must stay reserved whatever is handed over.
+         */
+        if (name.length === 0 || name.length > 100) {
+            fail("A swatch name in this job was empty or absurdly long.");
+        }
+        if (isProtectedSwatch(name)) {
+            fail("Refusing to modify the reserved swatch " + name + ".");
+        }
+        swatch = document.colors.itemByName(name);
+        if (!swatch.isValid) {
+            fail("The template has no colour swatch named \"" + name + "\". Add it as a CMYK process swatch and apply it to the elements it should colour.");
+        }
+        if (swatch.space !== ColorSpace.CMYK) {
+            fail("The swatch \"" + name + "\" is not a CMYK swatch. Custom colours must be CMYK process swatches.");
+        }
+        if (swatch.model !== ColorModel.PROCESS) {
+            fail("The swatch \"" + name + "\" is not a process swatch. Custom colours must be CMYK process swatches.");
+        }
+        swatch.colorValue = values;
+        return values.join("/");
+    }
+
+    /*
      * The worker's only channel back. Written for BOTH outcomes and written
      * last, so its existence means this script ran to a conclusion — a missing
      * result file tells the worker InDesign died rather than leaving it to
@@ -318,6 +427,15 @@
     }
 
     var jobSpec = null;
+    /*
+     * The operator's own dialog setting, captured so it can be put back.
+     *
+     * Job mode switches InDesign to NEVER_INTERACT, and that preference belongs
+     * to the running application, not to this script: left changed, the
+     * operator's next manual session would silently swallow every alert. The
+     * finally block below restores it on success, on failure and on a throw.
+     */
+    var previousInteraction = null;
 
     try {
         step = "reading the render job handoff";
@@ -401,9 +519,88 @@
             log("Removed existing output PDF.");
         }
 
+        /*
+         * ── An unattended render never waits on a dialog ──
+         *
+         * A missing-fonts or profile-mismatch alert raised by app.open is modal.
+         * Nobody is at the Mac to dismiss it, so the script used to sit behind
+         * it until AppleScript's 120-second timeout — and the alert stayed up,
+         * blocking every job after it as well. NEVER_INTERACT makes InDesign
+         * take the default action instead of asking.
+         *
+         * Manual mode is left alone: an operator at the keyboard wants to see
+         * those alerts.
+         */
+        if (jobSpec !== null) {
+            previousInteraction = app.scriptPreferences.userInteractionLevel;
+            app.scriptPreferences.userInteractionLevel = UserInteractionLevels.NEVER_INTERACT;
+        }
+
         step = "opening a protected copy of the template";
         templateDocument = app.open(templateFile, true);
+
+        /*
+         * ── ...but it never ships substituted fonts either ──
+         *
+         * Suppressing the dialog does not make the fonts appear; InDesign just
+         * substitutes silently. A directory set in a fallback face is a broken
+         * deliverable that looks finished, so in job mode a missing font fails
+         * the render and names every one, which is what the dialog would have
+         * told an operator had one been there.
+         */
+        if (jobSpec !== null) {
+            step = "checking the template's fonts";
+            var missingFonts = [];
+            var fontIndex;
+            var font;
+            for (fontIndex = 0; fontIndex < templateDocument.fonts.length; fontIndex += 1) {
+                font = templateDocument.fonts.item(fontIndex);
+                if (font.status !== FontStatus.INSTALLED) {
+                    missingFonts.push(font.name.replace(/\t/g, " "));
+                }
+            }
+            if (missingFonts.length > 0) {
+                fail("The template uses " + missingFonts.length + " font(s) that are not installed on the render Mac: " +
+                    missingFonts.join(", ") + ". Activate them, or remove them from the template's styles, and re-save.");
+            }
+            log("All " + templateDocument.fonts.length + " template fonts are installed.");
+        }
         log("Opened template without saving changes to the source file.");
+
+        /*
+         * ── Brand colours ──
+         *
+         * Applied to the open document BEFORE the merge, so every generated page
+         * inherits them: the merged document is built from this one, and a swatch
+         * changed afterwards would only affect a document that no longer matters.
+         *
+         * In job mode `templateFile` is the worker's per-job copy, so nothing
+         * written here can reach the operator's production template. Manual mode
+         * never has colours in the first place and is unchanged.
+         */
+        var appliedCount = 0;
+        if (jobSpec !== null) {
+            step = "applying your brand colours";
+            var swatchName;
+            var swatchValues;
+            for (var specKey in jobSpec) {
+                /* ES3 has no Object.keys and no hasOwnProperty guard worth the
+                   lines here — jobSpec is a plain object this script built. */
+                if (specKey.indexOf(SWATCH_PREFIX) !== 0) {
+                    continue;
+                }
+                swatchName = specKey.substring(SWATCH_PREFIX.length);
+                swatchValues = parseCmyk(jobSpec[specKey]);
+                if (swatchValues === null) {
+                    fail("The value sent for swatch \"" + swatchName + "\" was not four CMYK percentages.");
+                }
+                log(swatchName + " set to " + applyBrandColor(templateDocument, swatchName, swatchValues) + " (C/M/Y/K).");
+                appliedCount += 1;
+            }
+        }
+        if (appliedCount === 0) {
+            log("No brand colours supplied; using the template's own swatches.");
+        }
 
         step = "attaching the Data Merge data source";
         var dataMerge = templateDocument.dataMergeProperties;
@@ -507,6 +704,15 @@
              * layout is not.
              */
             writeResult(jobSpec.result, "failed", "Failed while " + step + ". " + error.message, "");
+        }
+    } finally {
+        /* Whatever happened above, the application goes back to asking. */
+        if (previousInteraction !== null) {
+            try {
+                app.scriptPreferences.userInteractionLevel = previousInteraction;
+            } catch (restoreError) {
+                log("Could not restore the dialog setting: " + restoreError.message);
+            }
         }
     }
 }());

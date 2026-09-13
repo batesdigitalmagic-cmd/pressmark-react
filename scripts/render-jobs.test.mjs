@@ -22,6 +22,9 @@ import {
 import { readInputCsv, readOutputPdf } from "../lib/render-jobs/blob.js";
 import { validateAndNormalizeCsv } from "../lib/render-jobs/csv.js";
 import { modeForTemplate, templateFor } from "../src/instant-proof/templates/registry.js";
+/* The worker's own conversion, exercised here against a real queued job so the
+   two halves of the colour contract are checked end to end rather than apart. */
+import { swatchHandoff } from "../worker/indesign.mjs";
 
 const encoder = new TextEncoder();
 const token = "test-worker-token-with-enough-entropy";
@@ -165,10 +168,11 @@ const DIRECTORY_CSV =
   "Alpha,Ben,2 Oak Row,770-555-0002,770-555-0003,ben.alpha@example.invalid,,\"Ben and Ada\"\n";
 
 /** Submit one directory CSV and return the created public job. */
-async function submitJob(csv = DIRECTORY_CSV, filename = "members.csv") {
+async function submitJob(csv = DIRECTORY_CSV, filename = "members.csv", colors = {}) {
   const form = new FormData();
   form.set("templateId", "directory-classic");
   form.set("csv", new Blob([csv], { type: "text/csv" }), filename);
+  for (const [field, value] of Object.entries(colors)) form.set(field, value);
   const response = await submit(new Request("http://local/api/render-jobs", { method: "POST", body: form }));
   return { response, job: await response.json() };
 }
@@ -216,6 +220,77 @@ test("submission rejects unsupported templates and malformed CSVs", async () => 
   notCsv.set("templateId", "directory-classic");
   notCsv.set("csv", new Blob(["x"], { type: "text/csv" }), "members.txt");
   assert.equal((await submit(new Request("http://local/api/render-jobs", { method: "POST", body: notCsv }))).status, 400);
+});
+
+test("brand colours are normalized, refused when malformed, and reach the worker", async () => {
+  /* Lower case and no leading "#" are both things a hand-written client will
+     send. They are the same colour and are stored in one canonical form, so the
+     worker never has to know which spelling arrived. */
+  const chosen = await submitJob(undefined, "members.csv", {
+    primaryColor: "7a1f35",
+    lightTint: "#e6e6e6",
+  });
+  assert.equal(chosen.response.status, 201);
+  /* The customer's view says nothing about colours — it does not need to, and
+     the job id is a bearer capability. */
+  assert.equal(chosen.job.brandColors, undefined);
+
+  const { job: forWorker } = await claimAs("worker-a");
+  /* Only what was sent. The four untouched swatches are absent, which is what
+     tells the renderer to leave them as the template has them. */
+  assert.deepEqual(forWorker.brandColors, { primaryColor: "#7A1F35", lightTint: "#E6E6E6" });
+
+  __resetLocalKv();
+
+  /* Anything that is not six hex digits is refused outright: this value ends up
+     in the key=value handoff file an ExtendScript parses. */
+  for (const bad of ["red", "#12345", "#1234567", "#12g456", "rgb(1,2,3)", "#7A1F35; rm -rf /"]) {
+    const rejected = await submitJob(undefined, "members.csv", { textColor: bad });
+    assert.equal(rejected.response.status, 400, `expected ${bad} to be refused`);
+    assert.match(rejected.job.error, /six-digit hex/);
+  }
+
+  /* A field we do not recognise is not a colour: it is ignored rather than
+     forwarded, so nothing can name a swatch the site does not own. */
+  __resetLocalKv();
+  const stray = await submitJob(undefined, "members.csv", {
+    accentColor: "#D4AF37",
+    borderColor: "#123456",
+  });
+  assert.equal(stray.response.status, 201);
+  const { job: strayJob } = await claimAs("worker-a");
+  assert.deepEqual(strayJob.brandColors, { accentColor: "#D4AF37" });
+});
+
+test("all six swatches can be set at once, and each maps to its own PM_ name", async () => {
+  const every = {
+    primaryColor: "#101010",
+    secondaryColor: "#202020",
+    accentColor: "#303030",
+    textColor: "#404040",
+    backgroundColor: "#505050",
+    lightTint: "#606060",
+  };
+  assert.equal((await submitJob(undefined, "members.csv", every)).response.status, 201);
+  const { job } = await claimAs("worker-a");
+  assert.deepEqual(job.brandColors, every);
+  assert.deepEqual(Object.keys(swatchHandoff(job.brandColors)).sort(), [
+    "swatch.PM_Accent",
+    "swatch.PM_Background",
+    "swatch.PM_LightTint",
+    "swatch.PM_Primary",
+    "swatch.PM_Secondary",
+    "swatch.PM_Text",
+  ]);
+});
+
+test("a job submitted without colours reaches the worker carrying none", async () => {
+  /* The commonest case by far: the customer changed nothing, so the template
+     renders in its own swatches and the document is never modified. */
+  const { response } = await submitJob();
+  assert.equal(response.status, 201);
+  const { job } = await claimAs("worker-a");
+  assert.deepEqual(job.brandColors, {});
 });
 
 test("a submitted job is queued with a high-entropy id and a sanitized filename", async () => {

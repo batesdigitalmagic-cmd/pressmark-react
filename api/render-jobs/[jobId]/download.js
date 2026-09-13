@@ -48,7 +48,7 @@ async function handler(request) {
     return new Response(bytes, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": 'attachment; filename="church-directory-classic-proof.pdf"',
+        "Content-Disposition": 'attachment; filename="directory-classic-proof.pdf"',
         "Cache-Control": "private, no-store",
         "X-Content-Type-Options": "nosniff",
       },

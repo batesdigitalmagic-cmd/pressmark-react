@@ -27,6 +27,17 @@ this drains the queue.
 The template must **not** be open in InDesign while the worker runs. The script
 refuses to merge from an open document so it cannot discard unsaved work.
 
+The template also needs six named CMYK process swatches — `PM_Primary`,
+`PM_Secondary`, `PM_Accent`, `PM_Text`, `PM_Background` and `PM_LightTint` —
+which is what customer colour selection recolours. Only the swatches a customer
+actually changed are sent, so most renders modify none of them. See
+`scripts/indesign/README.md` — a render fails clearly if a named swatch is
+missing.
+
+Each job renders from a **copy** of the template inside that job's temporary
+directory, so nothing the script does can reach the operator's file. The copy
+goes when the job directory does.
+
 ---
 
 ## 2. Install the merge script into InDesign

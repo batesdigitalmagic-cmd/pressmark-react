@@ -26,11 +26,26 @@
  *
  * Both a timeout and a crash are therefore distinguishable from a genuine
  * render failure, which is what makes the retry policy meaningful.
+ *
+ * ── The per-job template copy ──
+ *
+ * Every render works on a copy of the .indd inside the job directory, never on
+ * the operator's file. The script recolours two swatches before merging, and a
+ * recolour is a document modification: even though the script closes without
+ * saving, a crash between the swatch write and the close would leave InDesign
+ * holding a modified production template with a recovery file beside it. The
+ * copy makes that impossible to get wrong — the file that gets modified is one
+ * the `finally` in pressmark-worker.mjs deletes with the rest of the job.
+ *
+ * Linked graphics still resolve: InDesign records an absolute path alongside
+ * the relative one, and the originals have not moved. A template whose links
+ * are stored relative-only would need them embedded.
  */
 
 import { execFile } from "node:child_process";
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { SWATCH_FOR, cmykToHandoff, hexToCmyk, normalizeHex } from "../src/instant-proof/colors.js";
 
 /** Result-file keys are plain `key=value` lines; ES3 has no JSON. */
 function parseResult(text) {
@@ -81,6 +96,31 @@ function appleScript(bundleId, scriptPath) {
 }
 
 /**
+ * The swatch lines for the handoff, keyed by the InDesign swatch they set.
+ *
+ * `swatch.PM_Primary=100,90,10,0`. Naming the swatch in the key rather than
+ * inventing a parallel vocabulary means the ExtendScript needs no list of its
+ * own: it applies whatever it is handed, and adding a seventh colour is a row
+ * in BRAND_COLORS and nothing else.
+ *
+ * A job that changed nothing produces {} and the document is never touched. A
+ * malformed value is refused rather than silently dropped: the API validated
+ * these, so anything unparseable here means the two definitions have drifted
+ * apart, and rendering the wrong colour would hide that.
+ */
+export function swatchHandoff(brandColors = {}) {
+  const lines = {};
+  for (const [key, value] of Object.entries(brandColors ?? {})) {
+    const swatch = SWATCH_FOR[key];
+    if (!swatch) throw new Error(`This job carries an unknown brand colour: ${key}.`);
+    const hex = normalizeHex(value);
+    if (!hex) throw new Error(`This job's ${key} is not a six-digit hex colour.`);
+    lines[`swatch.${swatch}`] = cmykToHandoff(hexToCmyk(hex));
+  }
+  return lines;
+}
+
+/**
  * Run one render.
  *
  * @returns {Promise<{status: "completed"|"failed", message: string, pdfPath: string, timedOut: boolean}>}
@@ -92,13 +132,19 @@ export async function runInDesignJob(config, job, { onStage } = {}) {
      outcome. Remove it before InDesign starts, not after. */
   await rm(resultPath, { force: true });
 
+  /* The copy the script is allowed to modify. Same extension, because the
+     script refuses anything that is not an .indd. */
+  const templateCopy = path.join(jobDir, "template.indd");
+  await copyFile(config.templatePath, templateCopy);
+
   await writeHandoff(config.handoffPath, {
     jobId: job.jobId,
-    template: config.templatePath,
+    template: templateCopy,
     csv: csvPath,
     output: pdfPath,
     result: resultPath,
     log: path.join(jobDir, "PressmarkDirectoryMerge.log"),
+    ...swatchHandoff(job.brandColors),
   });
 
   onStage?.("Starting InDesign");
