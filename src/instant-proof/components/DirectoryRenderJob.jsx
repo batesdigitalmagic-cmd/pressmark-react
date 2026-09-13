@@ -1,10 +1,10 @@
 /*
  * The production render job: submit, poll, download.
  *
- * ── This IS the proof ──
+ * ── This IS the deliverable ──
  *
- * The page no longer composes a mock proof in the browser first; the customer's
- * proof is the InDesign PDF this produces. It needs a Mac running InDesign to
+ * The page no longer composes a mock-up in the browser first; what the customer
+ * downloads is the InDesign PDF this produces. It needs a Mac running InDesign to
  * have claimed the job, so a queued state can legitimately last a while.
  *
  * ── Polling ──
@@ -47,11 +47,20 @@ async function responseJson(response) {
   return body;
 }
 
-function submit(csv, templateId) {
+function submit(csv, templateId, colors) {
   if (!submissions.has(csv)) {
     const form = new FormData();
     form.set("templateId", templateId);
     form.set("csv", csv, csv.name);
+    /*
+     * Whichever swatches the customer changed, as validated hex. The server
+     * validates them again — this is a public endpoint and the page is not the
+     * only thing that can post to it — and the worker converts them to CMYK.
+     * Sending none is the normal case and renders the template's own swatches.
+     */
+    for (const [key, hex] of Object.entries(colors ?? {})) {
+      form.set(key, hex);
+    }
     submissions.set(
       csv,
       fetch("/api/render-jobs", { method: "POST", body: form }).then(responseJson)
@@ -60,11 +69,27 @@ function submit(csv, templateId) {
   return submissions.get(csv);
 }
 
-/* What the customer is told at each stage. The server sends `stage`; these are
+/*
+ * The four things that happen, and how far along each one is.
+ *
+ * The labels are fixed; which of them is current comes from the job's real
+ * status, never from a timer. There is no percentage bar because there is no
+ * honest number to put in one — the server knows "queued", "rendering" and
+ * "completed", and a bar that crept forward while a job sat in a queue would be
+ * making something up.
+ */
+const PHASES = [
+  { key: "uploading", label: "Uploading your directory" },
+  { key: "queued", label: "Preparing your InDesign layout" },
+  { key: "rendering", label: "Creating your PDF" },
+  { key: "completed", label: "Your PDF is ready" },
+];
+
+/* The honest sentence under the checklist. The server sends `stage`; these are
    the words for it. */
 const STAGE_TEXT = {
   uploading: "Uploading and validating your directory…",
-  queued: "Queued for the Pressmark production renderer.",
+  queued: "Queued for the Pressmark production renderer. A directory waits here until a render machine is free.",
   rendering: "InDesign is setting your directory.",
   completed: "Your directory PDF is ready.",
   failed: "",
@@ -73,10 +98,10 @@ const STAGE_TEXT = {
 export default function DirectoryRenderJob({
   csv,
   templateId,
+  colors,
   initialJobId,
   onJobId,
   onStartOver,
-  showSteps = false,
 }) {
   const [job, setJob] = useState(
     initialJobId ? { jobId: initialJobId, status: "queued", stage: "queued" } : null
@@ -96,7 +121,7 @@ export default function DirectoryRenderJob({
   useEffect(() => {
     if (initialJobId || !csv) return;
     let cancelled = false;
-    submit(csv, templateId)
+    submit(csv, templateId, colors)
       .then((created) => {
         if (cancelled || !mounted.current) return;
         setJob(created);
@@ -111,6 +136,15 @@ export default function DirectoryRenderJob({
     return () => {
       cancelled = true;
     };
+    /*
+     * `colors` is intentionally absent from the dependency list. The submission
+     * is cached against the File and must happen exactly once; re-running this
+     * because a parent re-rendered with a new object identity would be a second
+     * POST, and a second POST spends one of the customer's five hourly
+     * submissions. The colours are read at submission time, which is the only
+     * moment they matter.
+     */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [csv, initialJobId, onJobId, templateId]);
 
   /* ── Poll with backoff until terminal ── */
@@ -169,22 +203,25 @@ export default function DirectoryRenderJob({
   const stage = submitting ? "uploading" : job?.stage || "queued";
   const completed = job?.status === "completed";
   const failed = job?.status === "failed";
-  const active = completed ? 3 : job || submitting ? 2 : 1;
+  /* Where the job actually is, as an index into PHASES. */
+  const reached = completed ? 3 : PHASES.findIndex((phase) => phase.key === stage);
 
   return (
     <section aria-live="polite" aria-busy={submitting || (Boolean(job) && !completed && !failed)}>
-      {showSteps && (
-        <ol style={{ display: "grid", gap: "0.75rem", padding: 0, margin: "0 0 2rem", listStyle: "none" }}>
-          {["Choose Directory Classic", "Upload Spreadsheet", "Generate and download proof"].map(
-            (label, index) => (
-              <li key={label} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                <span className="ip-step-dot" aria-hidden="true">
-                  {index < active ? "✓" : index + 1}
-                </span>
-                <strong>{label}</strong>
-              </li>
-            )
-          )}
+      {!failed && (
+        <ol className="ip-steps">
+          {PHASES.map((phase, index) => (
+            <li
+              className="ip-step"
+              key={phase.key}
+              data-state={index < reached ? "done" : index === reached ? "current" : "todo"}
+            >
+              <span className="ip-step-n" aria-hidden="true">
+                {index < reached || (completed && index === reached) ? "✓" : index + 1}
+              </span>
+              {phase.label}
+            </li>
+          ))}
         </ol>
       )}
 
@@ -232,15 +269,19 @@ export default function DirectoryRenderJob({
           {/* `.ip-btn` carries the padding and typography; `.ip-btn-gold` only
               the colours. Without both the link renders unstyled. */}
           <a className="ip-btn ip-btn-gold ip-touch" href={job.downloadUrl}>
-            Download directory PDF
+            Download PDF
           </a>
+          <p className="ip-note ip-muted" style={{ marginTop: "var(--proof-space-3)" }}>
+            The link is private to this PDF and stops working after 48 hours, when your CSV
+            and PDF are deleted.
+          </p>
         </div>
       )}
 
       {onStartOver && (
-        <p>
+        <p style={{ marginTop: "var(--proof-space-4)" }}>
           <button type="button" className="ip-btn ip-btn-ghost ip-touch" onClick={onStartOver}>
-            Start over
+            {completed || failed ? "Create another PDF" : "Start over"}
           </button>
         </p>
       )}

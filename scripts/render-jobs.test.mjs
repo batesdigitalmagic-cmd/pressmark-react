@@ -97,15 +97,15 @@ test("template capabilities route Directory Classic to CSV and keep photo templa
   assert.equal(templateFor("yearbook-modern").inputMode, "photos");
   const uploadSource = await readFile("src/instant-proof/components/UploadStep.jsx", "utf8");
   const createSource = await readFile("src/instant-proof/components/CreateStep.jsx", "utf8");
-  const pageSource = await readFile("src/pages/InstantProof.jsx", "utf8");
+  const pageSource = await readFile("src/pages/ProofTool.jsx", "utf8");
   assert.match(uploadSource, /const photoMode = inputMode === "photos"/);
   assert.doesNotMatch(uploadSource, /templateId === "directory-classic"/);
   assert.match(createSource, /inputMode !== "csv"/);
 
   /*
-   * The proof IS the InDesign PDF now. /instant-proof uploads a CSV and drives
-   * the render job directly — there is no browser mock proof to fall back to
-   * and no queue/preview branch to get wrong.
+   * The proof IS the InDesign PDF now. The homepage uploads a CSV and drives the
+   * render job directly — there is no browser mock proof to fall back to and no
+   * queue/preview branch to get wrong.
    */
   assert.match(pageSource, /DirectoryRenderJob/);
   assert.doesNotMatch(pageSource, /usesDirectoryQueue/);

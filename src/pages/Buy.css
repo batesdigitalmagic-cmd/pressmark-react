@@ -11,7 +11,15 @@
  * there so this file still renders sanely if viewed in isolation.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700;900&family=Inter:wght@400;500;600;700;800&display=swap');
+/*
+ * No @import for a webfont.
+ *
+ * The site is set in News Gothic Std, which is licensed rather than fetched
+ * from a public CDN — vite.config.js adds the Adobe Fonts stylesheet to every
+ * page's <head> when a project id is configured. A CSS @import would also be
+ * the slowest way to load a face: it is discovered only after this stylesheet
+ * has been fetched and parsed.
+ */
 
 /* ─────────────────────────────────────────────
    SHELL
@@ -29,10 +37,18 @@ body {
 }
 
 .bc-page {
-  /* The serif is now reserved for the Pressmark wordmark in the header and
-     nothing else — every other element on this page is set in the sans. */
-  --bc-serif: 'Cormorant Garamond', Georgia, serif;
-  --bc-sans: Inter, 'Helvetica Neue', Arial, sans-serif;
+  /*
+   * News Gothic Std, the site's one family. Spelled out here rather than
+   * imported because this is a plain stylesheet — src/fonts.js is the source of
+   * truth and this must be kept in step with it.
+   *
+   * --bc-serif is no longer a serif. It is kept, pointing at the same family,
+   * because a dozen rules still ask for it and renaming them all would be a
+   * larger diff than the change deserves; there is no second face on this site
+   * for it to hold.
+   */
+  --bc-serif: 'News Gothic Std', 'News Gothic MT', 'News Gothic', 'Franklin Gothic', 'Trade Gothic', 'Helvetica Neue', Arial, sans-serif;
+  --bc-sans: 'News Gothic Std', 'News Gothic MT', 'News Gothic', 'Franklin Gothic', 'Franklin Gothic Medium', 'Trade Gothic', 'Helvetica Neue', Arial, sans-serif;
 
   --bc-max: 1240px;
   --bc-pad: clamp(1.25rem, 5vw, 3.5rem);
@@ -80,7 +96,7 @@ body {
 .bc-h2,
 .bc-h3 {
   font-family: var(--bc-sans);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.022em;
   margin: 0;
   text-wrap: balance;
@@ -104,7 +120,7 @@ body {
 
 .bc-eyebrow {
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--bc-accent, #aa7d48);
@@ -213,7 +229,7 @@ body {
   gap: 0.2rem;
   font-family: var(--bc-sans);
   font-size: 0.95rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.045em;
   text-transform: uppercase;
   text-align: center;
@@ -292,7 +308,7 @@ body {
     linear-gradient(180deg, rgba(255,255,255,.48) 0%, rgba(255,255,255,.1) 18%, transparent 46%),
     linear-gradient(180deg, #27364a 0%, #34465d 50%, #59697d 76%, #1b2839 100%);
   font-size: 1.35rem;
-  font-weight: 800;
+  font-weight: 700;
   box-shadow:
     inset 0 2px 0 rgba(255,255,255,.76),
     inset 0 -3px 5px rgba(3,12,25,.38),
@@ -307,7 +323,7 @@ body {
 }
 
 .bc-product-version {
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1.08;
   letter-spacing: -0.025em;
   text-transform: none;
@@ -374,7 +390,7 @@ body {
   background: var(--bc-accent, #aa7d48);
   color: #fff;
   font-size: 0.62rem;
-  font-weight: 600;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -393,14 +409,14 @@ body {
 .bc-price-amount {
   font-family: var(--bc-sans);
   font-size: clamp(2.2rem, 4.4vw, 2.9rem);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.03em;
   line-height: 1;
 }
 
 .bc-price-term {
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--bc-accent, #aa7d48);
@@ -437,7 +453,7 @@ body {
 
 .bc-notice-title {
   font-size: 0.92rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* ─────────────────────────────────────────────
@@ -631,7 +647,7 @@ body {
 
 .bc-compare-label {
   font-size: 0.68rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: #8092ad;
@@ -644,7 +660,7 @@ body {
 .bc-compare-title {
   font-family: var(--bc-sans);
   font-size: clamp(1.2rem, 2.2vw, 1.5rem);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.018em;
   line-height: 1.2;
   margin: 0;
@@ -654,7 +670,7 @@ body {
   align-self: center;
   font-family: var(--bc-sans);
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: #8092ad;
@@ -770,7 +786,7 @@ body {
 
 .bc-stage-step {
   font-size: 0.68rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--bc-accent, #aa7d48);

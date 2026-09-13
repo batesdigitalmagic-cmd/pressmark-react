@@ -6,6 +6,8 @@
  * needs no edits to support them.
  */
 
+import { FONT_FAMILY } from "../fonts.js";
+
 export const PALETTE = {
   base: "#ffffff",
   panel: "#ffffff",
@@ -19,8 +21,9 @@ export const PALETTE = {
   keyBg: "#faf8f5",
 };
 
-export const FONT_STACK = "'Cormorant Garamond', Georgia, serif";
-export const TITLE_FONT_STACK = "Inter, 'Helvetica Neue', Arial, sans-serif";
+/* One family for the whole site; see src/fonts.js. */
+export const FONT_STACK = FONT_FAMILY;
+export const TITLE_FONT_STACK = FONT_FAMILY;
 /* The marketing site has no monospace face. License keys need one — they are
    read aloud, retyped, and compared character by character. */
 export const MONO_STACK = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
@@ -52,7 +55,7 @@ export const S = {
   h1: {
     fontFamily: FONT_STACK,
     fontSize: "clamp(2.1rem, 6vw, 3rem)",
-    fontWeight: 900,
+    fontWeight: 700,
     lineHeight: 1.08,
     letterSpacing: "0.01em",
     margin: "0 0 1rem",

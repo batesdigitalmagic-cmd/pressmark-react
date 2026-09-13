@@ -141,8 +141,8 @@ export default function Article() {
                   Publication design, data merge, and print production for schools,
                   churches, and organizations.
                 </p>
-                <a href="/#contact" style={{ fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: PALETTE.accent, textDecoration: "none" }}>
-                  Request a Quote →
+                <a href="/contact" style={{ fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: PALETTE.accent, textDecoration: "none" }}>
+                  Request a Price →
                 </a>
               </div>
             </aside>

@@ -32,18 +32,32 @@ import {
   headingId,
 } from "./theme.js";
 import { BLOG_BASE, formatDate, postUrl } from "../data/blogPosts.js";
-import logo from "../assets/pressmark studio logo main.png";
-import footerLogo from "../assets/pressmark-cream-footer-logo.png";
+/*
+ * The mark in the header bar, the light lockup in the dark footer.
+ *
+ * The bar is 68px tall with a 40px ceiling on the image, which is under the
+ * height the stacked lockup's wordmark needs to read — so the header carries
+ * the mark alone, exactly as the tool's phone bar does.
+ */
+import logo from "../assets/pressmark-studio-mark.svg";
+import footerLogo from "../assets/pressmark-studio-logo-light.svg";
 
+/*
+ * The same destinations as the tool's sidebar, in a horizontal bar.
+ *
+ * These were anchors into the old single-page marketing site — /#about,
+ * /#services, /#why — and every one of them is now a link to the top of the
+ * proof tool, since that is what "/" serves. They point at the real pages that
+ * replaced those sections.
+ */
 const NAV_LINKS = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/#about" },
-  { label: "Services", href: "/#services" },
-  { label: "Why Us", href: "/#why" },
-  { label: "Process", href: "/#process" },
-  { label: "Pricing", href: "/#pricing" },
-  { label: "Products", href: "/buy" },
+  { label: "Create a Proof", href: "/" },
+  { label: "Designs", href: "/directory-designs" },
+  { label: "Guides", href: "/guides" },
   { label: "Insights", href: BLOG_BASE },
+  { label: "Services", href: "/services" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Products", href: "/buy" },
 ];
 
 /* ── inline [label](/href) links inside content text ── */
@@ -117,7 +131,9 @@ export function SiteHeader() {
           <img
             src={logo}
             alt="Pressmark Studio"
-            style={{ display: "block", width: "clamp(130px, 16vw, 175px)", height: "auto", maxHeight: 40, objectFit: "contain" }}
+            /* Sized by height: the mark is portrait, and a width clamp on a
+               portrait image is a height nobody chose. */
+            style={{ display: "block", height: 40, width: "auto", objectFit: "contain" }}
           />
         </a>
 
@@ -195,7 +211,7 @@ export function SiteFooter() {
   return (
     <footer style={{ background: PALETTE.inkDeep, padding: `2.5rem ${PAGE_X}`, borderTop: `1px solid ${PALETTE.border}` }}>
       <div style={{ maxWidth: 1240, margin: "0 auto", display: "flex", flexDirection: "column", alignItems: "center", gap: "1.4rem", textAlign: "center" }}>
-        <img src={footerLogo} alt="Pressmark Studio" style={{ width: "clamp(100px, 12vw, 145px)", height: "auto" }} />
+        <img src={footerLogo} alt="Pressmark Studio" style={{ height: 132, width: "auto", maxWidth: "60vw" }} />
         <div style={{ fontSize: "0.72rem", color: PALETTE.textOnDarkMuted, letterSpacing: "0.05em", lineHeight: 1.6 }}>
           Publication Design • Data Merge • Directory Design • Publication Rescue
           <br />
@@ -585,10 +601,10 @@ export function BlogCTA() {
         get it production-ready.
       </p>
       <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-        <a href="/#contact" className="pm-btn-primary" style={S.btnPrimary}>
-          Request a Quote
+        <a href="/contact" className="pm-btn-primary" style={S.btnPrimary}>
+          Request a Price
         </a>
-        <a href="/#services" className="pm-btn-ghost" style={S.btnGhost}>
+        <a href="/services" className="pm-btn-ghost" style={S.btnGhost}>
           View Services
         </a>
       </div>

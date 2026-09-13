@@ -1,3 +1,5 @@
+import { FONT_FAMILY } from "../fonts.js";
+
 /*
  * Instant Proof design tokens.
  *
@@ -9,18 +11,19 @@
  *
  * ── Typography ──
  *
- * The reference uses a heavy hand-drawn display face. The repository has no
- * local font files and adding a CDN or an unlicensed font is out of bounds, so
- * the display face is the system sans at weight 900 with tightened tracking —
- * the closest available approximation. Inter leads the stack so it is used
- * wherever a visitor happens to have it; otherwise Helvetica Neue or Arial
- * carries it, which is what the reference's body copy looks like anyway.
+ * One family, News Gothic Std, at four real weights. Display and body are the
+ * same face deliberately: it is a news grotesque with a large x-height and open
+ * apertures, and the hierarchy comes from size, weight and tracking rather than
+ * from a second typeface arguing with the first.
  *
- * Swapping in a real display face later is a one-line change to --proof-display
- * plus an @font-face rule; nothing else needs to know.
+ * The stack itself lives in src/fonts.js, which is also where the licensing and
+ * the loader are explained. Nothing here should ever name a family directly.
  */
 
 export const PROOF_TOKENS = {
+  /* Neutral chrome. The workspace is paper-coloured and everything structural
+     is drawn in near-black or a hairline; the gold is reserved for accents. */
+  border: "rgba(17, 20, 24, 0.12)",
   gold: "#aa7d48",
   goldDeep: "#8e6738",
   goldSoft: "rgba(170, 125, 72, 0.12)",
@@ -34,6 +37,18 @@ export const PROOF_TOKENS = {
   line: "rgba(170, 125, 72, 0.55)",
   hairline: "rgba(0, 0, 0, 0.12)",
   danger: "#b3261e",
+
+  /*
+   * The InDesign scheme, taken from the Pressmark mark itself — the arrow's
+   * gradient runs from this pink to this maroon, and they are the same two
+   * colours Adobe uses for the application.
+   *
+   * Used for progress only. This is what the tool is doing (setting a document
+   * in InDesign) rather than what Pressmark is, so it marks the steps and stops
+   * there; the gold stays the brand accent everywhere else.
+   */
+  idPink: "#ef3b6a",
+  idInk: "#460f21",
 };
 
 /* Page gutter. The reference sits at roughly this inset on a phone. */
@@ -59,6 +74,10 @@ export const PROOF_TOKENS_CSS = `
     --proof-line: ${PROOF_TOKENS.line};
     --proof-hairline: ${PROOF_TOKENS.hairline};
     --proof-danger: ${PROOF_TOKENS.danger};
+    --proof-id-pink: ${PROOF_TOKENS.idPink};
+    --proof-id-ink: ${PROOF_TOKENS.idInk};
+    /* The pink at the weight a 1px ring can carry without shouting. */
+    --proof-id-soft: rgba(239, 59, 106, 0.32);
 
     /* Spacing — a 4px scale, with generous vertical rhythm between sections. */
     --proof-space-1: 4px;
@@ -73,9 +92,33 @@ export const PROOF_TOKENS_CSS = `
     /* Mostly square, with just enough radius to look intentional. */
     --proof-radius: 4px;
     --proof-radius-sm: 3px;
+    /*
+     * Cards are the exception. The workspace is a stack of panels a customer
+     * works down, and at 4px they read as boxes ruled onto the page rather than
+     * as separate things to act on. 12px is enough to separate them without the
+     * bubbly look of a consumer app.
+     */
+    --proof-radius-lg: 12px;
 
-    --proof-display: Inter, 'Helvetica Neue', Arial, sans-serif;
-    --proof-body: Inter, 'Helvetica Neue', Arial, sans-serif;
+    /*
+     * A neutral hairline, distinct from --proof-line.
+     *
+     * --proof-line is gold: it is the editorial rule that separates sections and
+     * it belongs to the brand. Card and control edges must not be — a workspace
+     * outlined in gold on every panel is the opposite of restrained, and the one
+     * accent colour stops meaning anything when everything wears it.
+     */
+    --proof-border: rgba(17, 20, 24, 0.12);
+    --proof-border-strong: rgba(17, 20, 24, 0.28);
+    --proof-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+    --proof-focus: #2563a8;
+
+    /* The desktop sidebar. Wide enough for "Need a Custom Publication?" on one
+       line at the nav's own size, which is what sets it. */
+    --proof-sidebar-w: 272px;
+
+    --proof-display: ${FONT_FAMILY};
+    --proof-body: ${FONT_FAMILY};
     --proof-thumb-w: ${THUMB_W}px;
 
     /* The publication's own proportions, used by every cover thumbnail. */

@@ -190,7 +190,20 @@ for (const post of POSTS) {
 }
 
 // ── sitemap + robots ──
-const staticRoutes = ["/", "/buy", BLOG_BASE];
+/* Every indexable route. The tool is "/", which is why it carries the highest
+   priority; /success, /sandbox, /portal and /health are excluded here and in
+   robots.txt below because they are transactional or internal. */
+const staticRoutes = [
+  "/",
+  "/directory-designs",
+  "/how-it-works",
+  "/guides",
+  "/services",
+  "/pricing",
+  "/contact",
+  "/buy",
+  BLOG_BASE,
+];
 const urls = [
   ...staticRoutes.map((route) => ({ loc: `${SITE_URL}${route}`, priority: route === "/" ? "1.0" : "0.8" })),
   ...POSTS.map((post) => ({

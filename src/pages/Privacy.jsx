@@ -25,7 +25,7 @@ const SECTIONS = [
     ],
     list: [
       "Your name and email address",
-      "Details you submit through our contact or quote forms, such as your organization, publication type, page count, deadline, and budget",
+      "Details you submit through our contact or price request forms, such as your organization, publication type, page count, deadline, and budget",
       "Files and project material you send us, such as photographs, spreadsheets, and existing publication files",
       "Purchase-related information when you buy a product",
       "Support messages you send us",

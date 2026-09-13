@@ -40,8 +40,10 @@ export default defineConfig([
     },
   },
   {
-    // Serverless functions and their shared libraries run on the server.
-    files: ['api/**/*.js', 'lib/**/*.js', 'scripts/**/*.mjs'],
+    // Serverless functions, their shared libraries, and the build config all
+    // run on the server. vite.config.js reads process.env for the Adobe Fonts
+    // project id.
+    files: ['api/**/*.js', 'lib/**/*.js', 'scripts/**/*.mjs', 'vite.config.js'],
     languageOptions: {
       globals: { ...globals.node, ...globals.serviceworker },
     },

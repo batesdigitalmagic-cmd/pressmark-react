@@ -2,6 +2,33 @@ import { readdirSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+/*
+ * Put the Adobe Fonts stylesheet in every page's <head>.
+ *
+ * The site is set in News Gothic Std (see src/fonts.js), which is licensed
+ * rather than committed. Set PRESSMARK_ADOBE_FONTS_KIT to an Adobe Fonts web
+ * project id and this adds the two tags every page needs; leave it unset and
+ * nothing is added at all, so an unconfigured build has no broken request in it
+ * and the stack simply falls through to the local fallbacks.
+ *
+ * A build-time <link> rather than a runtime one: a stylesheet injected by
+ * script is discovered late, so the whole page paints in the fallback and then
+ * reflows once the real face arrives.
+ */
+function adobeFonts() {
+  const kit = String(process.env.PRESSMARK_ADOBE_FONTS_KIT || '').trim()
+  return {
+    name: 'pressmark-adobe-fonts',
+    transformIndexHtml() {
+      if (!kit) return []
+      return [
+        { tag: 'link', attrs: { rel: 'preconnect', href: 'https://use.typekit.net', crossorigin: '' }, injectTo: 'head-prepend' },
+        { tag: 'link', attrs: { rel: 'stylesheet', href: `https://use.typekit.net/${kit}.css` }, injectTo: 'head-prepend' },
+      ]
+    },
+  }
+}
+
 // Blog pages are generated from src/data/blogPosts.js by
 // scripts/generate-blog-pages.mjs (npm prebuild). Globbing them means adding
 // an article never requires touching this file.
@@ -34,19 +61,25 @@ export default defineConfig({
       },
     },
   },
-  plugins: [react()],
+  plugins: [react(), adobeFonts()],
   build: {
     rollupOptions: {
-      // Multi-page: the marketing site, the storefront, and every blog article
-      // build as separate entries with their own static <head>.
+      // Multi-page: the tool, each content route, the storefront, and every
+      // blog article build as separate entries with their own static <head>.
       input: {
+        /* The tool. `/instant-proof` is redirected here by vercel.json. */
         main: 'index.html',
+        directoryDesigns: 'directory-designs.html',
+        howItWorks: 'how-it-works.html',
+        guides: 'guides.html',
+        services: 'services.html',
+        pricing: 'pricing.html',
+        contact: 'contact.html',
         buy: 'buy.html',
         success: 'success.html',
         portal: 'portal.html',
         health: 'health.html',
         privacy: 'privacy.html',
-        instantProof: 'instant-proof.html',
         sandbox: 'sandbox.html',
         sandboxPortal: 'sandbox-portal.html',
         ...blogInputs(),

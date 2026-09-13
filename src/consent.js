@@ -26,6 +26,8 @@
    consent banner pointing at a 404 is worse than one with no link.
 
    A privacy policy is expected under GDPR/ePrivacy. This is the hook. */
+import { FONT_FAMILY } from "./fonts.js";
+
 const ENV = (typeof import.meta !== "undefined" && import.meta.env) || {};
 const PRIVACY_URL = ENV.VITE_PRIVACY_URL || "";
 
@@ -96,6 +98,13 @@ function button(label, { primary }) {
  *
  * @param {(value: string) => void} onChoice called with "granted" or "denied"
  */
+/* The banner's height, published for anything pinned to the bottom of the
+   viewport. Zero when there is no banner, which is the normal state. */
+const OFFSET_PROPERTY = "--pm-consent-height";
+const setOffset = (px) =>
+  document.documentElement.style.setProperty(OFFSET_PROPERTY, `${Math.round(px)}px`);
+const clearOffset = () => document.documentElement.style.removeProperty(OFFSET_PROPERTY);
+
 export function mountConsentBanner(onChoice) {
   if (typeof document === "undefined") return false;
   if (readConsent() !== null) return false;
@@ -115,7 +124,7 @@ export function mountConsentBanner(onChoice) {
       background: INK,
       borderTop: `2px solid ${ACCENT}`,
       color: "rgba(255,255,255,0.78)",
-      fontFamily: "Inter, 'Helvetica Neue', Arial, sans-serif",
+      fontFamily: FONT_FAMILY,
       fontSize: "0.85rem",
       lineHeight: "1.6",
       padding: "1rem clamp(1.25rem, 5vw, 3rem)",
@@ -162,6 +171,7 @@ export function mountConsentBanner(onChoice) {
     const decide = (value) => {
       storeConsent(value);
       bar.remove();
+      clearOffset();
       onChoice(value);
     };
 
@@ -175,6 +185,24 @@ export function mountConsentBanner(onChoice) {
     inner.append(text, actions);
     bar.append(inner);
     document.body.appendChild(bar);
+
+    /*
+     * Tell the page how tall this is.
+     *
+     * The banner is fixed to the bottom of the viewport, which is exactly where
+     * the proof tool pins its action bar — so on a first visit the button that
+     * creates the proof sat underneath a cookie notice. Publishing the height as
+     * a custom property lets anything anchored to the bottom lift itself clear,
+     * and the two do not otherwise need to know about each other.
+     *
+     * Measured after it is in the document, because the text wraps to two lines
+     * on a phone and one on a desktop.
+     */
+    setOffset(bar.offsetHeight);
+    /* Re-measured on resize: a rotation changes how the text wraps. */
+    const remeasure = () => setOffset(bar.offsetHeight);
+    window.addEventListener("resize", remeasure);
+    bar.addEventListener("pm-consent-gone", () => window.removeEventListener("resize", remeasure));
 
     // Keyboard users land on the banner without hunting for it.
     accept.focus({ preventScroll: true });

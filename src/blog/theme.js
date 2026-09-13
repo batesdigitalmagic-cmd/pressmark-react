@@ -2,7 +2,7 @@
  * Blog design tokens.
  *
  * Extends the marketing site's system rather than inventing one: the same
- * bronze accent, the same Cormorant/Inter pairing, the same page gutter. The
+ * bronze accent, the same News Gothic Std setting, the same page gutter. The
  * only additions are the dark navy surfaces the site already uses for its nav
  * and hero, promoted to reusable tokens so editorial sections can sit on them.
  *
@@ -10,6 +10,8 @@
  * refactoring a working production page to extract tokens is risk with no
  * upside here.
  */
+
+import { FONT_FAMILY } from "../fonts.js";
 
 export const PALETTE = {
   base: "#ffffff",
@@ -31,8 +33,17 @@ export const PALETTE = {
   paper: "#faf8f5",
 };
 
-export const FONT_STACK = "'Cormorant Garamond', Georgia, serif";
-export const TITLE_FONT_STACK = "Inter, 'Helvetica Neue', Arial, sans-serif";
+/*
+ * Both stacks are the same family now.
+ *
+ * They are kept as two names because ~200 call sites across the blog, the
+ * storefront and the older proof components ask for one or the other, and the
+ * distinction still says something about intent: FONT_STACK is display copy,
+ * TITLE_FONT_STACK is interface copy. If the site ever pairs two faces again,
+ * this is where they part company.
+ */
+export const FONT_STACK = FONT_FAMILY;
+export const TITLE_FONT_STACK = FONT_FAMILY;
 export const PAGE_X = "clamp(1.25rem, 5vw, 4rem)";
 export const MAX_W = 1240;
 export const PROSE_W = 720;
@@ -72,7 +83,7 @@ export const S = {
   h1: {
     fontFamily: FONT_STACK,
     fontSize: "clamp(2.4rem, 6vw, 4rem)",
-    fontWeight: 900,
+    fontWeight: 700,
     lineHeight: 1.05,
     letterSpacing: "0.01em",
     margin: 0,
@@ -80,7 +91,7 @@ export const S = {
   h2: {
     fontFamily: FONT_STACK,
     fontSize: "clamp(1.7rem, 3.4vw, 2.4rem)",
-    fontWeight: 900,
+    fontWeight: 700,
     lineHeight: 1.15,
     margin: 0,
   },
@@ -125,7 +136,6 @@ export const S = {
 /* Shared CSS for every blog entry point. Mirrors the marketing site's font
    import and hover conventions so nothing looks bolted on. */
 export const GLOBAL_CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;0,900;1,600&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
   body { background: ${PALETTE.base}; overflow-x: hidden; }

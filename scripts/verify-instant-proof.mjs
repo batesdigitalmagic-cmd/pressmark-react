@@ -70,6 +70,18 @@ import { captionFor, defaultTemplateFor, modeForTemplate } from "../src/instant-
 import { getSubscriptionService, isValidEmail } from "../src/instant-proof/services/subscriptionService.js";
 import { buildContactPayload } from "../src/instant-proof/services/contactRequests.js";
 import { __sanitizeForTest } from "../src/instant-proof/analytics.js";
+import {
+  BRAND_COLOR_KEYS as BRAND_COLOR_ORDER,
+  BRAND_COLORS,
+  DEFAULT_COLORS,
+  SWATCH_FOR,
+  changedColors,
+  cmykToHex,
+  hexToCmyk,
+  isValidHex,
+  normalizeHex,
+  validateBrandColors,
+} from "../src/instant-proof/colors.js";
 import { readFileSync } from "node:fs";
 import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -736,7 +748,6 @@ group("28. Spreadsheet mode retains every capability");
 }
 group("30. Mobile layout");
 {
-  const page = readFileSync(resolve(ROOT, "src/pages/InstantProof.jsx"), "utf8");
   const css = readFileSync(resolve(ROOT, "src/instant-proof/styles.js"), "utf8");
   ok("touch targets are at least 44px", /min-height:\s*44px/.test(css) && /min-width:\s*44px/.test(css));
   ok("the page cannot scroll sideways", /overflow-x:\s*hidden/.test(css));
@@ -842,52 +853,175 @@ group("33. Mobile layout");
      /\.ip-root \{\s*--proof-gold/.test(readFileSync(resolve(ROOT, "src/instant-proof/tokens.js"), "utf8")) &&
      !/^\s*:root\s*\{/m.test(css));
 }
-/* ── The minimal Church Directory proof page ── */
-group("Church Directory Classic proof page");
+/* ── The tool that is the homepage ── */
+group("Church Directory Classic proof tool");
 {
-  const page = readFileSync(resolve(ROOT, "src/pages/InstantProof.jsx"), "utf8");
+  const page = readFileSync(resolve(ROOT, "src/pages/ProofTool.jsx"), "utf8");
+  const composer = readFileSync(resolve(ROOT, "src/instant-proof/components/Composer.jsx"), "utf8");
+  /* The controls live in the composer and the state that gates them lives in the
+     page. Several rules below are about the pair, so they read the pair. */
+  const tool = page + composer;
 
   /*
-   * The whole flow is: upload a CSV, headers checked, one button, PDF. Anything
-   * that reappears here is scope this page deliberately does not carry.
+   * The whole flow is: choose a design, download the template, upload a CSV and
+   * pick two colours, one button, PDF. Anything that reappears here is scope
+   * this page deliberately does not carry.
    */
   ok("no column mapping", !/ColumnMappingPanel|mappingConfirmed/.test(page));
-  ok("no publication or design chooser",
+  ok("no old wizard chooser",
      !/CreateStep|DesignCarousel|TemplatePreview|PublicationTypeSelector/.test(page));
   ok("no photo upload", !/PhotoUploadPanel|addPhotos|selectedPhotoIds/.test(page));
   ok("no browser mock proof", !/getProofRenderer|ProofProcessing|ProofResults/.test(page));
   ok("no branding, account or payment fields",
      !/organizationName|checkout|stripe/i.test(page));
-  ok("no multi-step wizard", !/const STEPS = \[|StepShell/.test(page));
+  ok("no multi-step wizard", !/StepShell/.test(page));
+  /* The columns are named in the expandable help, never in the interface. */
+  ok("no raw CSV headers in the main interface", !/last_name|first_name/.test(page));
 
   /* What it must have. */
   ok("it drives the real render job", /DirectoryRenderJob/.test(page));
-  ok("it targets Directory Classic", /TEMPLATE_ID = "directory-classic"/.test(page));
   ok("it reads the required columns from the schema, not a second list",
      /requiredColumnsOf\(SCHEMA\)/.test(page));
-  ok("it accepts only .csv", /accept=\{?"?\.csv/.test(page));
-  ok("it reports the record count", /CSV accepted/.test(page));
-  ok("the one action is Generate My PDF Proof", /Generate My PDF Proof/.test(page));
+  ok("it accepts only .csv", /accept=\{?"?\.csv/.test(tool));
+  ok("it reports the record count", /recordCount/.test(composer));
+  ok("the one action is Create My PDF", /Create My PDF<\/span>/.test(tool));
   ok("the job id is kept in the URL so a refresh resumes",
      /searchParams\.set\("job"/.test(page) && /get\("job"\)/.test(page));
+  ok("it sits in the shared shell rather than its own chrome",
+     /AppShell/.test(page) && !/ProofHeader|ProofFooter/.test(page));
 
-  /* The columns it validates against are the schema's, so the page cannot
-     drift from the InDesign merge fields. */
+  /*
+   * Every action is behind the "+" or an icon. The bar itself carries one
+   * button — the one that finishes the job.
+   */
+  ok("the template, the upload and the instructions are all in the + menu",
+     /Download the template/.test(composer) &&
+     /Upload your \.csv/.test(composer) &&
+     /Template instructions/.test(composer));
+  ok("the colours are behind their own mark, not spread across the page",
+     /ColorMark/.test(composer) && /ColorControls/.test(composer));
+  ok("the page itself no longer carries the numbered action cards",
+     !/Download Directory Template/.test(page) && !/ip-card-title/.test(page));
+
+  /*
+   * The tool is free and unconditional, so nothing it renders calls the result a
+   * "proof" — that word promises a sample with a bill behind it.
+   */
+  const chrome = [
+    ["the page", page],
+    ["the composer", composer],
+    ["the job view", readFileSync(resolve(ROOT, "src/instant-proof/components/DirectoryRenderJob.jsx"), "utf8")],
+    ["the sidebar", readFileSync(resolve(ROOT, "src/instant-proof/nav.js"), "utf8")],
+  ];
+  for (const [name, source] of chrome) {
+    /* Comments explain why the word is gone; only rendered text is checked. */
+    const rendered = source
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "")
+      /* Identifiers, not words a customer reads: the CSS tokens, the module
+         paths and the component's own name. */
+      .replace(/proof-|ProofTool|instant-proof|PROOF_/g, "");
+    ok(`${name} never says "proof" to the customer`,
+      !/proof/i.test(rendered),
+      (rendered.match(/[A-Za-z ]{0,20}proof[a-z]*/i) || ["none"])[0].trim());
+  }
+
+  /* The four steps the customer is walked through, in order. */
+  for (const step of [
+    "Choose a design",
+    "Download and complete the template",
+    "Upload your CSV and choose colours",
+    "Create your PDF",
+  ]) {
+    ok(`the rail names "${step}"`, page.includes(step));
+  }
+
+  /* Nothing may be submitted without permission having been given. */
+  ok("permission is required before the button works",
+     /I have permission to use this directory information/.test(composer) &&
+     /!permitted/.test(page));
+  ok("a valid CSV is required before the button works", /!accepted/.test(page));
+  ok("the button says why it is disabled rather than just being dead",
+     /aria-describedby=\{blocking/.test(composer));
+
+  /* The colours reach the job. */
+  ok("the chosen colours are handed to the render job", /colors=\{colors\}/.test(page));
+  ok("they start at the template's own swatches", /DEFAULT_COLORS/.test(page));
+  /* Only the swatches actually changed are submitted; the rest are left as the
+     template has them. */
+  ok("and only the changed ones this design uses are submitted",
+     /changedColors\(colors, swatchKeys\)/.test(page));
+
   const schema = schemaFor("church-directory");
   ok("the schema it validates against is the directory schema",
      /schemaFor\("church-directory"\)/.test(page));
   ok("that schema is the one Directory Classic declares",
      templateFor("directory-classic").schemas[0] === schema.id);
+}
+
+/* ── Which designs can actually be rendered ── */
+group("Design library");
+{
+  const designs = readFileSync(resolve(ROOT, "src/instant-proof/designs.js"), "utf8");
+  const { DESIGNS } = await import("../src/instant-proof/designs.js");
+  const chooser = readFileSync(resolve(ROOT, "src/instant-proof/components/DesignChooser.jsx"), "utf8");
+  const api = readFileSync(resolve(ROOT, "api/render-jobs/index.js"), "utf8");
+
+  ok("Classic is the default selection", /DEFAULT_DESIGN_ID = "directory-classic"/.test(designs));
 
   /*
-   * The blank template is offered instead of listing the columns on the page.
-   * A visitor who starts from the file cannot get the headers wrong, which is
-   * the only way this flow fails — so the file has to exist, and its header row
-   * has to be exactly the schema's columns. A template that drifted from the
-   * schema would hand people a file the page then rejects.
+   * Two real exports per design — a listing close enough to read and a whole
+   * spread at the size it prints. A preview of something a customer will hand
+   * to a printer has to be the product, not an impression of it.
    */
-  const templatePath = resolve(ROOT, "public/csv-templates/church-directory-classic-template.csv");
-  ok("the blank template exists where the page links it", existsSync(templatePath));
+  for (const design of DESIGNS) {
+    ok(`${design.name} shows two previews`, design.previews?.length === 2,
+      `${design.previews?.length ?? 0}`);
+    for (const preview of design.previews ?? []) {
+      const file = resolve(ROOT, "public", preview.src.replace(/^\//, ""));
+      ok(`  ${preview.src.split("/").pop()} exists`, existsSync(file));
+      /* An image of a page with no alt text is a blank to anyone who cannot see
+         it, and these carry the whole argument of the page. */
+      ok(`  and describes itself`, (preview.alt || "").length > 40 && Boolean(preview.caption));
+    }
+  }
+
+  const library = readFileSync(resolve(ROOT, "src/pages/DirectoryDesigns.jsx"), "utf8");
+  ok("the library page renders every preview it is given",
+    /design\.previews\.map/.test(library) && /preview\.alt/.test(library) && /preview\.caption/.test(library));
+  /* Dimensions on the tag, so the page does not jump as they load. */
+  ok("and reserves their space before they load",
+    /width="1400" height="713"/.test(library) && /loading="lazy"/.test(library));
+  ok("Classic is renderable and labelled Available now",
+     /id: "directory-classic"[\s\S]*?status: "Available now"[\s\S]*?renderable: true/.test(designs));
+  /*
+   * The photo design has no InDesign template, no CSV-plus-photo contract and no
+   * worker configuration. A card a customer can submit would queue work nothing
+   * knows how to run, so the flag, the card and the API must all agree.
+   */
+  ok("the photo design is Coming soon and NOT renderable",
+     /id: "directory-photos"[\s\S]*?status: "Coming soon"[\s\S]*?renderable: false/.test(designs));
+  ok("an unrenderable card cannot be selected",
+     /design\.renderable && onSelect/.test(chooser));
+  /* `disabled` would drop the card out of the tab order entirely, so a keyboard
+     user would never learn the second design exists. The negative lookbehind is
+     what keeps `aria-disabled` from matching as `disabled`. */
+  ok("but it stays reachable and is announced as unavailable",
+     /aria-disabled=/.test(chooser) && !/(?<!-)disabled=\{/.test(chooser));
+  ok("the server allows only Directory Classic through",
+     /SUPPORTED_TEMPLATE_IDS = new Set\(\["directory-classic"\]\)/.test(api));
+
+  /*
+   * The blank template is offered instead of listing the columns. A customer who
+   * starts from the file cannot get the headers wrong, which is the only way
+   * this flow fails — so the file has to exist and its header row has to be
+   * exactly the schema's columns.
+   */
+  const schema = schemaFor("church-directory");
+  const templatePath = resolve(ROOT, "public/csv-templates/directory-classic-template.csv");
+  ok("the blank template exists where the design links it", existsSync(templatePath));
+  ok("the design links that exact file",
+     designs.includes("/csv-templates/directory-classic-template.csv"));
 
   const templateText = readFileSync(templatePath, "utf8");
   const templateHeaders = templateText.trim().split("\n")[0].split(",").map((h) => h.trim());
@@ -896,11 +1030,55 @@ group("Church Directory Classic proof page");
      templateHeaders.join(","));
   ok("it carries headers only — nothing to delete before filling it in",
      templateText.trim().split("\n").length === 1, `${templateText.trim().split("\n").length} lines`);
-  ok("the page links that exact file",
-     page.includes("/csv-templates/church-directory-classic-template.csv"));
-  ok("the link downloads rather than navigating", /download="/.test(page));
-  ok("the columns are not also listed on the page",
-     !/needs these columns/.test(page));
+}
+
+/* ── The shell every page sits in ── */
+group("Workspace shell");
+{
+  const nav = readFileSync(resolve(ROOT, "src/instant-proof/nav.js"), "utf8");
+  const shell = readFileSync(resolve(ROOT, "src/instant-proof/components/AppShell.jsx"), "utf8");
+  const boot = readFileSync(resolve(ROOT, "src/instant-proof/components/BootScreen.jsx"), "utf8");
+  const css = readFileSync(resolve(ROOT, "src/instant-proof/theme.css.js"), "utf8");
+
+  const order = [...nav.matchAll(/href: "([^"]+)"/g)].map((match) => match[1]);
+  ok("the sidebar is in the specified order",
+     order.join(" ") === "/ /directory-designs /guides /blog /services /pricing /contact",
+     order.join(" "));
+  ok("the privacy line is in the sidebar",
+     /Your uploaded files are processed privately\./.test(shell));
+
+  /* Below 900px the sidebar is a drawer; a drawer that is merely moved
+     off-screen is still in the tab order. */
+  ok("the closed drawer is out of the tab order", /\.ip-sidebar \{[\s\S]*?visibility: hidden/.test(css));
+  ok("and back in the page on a desktop",
+     /@media \(min-width: 900px\)[\s\S]*?\.ip-sidebar \{[\s\S]*?visibility: visible/.test(css));
+  ok("Escape closes it and returns focus to the button that opened it",
+     /event\.key !== "Escape"/.test(shell) && /menuButton\.current\?\.focus\(\)/.test(shell));
+  ok("the page behind it cannot scroll", /document\.body\.style\.overflow = "hidden"/.test(shell));
+  ok("the menu button reports its state", /aria-expanded=\{open\}/.test(shell));
+
+  /* The boot screen plays once per session and never gates the content. */
+  /* Code, not prose: the comment above it explains why localStorage was
+     rejected, and matching the whole file would fail on that explanation. */
+  ok("the boot screen is remembered for the session, not for ever",
+     /window\.sessionStorage/.test(boot) && !/window\.localStorage/.test(boot));
+  ok("it never blocks a screen reader from the workspace beneath",
+     /aria-hidden="true"/.test(boot));
+  ok("it is gone within 1.2 seconds", /REMOVE_AFTER_MS = 1200/.test(boot));
+  ok("reduced motion stills the animation and shortens the hold",
+     /prefers-reduced-motion: reduce\)[\s\S]*?\.ip-boot-fill \{ animation: none/.test(css) &&
+     /REMOVE_AFTER_REDUCED_MS/.test(boot));
+  ok("storage failures do not break the page", /catch \{/.test(boot));
+
+  /*
+   * The launch screen renders OUTSIDE .ip-root, where every --proof-* property
+   * is declared. It has already lost its background once and its typeface once
+   * by inheriting from a scope it is not in, so it must name both itself.
+   */
+  const bootRule = css.slice(css.indexOf("  .ip-boot {"), css.indexOf("  .ip-boot::before"));
+  ok("the launch screen declares its own background", /background: var\(--boot-ink\)/.test(bootRule));
+  ok("and its own typeface", /font-family: /.test(bootRule));
+  ok("neither depends on a token it cannot see", !/var\(--proof-/.test(bootRule));
 }
 
 group("Regression: no element overflows its box, in any template");
@@ -1253,6 +1431,312 @@ group("A page caption never overstates what is on the page");
     captionFor(template.pages.find((page) => page.id === "cover"), 5) ===
       template.pages.find((page) => page.id === "cover").caption);
   ok("a missing page yields an empty caption", captionFor(null, 3) === "");
+}
+
+group("The mark");
+{
+  const dir = resolve(ROOT, "src/assets");
+  const lockup = readFileSync(resolve(dir, "pressmark-studio-logo.svg"), "utf8");
+  const light = readFileSync(resolve(dir, "pressmark-studio-logo-light.svg"), "utf8");
+  const mark = readFileSync(resolve(dir, "pressmark-studio-mark.svg"), "utf8");
+  const shell = readFileSync(resolve(ROOT, "src/instant-proof/components/AppShell.jsx"), "utf8");
+  const boot = readFileSync(resolve(ROOT, "src/instant-proof/components/BootScreen.jsx"), "utf8");
+  const blog = readFileSync(resolve(ROOT, "src/blog/components.jsx"), "utf8");
+
+  ok("three cuts of one mark are available",
+    /viewBox="0 0 138\.75 186\.63"/.test(lockup) && /viewBox="0 0 138\.75 164\.41"/.test(mark));
+
+  /* The light cut exists for the ink launch screen. If it ever diverges by more
+     than the wordmark's fill, the two logos have become two logos. */
+  ok("the light cut differs from the lockup only in the wordmark's colour",
+    light === lockup.replace("#231f20", "#f3ede4"));
+
+  /* The lockup's wordmark is the bottom 5% of its height; the mark is what goes
+     anywhere small. */
+  ok("the mark carries no wordmark to shrink into illegibility",
+    !/id="text"/.test(mark) && /id="text"/.test(lockup));
+  ok("and it keeps the file and the arrow",
+    /id="file"/.test(mark) && /id="arrow"/.test(mark));
+
+  ok("the sidebar shows the lockup and the phone bar the mark",
+    /pressmark-studio-logo\.svg/.test(shell) && /pressmark-studio-mark\.svg/.test(shell));
+  ok("the launch screen shows the light cut",
+    /pressmark-studio-logo-light\.svg/.test(boot));
+  ok("the blog chrome uses the same mark",
+    /pressmark-studio-mark\.svg/.test(blog) && /pressmark-studio-logo-light\.svg/.test(blog));
+  ok("no page still reaches for the old raster logo",
+    !/logo main\.png/.test(shell + boot + blog));
+
+  /* Portrait artwork sized by width is a height nobody chose. */
+  ok("every placement sizes the portrait artwork by height",
+    !/width: "clamp\(1[0-9]{2}px/.test(blog));
+}
+
+group("Asking for a price");
+{
+  /*
+   * The word is "price", not "quote".
+   *
+   * Three things keep the old word and are not copy: the DOM ids on the form's
+   * fields, the /api/quote endpoint (renaming it would mean touching the Zoho
+   * lead mapping behind it), and quotes@pressmark.studio, which is a mailbox
+   * rather than a word.
+   */
+  /* `quote-` alone: the ids are built as `quote-${name}`, so the character after
+     the hyphen is not always a letter. */
+  const infrastructure = /quote-|\/api\/quote|quotes@|api\/quote\.js/g;
+  const pages = [
+    "src/pages/Contact.jsx",
+    "src/pages/Services.jsx",
+    "src/pages/Pricing.jsx",
+    "src/pages/DirectoryDesigns.jsx",
+    "src/pages/Privacy.jsx",
+    "src/pages/Article.jsx",
+    "src/instant-proof/nav.js",
+    "src/blog/components.jsx",
+    "contact.html",
+  ];
+  for (const page of pages) {
+    const text = readFileSync(resolve(ROOT, page), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "")
+      .replace(infrastructure, "");
+    ok(`${page.split("/").pop()} asks for a price, not a quote`,
+      !/quote/i.test(text),
+      (text.match(/[A-Za-z ]{0,18}quote[a-z]*/i) || ["none"])[0].trim());
+  }
+
+  const contact = readFileSync(resolve(ROOT, "src/pages/Contact.jsx"), "utf8");
+  ok("the button says Request a price", /Request a price/.test(contact));
+  ok("and the endpoint behind it is untouched", /fetch\("\/api\/quote"/.test(contact));
+}
+
+group("Typography");
+{
+  const fonts = readFileSync(resolve(ROOT, "src/fonts.js"), "utf8");
+  const tokens = readFileSync(resolve(ROOT, "src/instant-proof/tokens.js"), "utf8");
+  const shellCss = readFileSync(resolve(ROOT, "src/instant-proof/theme.css.js"), "utf8");
+  const blogTheme = readFileSync(resolve(ROOT, "src/blog/theme.js"), "utf8");
+  const storeTheme = readFileSync(resolve(ROOT, "src/storefront/theme.js"), "utf8");
+  const buyCss = readFileSync(resolve(ROOT, "src/pages/Buy.css"), "utf8");
+  const consent = readFileSync(resolve(ROOT, "src/consent.js"), "utf8");
+
+  ok("the site is set in News Gothic Std", /'News Gothic Std'/.test(fonts));
+  ok("with fallbacks for machines that do not have it",
+    /News Gothic MT/.test(fonts) && /Franklin Gothic/.test(fonts) && /sans-serif/.test(fonts));
+
+  /* One definition. Four is how a site ends up set in three faces nobody
+     chose — which is what this replaced. */
+  for (const [name, source] of [
+    ["the tool's tokens", tokens],
+    ["the blog", blogTheme],
+    ["the storefront", storeTheme],
+    ["the consent banner", consent],
+  ]) {
+    ok(`${name} reads the family from src/fonts.js`, /FONT_FAMILY/.test(source));
+  }
+  ok("the storefront stylesheet names the same family",
+    /News Gothic Std/.test(buyCss) && !/Cormorant/.test(buyCss));
+
+  /*
+   * News Gothic Std ships Light, Roman, Medium and Bold. Asking for 800 or 900
+   * does not get a heavier cut — the browser smears the Bold into a fake one.
+   */
+  const weights = [...shellCss.matchAll(/font-weight: (\d+)/g)].map((match) => Number(match[1]));
+  ok("no weight is asked for that the family does not have",
+    weights.every((weight) => [300, 400, 500, 700].includes(weight)),
+    [...new Set(weights)].sort((a, b) => a - b).join(", "));
+
+  /* The licensed face is loaded by the build, never committed. */
+  const viteConfig = readFileSync(resolve(ROOT, "vite.config.js"), "utf8");
+  ok("the web font is loaded from an Adobe Fonts project, at build time",
+    /use\.typekit\.net/.test(viteConfig) && /PRESSMARK_ADOBE_FONTS_KIT/.test(viteConfig));
+  ok("an unconfigured build adds no font tags at all",
+    /if \(!kit\) return \[\]/.test(viteConfig));
+  ok("no font binary is committed to the repository",
+    !existsSync(resolve(ROOT, "public/fonts")));
+
+  /* The serif is gone from the chrome, and so is the request that fetched it. */
+  ok("no Google Fonts request remains",
+    !/fonts\.googleapis\.com/.test(blogTheme) &&
+    !/fonts\.googleapis\.com/.test(readFileSync(resolve(ROOT, "src/instant-proof/styles.js"), "utf8")));
+}
+
+group("The InDesign scheme");
+{
+  const tokens = readFileSync(resolve(ROOT, "src/instant-proof/tokens.js"), "utf8");
+  const css = readFileSync(resolve(ROOT, "src/instant-proof/theme.css.js"), "utf8");
+
+  /* Both colours come off the Pressmark mark, whose arrow gradient runs between
+     exactly them — which is also the Adobe InDesign pairing. */
+  ok("the scheme is declared once, as tokens",
+    /idPink: "#ef3b6a"/.test(tokens) && /idInk: "#460f21"/.test(tokens));
+
+  const railRule = (state) => {
+    const at = css.indexOf(`.ip-step[data-state="${state}"] .ip-step-n`);
+    return at < 0 ? "" : css.slice(at, css.indexOf("}", at));
+  };
+  ok("the step you are on is the deep maroon", /var\(--proof-id-ink\)/.test(railRule("current")));
+  ok("a finished step is the pink", /var\(--proof-id-pink\)/.test(railRule("done")));
+  ok("neither marker is the gold any more",
+    !/--proof-gold/.test(railRule("current") + railRule("done")));
+
+  /*
+   * The scheme marks progress and stops there — the gold is still the accent
+   * the rest of the site is built on. Checked by location rather than by a
+   * count, because the right number of uses inside the rail is whatever the
+   * rail needs.
+   */
+  const railStart = css.indexOf("  .ip-step-n {");
+  const railEnd = css.indexOf("/* ── Design cards ── */");
+  const inRail = (css.slice(railStart, railEnd).match(/--proof-id-/g) || []).length;
+  const total = (css.match(/var\(--proof-id-/g) || []).length;
+  ok("every use of the scheme is inside the step rail",
+    railStart > 0 && railEnd > railStart && inRail === total,
+    `${inRail} of ${total} uses`);
+}
+
+group("Brand colours");
+{
+  const controls = readFileSync(resolve(ROOT, "src/instant-proof/components/ColorControls.jsx"), "utf8");
+  const colorsModule = readFileSync(resolve(ROOT, "src/instant-proof/colors.js"), "utf8");
+
+  /* The six the customer can change, and the swatch each one sets. */
+  const expected = {
+    primaryColor: "PM_Primary",
+    secondaryColor: "PM_Secondary",
+    accentColor: "PM_Accent",
+    textColor: "PM_Text",
+    backgroundColor: "PM_Background",
+    lightTint: "PM_LightTint",
+  };
+  ok("six colours exist in the system", BRAND_COLORS.length === 6, `${BRAND_COLORS.length}`);
+
+  /*
+   * A design shows only the swatches it paints.
+   *
+   * The template carries all six so a new design needs no swatch work, but
+   * Directory Classic applies three of them — PM_Primary to the paragraph
+   * border under each name, PM_Text to the body, PM_Background to the master
+   * spread. A control that moves nothing in the PDF is worse than no control,
+   * so the panel is filtered by the design rather than by the template.
+   */
+  const { DESIGNS: LIBRARY, swatchKeysFor } = await import("../src/instant-proof/designs.js");
+  ok("Directory Classic offers exactly the three it paints",
+    JSON.stringify(swatchKeysFor("directory-classic")) ===
+      JSON.stringify(["primaryColor", "textColor", "backgroundColor"]),
+    swatchKeysFor("directory-classic").join(", "));
+  ok("every design's swatches are real brand colours",
+    LIBRARY.every((design) => design.swatchKeys.every((key) => SWATCH_FOR[key])));
+  ok("and are listed in BRAND_COLORS order, so the panel reads consistently",
+    LIBRARY.every((design) => {
+      const order = design.swatchKeys.map((key) => BRAND_COLOR_ORDER.indexOf(key));
+      return order.every((value, index) => index === 0 || value > order[index - 1]);
+    }));
+
+  /* Switching design must not carry an edit into a design that cannot show it. */
+  ok("a colour a design does not use is never submitted",
+    Object.keys(
+      changedColors({ ...DEFAULT_COLORS, accentColor: "#123456" }, swatchKeysFor("directory-classic"))
+    ).length === 0);
+  ok("each maps to its PM_ swatch",
+    JSON.stringify(SWATCH_FOR) === JSON.stringify(expected), JSON.stringify(SWATCH_FOR));
+  ok("every colour has a label and a plain-language hint",
+    BRAND_COLORS.every((color) => color.label && color.hint));
+
+  /*
+   * The defaults are the template's own swatches, read out of
+   * church-directory-classic.idml. A default that merely looked similar would
+   * show the customer a colour their PDF does not contain.
+   */
+  ok("PM_Primary's default is the template's 0/0/0/100",
+    JSON.stringify(BRAND_COLORS[0].cmyk) === JSON.stringify({ c: 0, m: 0, y: 0, k: 100 }));
+  ok("PM_Text is K only, as body copy must be",
+    JSON.stringify(BRAND_COLORS[3].cmyk) === JSON.stringify({ c: 0, m: 0, y: 0, k: 100 }));
+  ok("PM_Background is no ink at all",
+    JSON.stringify(BRAND_COLORS[4].cmyk) === JSON.stringify({ c: 0, m: 0, y: 0, k: 0 }));
+  ok("every default shown in the picker is derived from its swatch",
+    BRAND_COLORS.every((color) => DEFAULT_COLORS[color.key] === cmykToHex(color.cmyk)),
+    JSON.stringify(DEFAULT_COLORS));
+
+  /*
+   * The point of changedColors: an untouched swatch is never submitted, so the
+   * lossy CMYK round trip cannot repaint five colours nobody chose.
+   */
+  ok("nothing is submitted when nothing is changed",
+    Object.keys(changedColors(DEFAULT_COLORS)).length === 0);
+  ok("one change submits exactly one colour",
+    JSON.stringify(changedColors({ ...DEFAULT_COLORS, accentColor: "#123456" })) ===
+      JSON.stringify({ accentColor: "#123456" }));
+  const tint = BRAND_COLORS.find((color) => color.key === "lightTint");
+  ok("and the round trip really is lossy in that direction, which is why",
+    JSON.stringify(hexToCmyk(DEFAULT_COLORS.lightTint)) !== JSON.stringify(tint.cmyk),
+    `${JSON.stringify(hexToCmyk(DEFAULT_COLORS.lightTint))} vs template ${JSON.stringify(tint.cmyk)}`);
+
+  ok("a hex is canonicalized to upper case with a leading hash",
+    normalizeHex("7a1f35") === "#7A1F35" && normalizeHex("  #7a1f35 ") === "#7A1F35");
+
+  /* This value is written into a key=value handoff file that an ExtendScript
+     splits on the first "=". Anything but six hex digits must never get that
+     far, whatever it looks like. */
+  ok("anything that is not six hex digits is refused",
+    ["", "#", "red", "#12345", "#1234567", "#12g456", "7a1f3", "rgb(0,0,0)", "#7A1F35=x", "#7A1F35 red"]
+      .every((value) => normalizeHex(value) === ""));
+
+  /* Surrounding whitespace is trimmed rather than refused — a pasted value
+     often carries a newline — but nothing INSIDE the value survives, which is
+     what keeps the handoff file's key=value contract safe. */
+  ok("surrounding whitespace is trimmed, embedded characters are not tolerated",
+    normalizeHex("\n #7a1f35 \t") === "#7A1F35" && normalizeHex("#7A1F\n35") === "");
+
+  ok("three-digit shorthand is refused rather than guessed at", normalizeHex("#abc") === "");
+
+  ok("black is K only, never a rich black",
+    JSON.stringify(hexToCmyk("#000000")) === JSON.stringify({ c: 0, m: 0, y: 0, k: 100 }));
+  ok("white is no ink at all",
+    JSON.stringify(hexToCmyk("#FFFFFF")) === JSON.stringify({ c: 0, m: 0, y: 0, k: 0 }));
+  ok("a converted colour is always four whole percentages in range",
+    ["#7A1F35", "#D4AF37", "#22503C", "#000000", "#FFFFFF", "#0A0B0C"].every((hex) =>
+      Object.values(hexToCmyk(hex)).every((ink) => Number.isInteger(ink) && ink >= 0 && ink <= 100)));
+
+  ok("any subset of the six validates, including none",
+    validateBrandColors({}).ok && validateBrandColors({ textColor: "#111111" }).ok);
+  ok("a malformed colour is refused with a reason, not corrected",
+    validateBrandColors({ primaryColor: "nope" }).ok === false);
+  ok("a field the site does not own is ignored, not forwarded",
+    JSON.stringify(validateBrandColors({ borderColor: "#123456" }).colors) === "{}");
+
+  /* No preset swatches: a customer picking their organisation's colours knows
+     what those are, and suggestions of ours sit where the right answer goes. */
+  ok("no preset swatches are offered",
+    !/PRESETS/.test(colorsModule) && !/ip-preset|presets\.map/.test(controls));
+  ok("the controls are generated from the one list, filtered by the design",
+    /BRAND_COLORS\.filter\(\(color\) => keys\.includes/.test(controls));
+  ok("each control is a picker, a hex field and a reset",
+    /type="color"/.test(controls) && /className="ip-hex"/.test(controls) && /Reset/.test(controls));
+
+  /* The ExtendScript is handed swatch names, not a vocabulary of its own. */
+  const jsx = readFileSync(resolve(ROOT, "scripts/indesign/PressmarkDirectoryMerge.jsx"), "utf8");
+  ok("the script applies whatever swatch the handoff names",
+    /SWATCH_PREFIX = "swatch\."/.test(jsx) && /indexOf\(SWATCH_PREFIX\) !== 0/.test(jsx));
+  ok("and still refuses InDesign's reserved swatches",
+    /isProtectedSwatch\(name\)/.test(jsx) &&
+    /\[Paper\]", "\[Black\]", "\[Registration\]", "\[None\]/.test(jsx));
+  ok("a swatch name is bounded before it is used", /name\.length > 100/.test(jsx));
+
+  /*
+   * Found in the first live run: a template with uninstalled fonts raised
+   * InDesign's modal alert, the script waited out AppleScript's 120s timeout on
+   * every attempt, and the alert stayed up blocking everything after it.
+   */
+  ok("an unattended render suppresses InDesign's dialogs",
+    /UserInteractionLevels\.NEVER_INTERACT/.test(jsx));
+  ok("only in job mode, so an operator at the keyboard still sees them",
+    /if \(jobSpec !== null\) \{\s*previousInteraction = app\.scriptPreferences\.userInteractionLevel/.test(jsx));
+  ok("and the operator's setting is restored however the script ends",
+    /\} finally \{[\s\S]*userInteractionLevel = previousInteraction/.test(jsx));
+  ok("a substituted font fails the render and is named, never shipped silently",
+    /font\.status !== FontStatus\.INSTALLED/.test(jsx) && /not installed on the render Mac/.test(jsx));
 }
 
 console.log(`\n${pass} passed, ${failures.length} failed`);

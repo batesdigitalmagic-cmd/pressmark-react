@@ -2,7 +2,7 @@
  * Instant Proof — style tokens.
  *
  * Extends src/blog/theme.js rather than defining a second design system: the
- * same bronze accent, the same navy surfaces, the same Cormorant/Inter pairing
+ * same bronze accent, the same navy surfaces, the same News Gothic Std setting
  * and the same page gutter as the marketing site. Only the pieces this tool
  * needs that do not exist elsewhere — step markers, drop zones, swatch inputs,
  * the proof mockup — are added here.
@@ -46,7 +46,7 @@ export const IP = {
   stepTitle: {
     fontFamily: FONT_STACK,
     fontSize: "clamp(1.7rem, 3.6vw, 2.5rem)",
-    fontWeight: 900,
+    fontWeight: 700,
     lineHeight: 1.12,
     color: PALETTE.text,
     margin: "0 0 0.75rem",
@@ -95,7 +95,7 @@ export const IP = {
     display: "block",
     marginTop: "0.4rem",
     fontSize: "0.75rem",
-    fontWeight: 600,
+    fontWeight: 500,
     color: "#b3261e",
   },
   grid2: {
@@ -156,7 +156,6 @@ export const IP = {
  * it should read as a production studio, not a product tour.
  */
 export const IP_CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;0,900;1,600&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: ${PALETTE.base}; overflow-x: hidden; }
   /* A phone must never scroll sideways. Wide content (the preview spreads, the
@@ -267,7 +266,7 @@ export const IP_CSS = `
   .ip-step-dot {
     display: flex; align-items: center; justify-content: center;
     width: 26px; height: 26px; border-radius: 50%;
-    font-size: 0.72rem; font-weight: 800; flex-shrink: 0;
+    font-size: 0.72rem; font-weight: 700; flex-shrink: 0;
     border: 1px solid ${PALETTE.border};
     background: ${PALETTE.white}; color: ${PALETTE.textMuted};
   }
