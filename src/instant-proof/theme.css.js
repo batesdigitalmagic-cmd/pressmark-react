@@ -867,7 +867,7 @@ export const SHELL_CSS = `
    * it, and clipped rather than wrapped where a panel is narrower than a page.
    */
   .ip-preview {
-    padding: 14px 14px 6px;
+    padding: 22px 22px 14px;
     border: 1px solid var(--proof-border);
     border-radius: var(--proof-radius);
     background: var(--proof-preview-bg);
@@ -899,7 +899,7 @@ export const SHELL_CSS = `
     border-bottom: 2px dotted currentColor;
     transform: translateY(-3px);
   }
-  .ip-preview-family { font-weight: 400; font-stretch: condensed; letter-spacing: -0.01em; }
+  .ip-preview-family { font-weight: 400; letter-spacing: -0.01em; }
   /* The template's thick-thin paragraph rule, in the primary. */
   .ip-preview-rule {
     height: 6px;
