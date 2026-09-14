@@ -1088,12 +1088,30 @@ export const SHELL_CSS = `
    * positioning to .ip-composer — which is sticky, so it is already a containing
    * block — and the panel then sits inside the same gutter as everything else.
    */
+  /*
+   * On a phone the composer's panels are a sheet fixed to the bottom of the
+   * screen.
+   *
+   * Hung above the composer, the colour panel's height was measured against the
+   * whole viewport (vh), which on a phone includes the browser's toolbars. With
+   * the composer taking the bottom of the screen, the panel's top ran up under
+   * the top bar, where no amount of scrolling could reach it — the page scrolls,
+   * the panel scrolls with it. Fixed to the viewport and capped with svh (the
+   * height left when every toolbar is showing), the whole panel is always on
+   * screen, and anything taller scrolls inside it.
+   */
   @media (max-width: 599px) {
     .ip-composer .ip-pop { position: static; }
     .ip-composer .ip-pop-panel {
+      position: fixed;
       left: var(--proof-pad);
       right: var(--proof-pad);
+      bottom: calc(var(--pm-consent-height, 0px) + var(--proof-space-2) + env(safe-area-inset-bottom, 0px));
+      z-index: 35;
       max-width: none;
+      /* The phone bar is 64px; keep clear of it with a little air. */
+      max-height: calc(100svh - 64px - var(--pm-consent-height, 0px) - var(--proof-space-5));
+      box-shadow: 0 -12px 40px -12px rgba(16, 24, 40, 0.4);
     }
   }
 
