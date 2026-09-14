@@ -104,17 +104,32 @@ export default function Composer({
                   />
                 </label>
 
-                <button
-                  type="button"
-                  className="ip-menu-item"
-                  onClick={() => {
-                    onSample();
-                    close();
-                  }}
-                >
-                  <SparkIcon />
-                  Try it with sample data
-                </button>
+                {/* The prefilled sample, two ways: loaded straight in to preview
+                    colours, or downloaded to see what a finished file looks like. */}
+                {design.sampleCsv && (
+                  <>
+                    <button
+                      type="button"
+                      className="ip-menu-item"
+                      onClick={() => {
+                        onSample();
+                        close();
+                      }}
+                    >
+                      <SparkIcon />
+                      Load the sample .csv
+                    </button>
+                    <a
+                      className="ip-menu-item"
+                      href={design.sampleCsv}
+                      download={design.sampleFilename}
+                      onClick={close}
+                    >
+                      <DownloadIcon />
+                      Download the sample .csv
+                    </a>
+                  </>
+                )}
 
                 <button
                   type="button"

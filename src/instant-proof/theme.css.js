@@ -1110,6 +1110,8 @@ export const SHELL_CSS = `
     background: transparent;
     font: inherit;
     font-size: 0.92rem;
+    /* One line each: the menu grows to its longest item rather than wrapping. */
+    white-space: nowrap;
     color: var(--proof-ink);
     text-align: left;
     text-decoration: none;

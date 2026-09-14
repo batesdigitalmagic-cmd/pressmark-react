@@ -64,8 +64,8 @@ const SCHEMA = schemaFor("church-directory");
 const REQUIRED = requiredColumnsOf(SCHEMA);
 const OPTIONAL = columnsOf(SCHEMA).filter((column) => !REQUIRED.includes(column));
 
-/* Twenty made-up households with 555 numbers and example.org addresses. */
-const SAMPLE_CSV = "/samples/directory-classic-sample.csv";
+/* The loaded sample's file name. The file itself is the design's sampleCsv:
+   twenty made-up households with 555 numbers and example.org addresses. */
 const SAMPLE_NAME = "sample-directory.csv";
 
 /* The server refuses anything larger, so refuse it here where we can say why. */
@@ -177,14 +177,14 @@ export default function ProofTool() {
      something a real customer's file could not be. */
   const useSample = useCallback(async () => {
     try {
-      const response = await fetch(SAMPLE_CSV);
+      const response = await fetch(design.sampleCsv);
       if (!response.ok) throw new Error();
       const blob = await response.blob();
       await choose(new File([blob], SAMPLE_NAME, { type: "text/csv" }), true);
     } catch {
       setError("The sample directory could not be loaded. Try again in a moment.");
     }
-  }, [choose]);
+  }, [choose, design.sampleCsv]);
 
   /* The menu item opens the disclosure and scrolls to it, rather than opening a
      second panel over the one the customer just used. */
