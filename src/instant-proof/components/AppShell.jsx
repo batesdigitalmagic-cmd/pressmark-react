@@ -66,6 +66,8 @@ function NavList({ current, onNavigate }) {
 export default function AppShell({ current = "/", children }) {
   const [open, setOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  /* A studio reply the visitor has not seen yet: a dot on the chat buttons. */
+  const [chatUnread, setChatUnread] = useState(false);
   const menuButton = useRef(null);
   /* Whichever chat button was pressed, so closing the panel returns focus to it. */
   const chatOpener = useRef(null);
@@ -134,6 +136,7 @@ export default function AppShell({ current = "/", children }) {
             >
               <ChatIcon />
               Chat
+              {chatUnread && <span className="ip-chat-dot" aria-label="New reply" />}
             </button>
           <button
             type="button"
@@ -204,8 +207,9 @@ export default function AppShell({ current = "/", children }) {
       >
         <ChatIcon />
         <span>Chat with us</span>
+        {chatUnread && <span className="ip-chat-dot" aria-label="New reply" />}
       </button>
-      <SupportChat open={chatOpen} onClose={closeChat} returnFocus={chatOpener} />
+      <SupportChat open={chatOpen} onClose={closeChat} returnFocus={chatOpener} onUnread={setChatUnread} />
     </div>
   );
 }

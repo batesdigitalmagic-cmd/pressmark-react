@@ -1695,22 +1695,26 @@ group("Support chat");
   const chat = read("src/instant-proof/components/SupportChat.jsx");
   const shell = read("src/instant-proof/components/AppShell.jsx");
   const css = read("src/instant-proof/theme.css.js");
+  const server = read("lib/chat/chat.js");
 
-  ok("messages go to the studio's number", support.SUPPORT_PHONE.e164 === "+14703444864" &&
-    support.SUPPORT_PHONE.display === "(470) 344-4864");
-  ok("it covers InDesign automation, data merge and Microsoft Publisher",
-    JSON.stringify(support.SUPPORT_TOPICS) === JSON.stringify(["InDesign automation", "Data merge", "Microsoft Publisher"]));
+  /* The number stays off the site: no digits, no sms:/tel: links anywhere the
+     page is built from. */
+  const pageSources = [read("src/support.js"), chat, shell];
+  ok("no phone number, sms: or tel: link on the site",
+    pageSources.every((source) => !/sms:|tel:|\d{3}\D?\d{3}\D?\d{4}/.test(source)));
+  ok("the studio's number is a server environment variable only",
+    /process\.env\.PRESSMARK_CHAT_FORWARD_TO/.test(server) && !("SUPPORT_PHONE" in support));
 
-  const href = support.smsHref({ topic: "Data merge", message: "  A 300-member directory  " });
-  const body = decodeURIComponent(href.split("&body=")[1]);
-  ok("Send opens a text addressed to that number", href.startsWith("sms:+14703444864?&body="), href);
-  ok("and the text leads with the topic, then the message, trimmed",
-    body === "Data merge project\nA 300-member directory\n(via pressmark.studio)", JSON.stringify(body));
-  ok("a message with no topic still sends", !decodeURIComponent(support.smsHref({ topic: "", message: "Hi" })).includes("project"));
-  ok("calling is offered too", support.telHref() === "tel:+14703444864");
-
-  ok("the panel says replies come by text, before anyone types", /Replies by text/.test(chat) && /Opens your messaging app/.test(chat));
-  ok("an empty message cannot be sent", /aria-disabled=\{message\.trim\(\) \? undefined : true\}/.test(chat) && /preventDefault/.test(chat));
+  ok("it covers InDesign automation, data merge and Microsoft Publisher, shared with the server",
+    JSON.stringify(support.SUPPORT_TOPICS) === JSON.stringify(["InDesign automation", "Data merge", "Microsoft Publisher"]) &&
+    /from "\.\.\/\.\.\/src\/support\.js"/.test(server));
+  ok("messages are sent to the site's own chat endpoint and replies are read back",
+    /method: "POST"/.test(chat) && /\$\{CHAT_ENDPOINT\}\?id=/.test(chat));
+  ok("an offline chat says so and offers the price request instead", /Chat is offline right now/.test(chat) && /href="\/contact"/.test(chat));
+  ok("until texting is set up, chat asks for an email address and says replies come by email",
+    /needsEmail/.test(chat) && /type="email"/.test(chat) && /reply by email/.test(chat) &&
+    /if \(chatConfigured\(\)\) return "sms";\s*if \(emailConfigured\(\)\) return "email";/.test(server));
+  ok("an unseen reply puts a dot on the chat buttons", /onUnread=\{setChatUnread\}/.test(shell) && (shell.match(/ip-chat-dot/g) || []).length === 2);
   ok("Escape closes it and focus goes back to the button that opened it", /Escape/.test(chat) && /returnFocus\?\.current\?\.focus\(\)/.test(chat));
 
   ok("every page in the shell has it", /<SupportChat /.test(shell));
@@ -1719,7 +1723,7 @@ group("Support chat");
     /\.ip-chat-launcher \{ display: none; \}/.test(css));
   ok("it sits above the consent banner", /\.ip-chat \{[\s\S]*?bottom: var\(--pm-consent-height, 0px\)/.test(css));
   ok("it is drawn from the shell's tokens", /\.ip-chat \{[\s\S]*?background: var\(--proof-surface\)/.test(css) &&
-    /\.ip-chat-topic\[aria-pressed="true"\] \{ background: var\(--proof-accent\)/.test(css));
+    /\.ip-chat-mine \{[\s\S]*?background: var\(--proof-accent-soft\)/.test(css));
 }
 
 group("Maroon accent and Google buttons");

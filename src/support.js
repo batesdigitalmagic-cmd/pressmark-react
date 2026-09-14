@@ -1,38 +1,22 @@
 /*
- * Where support messages go.
+ * The support chat's shared facts.
  *
- * The chat box sends to this number as a text message: the visitor writes in
- * the panel, and Send opens their own messaging app with the message filled in
- * and addressed here. There is no server in the middle, so nothing is stored
- * and there is no third-party chat service to pay for or keep signed in — the
- * conversation simply continues in the studio's messages.
+ * Read by the page and by the server (lib/chat/chat.js), so the topics a
+ * visitor can pick are exactly the ones the server accepts.
  *
- * Change the number here and every link follows.
+ * There is deliberately no phone number here. Messages reach the studio's
+ * phone through the server, which holds the number in an environment variable;
+ * nothing on the site reveals it.
  */
 
-export const SUPPORT_PHONE = {
-  /* E.164, for sms: and tel: links. */
-  e164: "+14703444864",
-  /* How it reads on the page. */
-  display: "(470) 344-4864",
-};
-
-/* What people can ask about. The chosen topic leads the message, so the first
-   line of the text says what the conversation is for. */
+/* What people can ask about. The chosen topic heads the first text the studio
+   receives, so it knows what the conversation is for before reading on. */
 export const SUPPORT_TOPICS = ["InDesign automation", "Data merge", "Microsoft Publisher"];
 
-/*
- * The text message the visitor's app opens with.
- *
- * `?&body=` rather than `?body=`: iOS long read the body after `&` and Android
- * after `?`, and this form is accepted by both.
- */
-export function smsHref({ topic, message }) {
-  const lines = [];
-  if (topic) lines.push(`${topic} project`);
-  if (message.trim()) lines.push(message.trim());
-  lines.push("(via pressmark.studio)");
-  return `sms:${SUPPORT_PHONE.e164}?&body=${encodeURIComponent(lines.join("\n"))}`;
-}
+export const CHAT_ENDPOINT = "/api/chat/messages";
 
-export const telHref = () => `tel:${SUPPORT_PHONE.e164}`;
+/* Where the visitor's conversation id is kept, so a reload or another page on
+   the site picks the same chat back up. */
+export const CHAT_STORAGE_KEY = "pressmark.chat";
+
+export const MAX_MESSAGE_LENGTH = 1000;

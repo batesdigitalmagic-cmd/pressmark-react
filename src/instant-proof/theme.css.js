@@ -1490,16 +1490,36 @@ export const SHELL_CSS = `
     overflow-y: auto;
     overscroll-behavior: contain;
   }
-  /* The studio's opening line, as a message bubble. */
+  /* The conversation. Studio messages sit left in the grey of a key; the
+     visitor's sit right in the maroon's soft tint. */
+  .ip-chat-thread {
+    display: grid;
+    gap: var(--proof-space-2);
+    align-content: start;
+    max-height: 42svh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
   .ip-chat-bubble {
+    justify-self: start;
+    max-width: 88%;
     margin: 0;
-    padding: var(--proof-space-3);
+    padding: 10px 12px;
     background: ${BUTTON.background};
     border-radius: 4px var(--proof-radius-lg) var(--proof-radius-lg) var(--proof-radius-lg);
     font-size: 0.9rem;
     line-height: 1.5;
     color: var(--proof-ink-soft);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
   }
+  .ip-chat-mine {
+    justify-self: end;
+    background: var(--proof-accent-soft);
+    color: var(--proof-ink);
+    border-radius: var(--proof-radius-lg) 4px var(--proof-radius-lg) var(--proof-radius-lg);
+  }
+  .ip-chat-time { display: block; margin-top: 2px; font-size: 0.7rem; color: var(--proof-muted); }
   .ip-chat-topics { display: flex; flex-wrap: wrap; gap: var(--proof-space-2); }
   .ip-chat-topic {
     min-height: 32px;
@@ -1514,9 +1534,10 @@ export const SHELL_CSS = `
   }
   .ip-chat-topic:hover { border-color: var(--proof-border-strong); }
   .ip-chat-topic[aria-pressed="true"] { background: var(--proof-accent); border-color: var(--proof-accent); color: #fff; }
+  .ip-chat-compose { display: grid; gap: var(--proof-space-2); }
   .ip-chat-input {
     width: 100%;
-    min-height: 96px;
+    min-height: 64px;
     padding: 10px 12px;
     font: inherit;
     font-size: 16px; /* iOS zooms the page on focus at anything smaller. */
@@ -1528,11 +1549,18 @@ export const SHELL_CSS = `
     resize: vertical;
   }
   .ip-chat-input:focus-visible { outline: 2px solid var(--proof-focus); outline-offset: 1px; }
-  .ip-chat-send { width: 100%; }
-  .ip-chat-send[aria-disabled="true"] { color: ${BUTTON.textDisabled}; cursor: not-allowed; }
+  .ip-chat-email { min-height: 44px; resize: none; }
+  .ip-chat-send { justify-self: end; min-width: 96px; }
   .ip-chat-note { margin: 0; font-size: 0.78rem; line-height: 1.5; color: var(--proof-muted); }
-  .ip-chat-alt { display: flex; flex-wrap: wrap; gap: var(--proof-space-2); }
-  .ip-chat-alt .ip-btn { flex: 1; }
+  .ip-chat-error { color: var(--proof-danger); }
+  .ip-chat-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-left: 2px;
+    border-radius: 50%;
+    background: var(--proof-accent);
+  }
   @media (pointer: coarse) {
     .ip-chat-topic { min-height: 44px; }
     .ip-chat-close { width: 44px; height: 44px; }

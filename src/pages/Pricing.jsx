@@ -39,7 +39,7 @@ export default function Pricing() {
             short book.
           </li>
           <li>
-            <strong>{money(PER_PAGE_RATE)} per page</strong> of designed publication.
+            <strong>{money(PER_PAGE_RATE)} per page</strong> designed.
           </li>
         </ul>
       </div>

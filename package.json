@@ -21,6 +21,7 @@
     "prebuild": "node scripts/generate-blog-pages.mjs",
     "predev": "node scripts/generate-blog-pages.mjs",
     "test:worker": "node --test worker/tests/*.test.mjs",
+    "test:chat": "node --test scripts/chat.test.mjs",
     "worker": "node worker/pressmark-worker.mjs",
     "worker:health": "node worker/health.mjs"
   },
