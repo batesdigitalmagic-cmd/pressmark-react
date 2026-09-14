@@ -1,5 +1,5 @@
 /*
- * The five glyphs this interface uses.
+ * The glyphs this interface uses.
  *
  * Inline SVG rather than an icon font or a package: five shapes do not justify
  * a dependency, and inlining means they inherit currentColor and cannot arrive
@@ -47,6 +47,24 @@ export const HelpIcon = () => (
     <circle cx="12" cy="12" r="9" />
     <path d="M9.6 9.4a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.4" />
     <path d="M12 17h.01" />
+  </svg>
+);
+
+export const SparkIcon = () => (
+  <svg {...base}>
+    <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5" />
+  </svg>
+);
+
+export const ChatIcon = () => (
+  <svg {...base}>
+    <path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.1A8 8 0 1 1 20 12Z" />
+  </svg>
+);
+
+export const CloseIcon = () => (
+  <svg {...base}>
+    <path d="M6 6l12 12M18 6 6 18" />
   </svg>
 );
 

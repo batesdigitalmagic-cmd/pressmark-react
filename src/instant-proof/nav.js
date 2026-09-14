@@ -17,9 +17,10 @@ export const NAV_GROUPS = [
   [
     { label: "Create a PDF", href: "/" },
     { label: "Directory Designs", href: "/directory-designs" },
-    /* One entry. "Data Merge Guides" and "Blog" were two doors into overlapping
-       material; the guides now live in the section. */
-    { label: "Data Merge", href: "/blog" },
+    /* The Data Merge section is for buyers. The Blog (/blog, the daily feed)
+       is deliberately not in the sidebar; it is reached from the Data Merge
+       section and from its own articles. */
+    { label: "Data Merge", href: "/data-merge" },
   ],
   [
     { label: "Services", href: "/services" },

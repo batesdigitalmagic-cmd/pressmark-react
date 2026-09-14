@@ -29,6 +29,33 @@ function adobeFonts() {
   }
 }
 
+/*
+ * Serve /blog locally the way Vercel does.
+ *
+ * The Blog index is blog/index.html. Vercel's cleanUrls serves it at /blog, but
+ * Vite's dev and preview servers only find a directory's index.html with a
+ * trailing slash — without one they fall back to the root index.html, so every
+ * "Blog" link opened the homepage locally. Rewriting the one path keeps the
+ * links as /blog, which is the canonical address.
+ */
+function blogIndex() {
+  const rewrite = (req, _res, next) => {
+    if (req.url === '/blog' || req.url.startsWith('/blog?') || req.url.startsWith('/blog#')) {
+      req.url = '/blog/' + req.url.slice('/blog'.length)
+    }
+    next()
+  }
+  return {
+    name: 'pressmark-blog-index',
+    configureServer(server) {
+      server.middlewares.use(rewrite)
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(rewrite)
+    },
+  }
+}
+
 // Blog pages are generated from src/data/blogPosts.js by
 // scripts/generate-blog-pages.mjs (npm prebuild). Globbing them means adding
 // an article never requires touching this file.
@@ -61,7 +88,7 @@ export default defineConfig({
       },
     },
   },
-  plugins: [react(), adobeFonts()],
+  plugins: [react(), adobeFonts(), blogIndex()],
   build: {
     rollupOptions: {
       // Multi-page: the tool, each content route, the storefront, and every
@@ -70,6 +97,7 @@ export default defineConfig({
         /* The tool. `/instant-proof` is redirected here by vercel.json. */
         main: 'index.html',
         directoryDesigns: 'directory-designs.html',
+        dataMerge: 'data-merge.html',
         howItWorks: 'how-it-works.html',
         services: 'services.html',
         pricing: 'pricing.html',

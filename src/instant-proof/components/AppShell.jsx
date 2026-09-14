@@ -18,6 +18,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { NAV_GROUPS } from "../nav.js";
+import SupportChat from "./SupportChat.jsx";
+import { ChatIcon } from "./Icons.jsx";
 import { PROOF_CSS, SHELL_CSS } from "../theme.css.js";
 /*
  * Two cuts of the same mark.
@@ -63,7 +65,17 @@ function NavList({ current, onNavigate }) {
  */
 export default function AppShell({ current = "/", children }) {
   const [open, setOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  /* A studio reply the visitor has not seen yet: a dot on the chat buttons. */
+  const [chatUnread, setChatUnread] = useState(false);
   const menuButton = useRef(null);
+  /* Whichever chat button was pressed, so closing the panel returns focus to it. */
+  const chatOpener = useRef(null);
+  const closeChat = useCallback(() => setChatOpen(false), []);
+  const toggleChat = (event) => {
+    chatOpener.current = event.currentTarget;
+    setChatOpen((was) => !was);
+  };
   const sidebar = useRef(null);
 
   const close = useCallback(() => setOpen(false), []);
@@ -115,6 +127,17 @@ export default function AppShell({ current = "/", children }) {
           <a className="ip-topbar-logo" href="/" aria-label="Pressmark Studio home">
             <img src={mark} alt="Pressmark Studio" />
           </a>
+          <span className="ip-topbar-actions">
+            <button
+              type="button"
+              className="ip-menu-btn"
+              aria-expanded={chatOpen}
+              onClick={toggleChat}
+            >
+              <ChatIcon />
+              Chat
+              {chatUnread && <span className="ip-chat-dot" aria-label="New reply" />}
+            </button>
           <button
             type="button"
             ref={menuButton}
@@ -130,6 +153,7 @@ export default function AppShell({ current = "/", children }) {
             </span>
             Menu
           </button>
+          </span>
         </header>
 
         {open && (
@@ -172,6 +196,20 @@ export default function AppShell({ current = "/", children }) {
           </div>
         </main>
       </div>
+
+      {/* Desktop only; the phone bar has its own Chat button. */}
+      <button
+        type="button"
+        className="ip-chat-launcher"
+        aria-expanded={chatOpen}
+        aria-label={chatOpen ? "Close chat" : "Chat with us"}
+        onClick={toggleChat}
+      >
+        <ChatIcon />
+        <span>Chat with us</span>
+        {chatUnread && <span className="ip-chat-dot" aria-label="New reply" />}
+      </button>
+      <SupportChat open={chatOpen} onClose={closeChat} returnFocus={chatOpener} onUnread={setChatUnread} />
     </div>
   );
 }

@@ -53,11 +53,15 @@ const handlers = {
   input: (await import("../api/render-jobs/worker/[jobId]/input.js")).default,
   heartbeat: (await import("../api/render-jobs/worker/[jobId]/heartbeat.js")).default,
   result: (await import("../api/render-jobs/worker/[jobId]/result.js")).default,
+  chatMessages: (await import("../api/chat/messages.js")).default,
+  chatSms: (await import("../api/chat/sms.js")).default,
 };
 
 /* Vercel's file-based routing, expressed as patterns. Order matters: the more
    specific worker routes are tested before the bare job route. */
 function route(pathname) {
+  if (pathname === "/api/chat/messages") return handlers.chatMessages;
+  if (pathname === "/api/chat/sms") return handlers.chatSms;
   if (pathname === "/api/render-jobs") return handlers.submit;
   if (pathname === "/api/render-jobs/cleanup") return handlers.cleanup;
   if (pathname === "/api/render-jobs/worker/claim") return handlers.claim;

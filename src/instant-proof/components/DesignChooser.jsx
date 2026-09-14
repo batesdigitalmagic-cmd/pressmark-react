@@ -14,6 +14,24 @@
 
 import { DESIGNS } from "../designs.js";
 
+/*
+ * "text-based", "photo-led", "print-ready": a browser will break a line after
+ * the hyphen, leaving half a word at the end of a line. Each hyphenated word is
+ * kept on one line instead. A non-breaking hyphen character would do the same,
+ * but News Gothic Std has no glyph for it.
+ */
+function keepHyphensTogether(text) {
+  return text.split(/(\S+-\S+)/).map((part, index) =>
+    index % 2 === 1 ? (
+      <span key={index} className="ip-nowrap">
+        {part}
+      </span>
+    ) : (
+      part
+    )
+  );
+}
+
 export default function DesignChooser({ selectedId, onSelect }) {
   return (
     <div className="ip-designs" role="group" aria-label="Choose a design">
@@ -28,23 +46,27 @@ export default function DesignChooser({ selectedId, onSelect }) {
             aria-disabled={design.renderable ? undefined : true}
             onClick={() => design.renderable && onSelect(design.id)}
           >
-            <span className="ip-design-thumb">
-              <img src={design.thumbnail} alt="" />
-            </span>
-            <span className="ip-design-body">
-              <span className="ip-card-head">
-                <span className="ip-design-title">{design.name}</span>
-                <span className={design.renderable ? "ip-tag ip-tag-live" : "ip-tag"}>
-                  {design.status}
-                </span>
+            <span className="ip-card-head">
+              <span className="ip-design-title">{design.name}</span>
+              <span className={design.renderable ? "ip-tag ip-tag-live" : "ip-tag"}>
+                {design.status}
               </span>
-              <span className="ip-design-desc">{design.description}</span>
-              {!design.renderable && (
-                <span className="ip-design-desc">
-                  <strong>Not yet available to generate.</strong> The layout and photo handling
-                  are still in production.
-                </span>
-              )}
+            </span>
+            {/* The thumbnail sits beside the description lines only, not the
+                title, and stretches to exactly their height. */}
+            <span className="ip-design-row">
+              <span className="ip-design-thumb">
+                <img src={design.thumbnail} alt="" />
+              </span>
+              <span className="ip-design-body">
+                <span className="ip-design-desc">{keepHyphensTogether(design.description)}</span>
+                {design.note && (
+                  <span className="ip-design-desc">
+                    <strong>{keepHyphensTogether(design.note.lead)}</strong>{" "}
+                    {keepHyphensTogether(design.note.text)}
+                  </span>
+                )}
+              </span>
             </span>
           </button>
         );

@@ -63,7 +63,7 @@ export const BUDGET_RANGES = [
 export const SMALL_BOOK_MAX_PAGES = 25;
 export const SETUP_FEE_SMALL = 250;
 export const SETUP_FEE = 350;
-export const PER_PAGE_RATE = 25;
+export const PER_PAGE_RATE = 10;
 
 export const setupFeeFor = (pages) => (pages < SMALL_BOOK_MAX_PAGES ? SETUP_FEE_SMALL : SETUP_FEE);
 export const estimateTotal = (pages) => setupFeeFor(pages) + pages * PER_PAGE_RATE;

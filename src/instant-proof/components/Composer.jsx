@@ -32,7 +32,7 @@
 import ColorControls from "./ColorControls.jsx";
 import Popover from "./Popover.jsx";
 import { BRAND_COLORS } from "../colors.js";
-import { ArrowIcon, ColorMark, DownloadIcon, HelpIcon, PlusIcon, UploadIcon } from "./Icons.jsx";
+import { ArrowIcon, ColorMark, DownloadIcon, HelpIcon, PlusIcon, SparkIcon, UploadIcon } from "./Icons.jsx";
 
 export default function Composer({
   design,
@@ -49,12 +49,19 @@ export default function Composer({
   onPermittedChange,
   blocking,
   onSubmit,
+  sample = false,
+  onSample,
 }) {
   return (
     <div className="ip-composer">
       <div className="ip-composer-state" aria-live="polite">
         {checking ? (
           <span className="ip-composer-file">Checking your CSV…</span>
+        ) : accepted && sample ? (
+          <span className="ip-composer-file">
+            <strong>Sample directory</strong> — {accepted.recordCount} households. Choose your
+            colours, then create the PDF.
+          </span>
         ) : accepted ? (
           <span className="ip-composer-file">
             <strong>{file?.name}</strong> — {accepted.recordCount} record
@@ -101,6 +108,18 @@ export default function Composer({
                   type="button"
                   className="ip-menu-item"
                   onClick={() => {
+                    onSample();
+                    close();
+                  }}
+                >
+                  <SparkIcon />
+                  Try it with sample data
+                </button>
+
+                <button
+                  type="button"
+                  className="ip-menu-item"
+                  onClick={() => {
                     onInstructions();
                     close();
                   }}
@@ -141,17 +160,21 @@ export default function Composer({
         </span>
       </div>
 
-      <label className="ip-consent">
-        <input
-          type="checkbox"
-          checked={permitted}
-          onChange={(event) => onPermittedChange(event.target.checked)}
-        />
-        <span>
-          I have permission to use this directory information and authorize Pressmark Studio to
-          create this PDF.
-        </span>
-      </label>
+      {/* The sample is our own made-up directory, so there is nobody's
+          permission to confirm. */}
+      {!sample && (
+        <label className="ip-consent">
+          <input
+            type="checkbox"
+            checked={permitted}
+            onChange={(event) => onPermittedChange(event.target.checked)}
+          />
+          <span>
+            I have permission to use this directory information and authorize Pressmark Studio to
+            create this PDF.
+          </span>
+        </label>
+      )}
 
       {blocking && (
         <p className="ip-actions-why" id="create-why">

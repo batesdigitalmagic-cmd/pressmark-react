@@ -33,6 +33,12 @@ export const DESIGNS = [
     status: "Available now",
     renderable: true,
     description: "A clean, text-based member directory generated from your CSV.",
+    /* The second line of the card. Both designs carry one so the two cards
+       share a shape, and only the wording says which can be generated. */
+    note: {
+      lead: "Ready to generate.",
+      text: "Upload your CSV and download a print-ready PDF.",
+    },
     /*
      * Three, not six. In church-directory-classic.indd these are the swatches
      * actually applied to something: PM_Primary on the paragraph border under
@@ -64,6 +70,10 @@ export const DESIGNS = [
     status: "Coming soon",
     renderable: false,
     description: "A photo-led directory design for member portraits and contact information.",
+    note: {
+      lead: "Not yet available to generate.",
+      text: "The layout and photo handling are still in production.",
+    },
     /* The intended set for this design. Nothing can be submitted against it yet,
        so this is a statement of intent rather than a live contract. */
     swatchKeys: [
@@ -74,7 +84,8 @@ export const DESIGNS = [
       "backgroundColor",
       "lightTint",
     ],
-    thumbnail: "/proof-templates/photo-gallery/thumbnail.svg",
+    /* Page one of a real photo directory export, like Classic's thumbnail. */
+    thumbnail: "/proof-templates/directory-photos/thumbnail.jpg",
     previews: [
       {
         src: "/proof-templates/directory-photos/preview-listing.jpg",

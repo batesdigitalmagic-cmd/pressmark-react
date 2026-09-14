@@ -8,7 +8,7 @@
     },
     {
       "source": "/guides",
-      "destination": "/blog",
+      "destination": "/data-merge",
       "permanent": true
     }
   ]

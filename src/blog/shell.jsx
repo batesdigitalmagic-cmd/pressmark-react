@@ -14,16 +14,16 @@ import { useId, useMemo } from "react";
 import { formatDate, postUrl } from "../data/blogPosts.js";
 import { headingId } from "./theme.js";
 
-/** `[label](/href)` inside article text, as real links. */
+/** `[label](/href)` as real links and `**words**` as bold, inside article text. */
 export function InlineText({ text }) {
   const parts = useMemo(() => {
     const out = [];
-    const pattern = /\[([^\]]+)\]\(([^)]+)\)/g;
+    const pattern = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*/g;
     let last = 0;
     let match;
     while ((match = pattern.exec(text)) !== null) {
       if (match.index > last) out.push(text.slice(last, match.index));
-      out.push({ label: match[1], href: match[2] });
+      out.push(match[3] !== undefined ? { strong: match[3] } : { label: match[1], href: match[2] });
       last = match.index + match[0].length;
     }
     if (last < text.length) out.push(text.slice(last));
@@ -35,6 +35,8 @@ export function InlineText({ text }) {
       {parts.map((part, index) =>
         typeof part === "string" ? (
           part
+        ) : part.strong !== undefined ? (
+          <strong key={index}>{part.strong}</strong>
         ) : (
           <a
             key={index}
