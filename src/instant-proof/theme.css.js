@@ -1225,13 +1225,24 @@ export const SHELL_CSS = `
     height: 44px;
     flex: 0 0 auto;
     padding: 0;
-    border: 1px solid var(--proof-border-strong);
+    border: 0;
     border-radius: var(--proof-radius);
     background: none;
     cursor: pointer;
   }
-  .ip-color-input::-webkit-color-swatch-wrapper { padding: 3px; }
-  .ip-color-input::-webkit-color-swatch { border: 0; border-radius: 3px; }
+  /* No stroke: the colour fills the whole square. A hairline shadow at 10% is
+     all that keeps a white or near-white swatch visible on the white panel. */
+  .ip-color-input::-webkit-color-swatch-wrapper { padding: 0; }
+  .ip-color-input::-webkit-color-swatch {
+    border: 0;
+    border-radius: var(--proof-radius);
+    box-shadow: inset 0 0 0 1px rgba(17, 20, 24, 0.1);
+  }
+  .ip-color-input::-moz-color-swatch {
+    border: 0;
+    border-radius: var(--proof-radius);
+    box-shadow: inset 0 0 0 1px rgba(17, 20, 24, 0.1);
+  }
   .ip-hex {
     flex: 1 1 auto;
     min-width: 0;
