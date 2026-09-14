@@ -861,27 +861,70 @@ export const SHELL_CSS = `
 
   /* ── Live preview ── */
 
+  /*
+   * A page of the render, small. Sizes are the export's proportions scaled to
+   * a phone-width panel; each line is kept to one line, as the template sets
+   * it, and clipped rather than wrapped where a panel is narrower than a page.
+   */
   .ip-preview {
+    padding: 14px 14px 6px;
     border: 1px solid var(--proof-border);
-    border-radius: var(--proof-radius-lg);
-    overflow: hidden;
+    border-radius: var(--proof-radius);
     background: var(--proof-preview-bg);
+    color: var(--proof-preview-text);
+    font-size: 0.66rem;
+    line-height: 1.45;
   }
-  .ip-preview-bar { height: 10px; background: var(--proof-preview-primary); }
-  .ip-preview-body { padding: var(--proof-space-3); }
-  .ip-preview-title {
-    font-size: 0.95rem;
+  .ip-preview-listing p {
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ip-preview-listing b { font-weight: 700; }
+  .ip-preview-head {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+    font-size: 0.82rem;
     font-weight: 700;
-    letter-spacing: 0.02em;
-    color: var(--proof-preview-primary);
-    margin: 0 0 2px;
+    line-height: 1.3;
   }
-  .ip-preview-sub { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--proof-muted); margin: 0 0 var(--proof-space-3); }
-  .ip-preview-entry { padding: 8px 0; border-top: 1px solid var(--proof-preview-accent); font-size: 0.78rem; line-height: 1.45; }
-  .ip-preview-entry strong { color: var(--proof-preview-text); display: block; }
-  .ip-preview-entry span { color: var(--proof-muted); }
+  .ip-preview-head span:first-child,
+  .ip-preview-head span:last-child { flex: none; }
+  /* The dotted leader between the name and the phone, in the text colour. */
+  .ip-preview-leader {
+    flex: 1;
+    min-width: 12px;
+    border-bottom: 2px dotted currentColor;
+    transform: translateY(-3px);
+  }
+  .ip-preview-family { font-weight: 400; font-stretch: condensed; letter-spacing: -0.01em; }
+  /* The template's thick-thin paragraph rule, in the primary. */
+  .ip-preview-rule {
+    height: 6px;
+    margin: 6px -4px 8px;
+    border-top: 3px solid var(--proof-preview-primary);
+    border-bottom: 1px solid var(--proof-preview-primary);
+  }
+  .ip-preview-key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    margin: var(--proof-space-2) 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.75rem;
+    color: var(--proof-ink-soft);
+  }
+  .ip-preview-key li { display: inline-flex; align-items: center; gap: 6px; }
+  .ip-preview-chip {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid var(--proof-border-strong);
+  }
   .ip-preview-note { font-size: 0.72rem; margin-top: var(--proof-space-2); }
-  .ip-preview-rule { height: 8px; background: var(--proof-preview-tint); margin-top: var(--proof-space-3); }
 
   /* ── Boot screen ── */
 
