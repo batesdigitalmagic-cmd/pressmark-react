@@ -1,5 +1,19 @@
 /*
- * Instant Proof analytics.
+ * Analytics for the directory PDF tool.
+ *
+ * ── What is measured ──
+ *
+ *   pdf_sample_loaded     "Load the sample .csv" pressed and the sample accepted
+ *   pdf_csv_uploaded      a visitor's own CSV accepted        record_count
+ *   pdf_create_clicked    Create My PDF pressed               source, record_count, changed_colors, template_id
+ *   pdf_render_completed  the InDesign render finished        source, record_count, seconds
+ *   pdf_render_failed     the render failed                   source
+ *   pdf_preview_shown     the PDF appeared in the page        source, page_count
+ *   pdf_downloaded        Download PDF pressed                source
+ *
+ * `source` is "sample" or "upload", which is what separates sample traffic from
+ * real directories in every report. Like the rest of the site's analytics,
+ * nothing is sent unless the visitor accepted the consent banner.
  *
  * ── The rule ──
  *
@@ -19,15 +33,13 @@
 import { trackEvent } from "../analytics.js";
 
 export const PROOF_EVENTS = {
-  quickProofStarted: "quick_proof_started",
-  photosSelected: "photos_selected",
-  optionalDetailsOpened: "optional_details_opened",
-  proofGenerated: "proof_generated",
-  quoteFormOpened: "quote_form_opened",
-  emailUpdatesSelected: "email_updates_selected",
-  projectReviewOpened: "project_review_opened",
-  organizationDetailsOpened: "organization_details_opened",
-  spreadsheetModeSelected: "spreadsheet_mode_selected",
+  sampleLoaded: "pdf_sample_loaded",
+  csvUploaded: "pdf_csv_uploaded",
+  createClicked: "pdf_create_clicked",
+  renderCompleted: "pdf_render_completed",
+  renderFailed: "pdf_render_failed",
+  previewShown: "pdf_preview_shown",
+  downloaded: "pdf_downloaded",
 };
 
 /*
@@ -49,6 +61,9 @@ const ALLOWED_PARAMS = new Set([
   "template_id",
   "proof_mode",
   "used_camera",
+  "source",
+  "changed_colors",
+  "seconds",
 ]);
 
 /* Slugs we generate ourselves; anything else is treated as untrusted. */

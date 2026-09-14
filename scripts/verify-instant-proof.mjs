@@ -1687,12 +1687,33 @@ group("Sample render and in-page PDF preview");
   ok("the sample needs no permission checkbox, a real file still does",
     /!permitted && !sample/.test(page) && /\{!sample && \(\s*<label className="ip-consent">/.test(composer));
   ok("a finished PDF is previewed in the page, with download still offered",
-    /<PdfPreview url=\{job\.downloadUrl\}/.test(job) && /Download PDF/.test(job));
+    /<PdfPreview\s+url=\{job\.downloadUrl\}/.test(job) && /Download PDF/.test(job));
   ok("the preview draws with pdf.js, not an iframe a phone cannot show",
     /pdfjs-dist\/legacy\/build\/pdf\.mjs/.test(preview) && !/<iframe\s/.test(preview));
   ok("pdf.js loads only when a preview is shown", /await Promise\.all\(\[\s*import\("pdfjs-dist/.test(preview) &&
     !/^import .*pdfjs/m.test(preview));
   ok("pages are drawn as they near the screen", /IntersectionObserver/.test(preview));
+}
+
+group("Tool analytics");
+{
+  const read = (path) => readFileSync(resolve(ROOT, path), "utf8");
+  const { PROOF_EVENTS } = await import("../src/instant-proof/analytics.js");
+  const page = read("src/pages/ProofTool.jsx");
+  const job = read("src/instant-proof/components/DirectoryRenderJob.jsx");
+  const events = Object.values(PROOF_EVENTS);
+
+  ok("sample loads, uploads, creates, renders, previews and downloads are all events",
+    ["pdf_sample_loaded", "pdf_csv_uploaded", "pdf_create_clicked", "pdf_render_completed",
+      "pdf_render_failed", "pdf_preview_shown", "pdf_downloaded"].every((name) => events.includes(name)));
+  ok("every one goes through the allow-list filter", /emit\(PROOF_EVENTS\./.test(page) && /emit\(PROOF_EVENTS\./.test(job) &&
+    !/trackEvent\(/.test(page + job));
+  ok("sample and real directories are told apart", /source: sample \? "sample" : "upload"/.test(page) &&
+    /const source = sample \? "sample" : "upload"/.test(job));
+  ok("the source survives the filter; a file name cannot",
+    JSON.stringify(__sanitizeForTest({ source: "sample", changed_colors: 2, seconds: 41, file_name: "smith-family.csv", source2: "x" })) ===
+      JSON.stringify({ source: "sample", changed_colors: 2, seconds: 41 }));
+  ok("a reloaded finished job is not counted as a second render", /!sawRunning\.current/.test(job) && /reported\.current/.test(job));
 }
 
 group("Support chat");

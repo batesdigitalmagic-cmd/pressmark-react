@@ -27,6 +27,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import PdfPreview from "./PdfPreview.jsx";
+import { PROOF_EVENTS, emit } from "../analytics.js";
 
 /* File -> Promise<job>. WeakMap so a discarded File does not pin its response. */
 const submissions = new WeakMap();
@@ -203,6 +204,36 @@ export default function DirectoryRenderJob({
     setJob((current) => (current ? { ...current } : current));
   }, []);
 
+  /*
+   * Completed and failed are reported once, and only when this page watched the
+   * job get there. A reload of a finished job (?job=… in the address) shows the
+   * result again without counting a second render.
+   */
+  const source = sample ? "sample" : "upload";
+  const startedAt = useRef(0);
+  const sawRunning = useRef(false);
+  const reported = useRef(false);
+  useEffect(() => {
+    if (!status) return;
+    if (!TERMINAL.has(status)) {
+      /* Timed from the first moment this page sees the job queued or running. */
+      if (!sawRunning.current) startedAt.current = Date.now();
+      sawRunning.current = true;
+      return;
+    }
+    if (reported.current || !sawRunning.current) return;
+    reported.current = true;
+    if (status === "completed") {
+      emit(PROOF_EVENTS.renderCompleted, {
+        source,
+        record_count: job?.rowCount ?? 0,
+        seconds: Math.round((Date.now() - startedAt.current) / 1000),
+      });
+    } else {
+      emit(PROOF_EVENTS.renderFailed, { source });
+    }
+  }, [status, source, job?.rowCount]);
+
   const stage = submitting ? "uploading" : job?.stage || "queued";
   const completed = job?.status === "completed";
   const failed = job?.status === "failed";
@@ -271,9 +302,17 @@ export default function DirectoryRenderJob({
           )}
           {/* Seen in the page first, on a phone or a desktop alike; downloading
               is the customer's choice, not the only way to look at it. */}
-          <PdfPreview url={job.downloadUrl} title={sample ? "Sample directory" : "Your directory"} />
+          <PdfPreview
+            url={job.downloadUrl}
+            title={sample ? "Sample directory" : "Your directory"}
+            onShown={(pages) => emit(PROOF_EVENTS.previewShown, { source, page_count: pages })}
+          />
           <div className="ip-pdf-actions">
-            <a className="ip-btn ip-touch" href={job.downloadUrl}>
+            <a
+              className="ip-btn ip-touch"
+              href={job.downloadUrl}
+              onClick={() => emit(PROOF_EVENTS.downloaded, { source })}
+            >
               Download PDF
             </a>
             {sample && (

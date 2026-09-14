@@ -57,6 +57,7 @@ import DesignChooser from "../instant-proof/components/DesignChooser.jsx";
 import DirectoryRenderJob from "../instant-proof/components/DirectoryRenderJob.jsx";
 import { DEFAULT_COLORS, changedColors } from "../instant-proof/colors.js";
 import { DEFAULT_DESIGN_ID, designFor, swatchKeysFor } from "../instant-proof/designs.js";
+import { PROOF_EVENTS, emit } from "../instant-proof/analytics.js";
 import { parseCsvFile } from "../instant-proof/csv/parseCsv.js";
 import { columnsOf, requiredColumnsOf, schemaFor } from "../instant-proof/csv/schemas.js";
 
@@ -171,6 +172,9 @@ export default function ProofTool() {
     }
     setFile(chosen);
     setAccepted(result);
+    /* Counts only: never the file name, which is often a church's or a person's. */
+    if (isSample) emit(PROOF_EVENTS.sampleLoaded, { record_count: result.recordCount });
+    else emit(PROOF_EVENTS.csvUploaded, { record_count: result.recordCount });
   }, []);
 
   /* The sample goes through the same checks as an upload, so it can never be
@@ -345,7 +349,15 @@ export default function ProofTool() {
               permitted={permitted}
               onPermittedChange={setPermitted}
               blocking={blocking}
-              onSubmit={() => setSubmitted(true)}
+              onSubmit={() => {
+                emit(PROOF_EVENTS.createClicked, {
+                  source: sample ? "sample" : "upload",
+                  record_count: accepted?.recordCount ?? 0,
+                  changed_colors: Object.keys(changedColors(colors, swatchKeys)).length,
+                  template_id: design.id,
+                });
+                setSubmitted(true);
+              }}
               sample={sample}
               onSample={useSample}
             />

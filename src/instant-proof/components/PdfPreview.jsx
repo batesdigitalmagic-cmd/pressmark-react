@@ -95,7 +95,12 @@ function Page({ pdf, number, ratio, width }) {
   );
 }
 
-export default function PdfPreview({ url, title = "Your PDF" }) {
+export default function PdfPreview({ url, title = "Your PDF", onShown }) {
+  /* Kept in a ref so a new callback identity from the parent never reloads the PDF. */
+  const shown = useRef(onShown);
+  useEffect(() => {
+    shown.current = onShown;
+  }, [onShown]);
   const frame = useRef(null);
   const [pdf, setPdf] = useState(null);
   const [ratios, setRatios] = useState([]);
@@ -121,6 +126,7 @@ export default function PdfPreview({ url, title = "Your PDF" }) {
         if (cancelled) return;
         setRatios(Array.from({ length: loaded.numPages }, () => `${first.width} / ${first.height}`));
         setPdf(loaded);
+        shown.current?.(loaded.numPages);
       } catch {
         if (!cancelled) setError("The preview could not be shown here. The download still works.");
       }
