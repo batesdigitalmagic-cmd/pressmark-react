@@ -22,8 +22,8 @@ import AppShell from "../instant-proof/components/AppShell.jsx";
 import { BUDGET_RANGES, PUBLICATION_TYPES } from "../instant-proof/business.js";
 
 const EMPTY = {
-  firstName: "",
-  lastName: "",
+  /* One name field. The server splits it for the CRM, which wants a last name. */
+  name: "",
   email: "",
   phone: "",
   organization: "",
@@ -120,8 +120,7 @@ export default function Contact() {
       ) : (
         <form className="ip-card" onSubmit={submit} style={{ marginTop: "var(--proof-space-6)" }}>
           <div className="ip-field-grid">
-            <Field label="First name" name="firstName" value={form.firstName} onChange={set} required />
-            <Field label="Last name" name="lastName" value={form.lastName} onChange={set} required />
+            <Field label="Name" name="name" value={form.name} onChange={set} required />
             <Field label="Email" name="email" type="email" value={form.email} onChange={set} required />
             <Field label="Phone" name="phone" type="tel" value={form.phone} onChange={set} />
             <Field label="Organization" name="organization" value={form.organization} onChange={set} />

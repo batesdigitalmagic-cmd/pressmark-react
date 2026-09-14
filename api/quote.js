@@ -97,7 +97,7 @@ export async function createLead(token, fields, assets) {
     Email: fields.email,
     Phone: fields.phone || undefined,
     // CRM requires Company on every Lead; the form requires Organization to match.
-    Company: fields.organization || fields.lastName,
+    Company: fields.organization || [fields.firstName, fields.lastName].filter(Boolean).join(" "),
     Lead_Source: "Website Quote Form",
     Description: buildDescription(fields, assets),
   };
@@ -167,9 +167,18 @@ export default async function handler(request) {
   // they stop retrying, but nothing reaches CRM.
   if (read("website")) return json({ ok: true });
 
+  /*
+   * The form sends one Name field. CRM requires Last_Name, so the last word is
+   * the last name and anything before it the first: "Maya Abbott" -> Maya /
+   * Abbott, "Maya" -> Last_Name Maya. firstName/lastName are still accepted,
+   * so an older page or scripts/verify-zoho.mjs keeps working.
+   */
+  const fullName = read("name") || [read("firstName"), read("lastName")].filter(Boolean).join(" ");
+  const nameParts = fullName.split(/\s+/).filter(Boolean);
+
   const fields = {
-    firstName: read("firstName"),
-    lastName: read("lastName"),
+    firstName: nameParts.slice(0, -1).join(" "),
+    lastName: nameParts.at(-1) || "",
     email: read("email"),
     phone: read("phone"),
     organization: read("organization"),
@@ -180,9 +189,12 @@ export default async function handler(request) {
     projectDetails: read("projectDetails"),
   };
 
-  if (!fields.lastName || !fields.email || !fields.organization) {
-    return json({ error: "Name, email address, and organization are required." }, 400);
+  /* Organization is optional on the form, so it is optional here; the lead's
+     required Company falls back to the person's name. */
+  if (!fields.lastName || !fields.email) {
+    return json({ error: "Name and email address are required." }, 400);
   }
+  const who = fields.organization || [fields.firstName, fields.lastName].filter(Boolean).join(" ");
 
   let token;
   try {
@@ -202,7 +214,7 @@ export default async function handler(request) {
     try {
       const stamp = new Date().toISOString().slice(0, 10);
       const folderName = sanitizeFolderName(
-        `${fields.organization} - ${fields.firstName} ${fields.lastName} - ${stamp}`
+        `${who} - ${[fields.firstName, fields.lastName].filter(Boolean).join(" ")} - ${stamp}`
       );
       const folder = await createWorkDriveFolder(token, folderName);
       assets.folderUrl = folder.url;
@@ -225,7 +237,7 @@ export default async function handler(request) {
         assets.uploadUrl = await createUploadLink(
           token,
           uploadsId,
-          `${fields.organization} uploads`
+          `${who} uploads`
         );
       } else {
         assets.note = `${assets.note} NOTE: "${CLIENT_UPLOAD_FOLDER}" was not created, so no upload link was issued. Request assets from the client.`.trim();

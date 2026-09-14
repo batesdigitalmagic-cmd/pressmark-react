@@ -1525,6 +1525,12 @@ group("Asking for a price");
   const contact = readFileSync(resolve(ROOT, "src/pages/Contact.jsx"), "utf8");
   ok("the button says Request a price", /Request a price/.test(contact));
   ok("and the endpoint behind it is untouched", /fetch\("\/api\/quote"/.test(contact));
+  const quote = readFileSync(resolve(ROOT, "api/quote.js"), "utf8");
+  ok("one Name field, no Last name", /label="Name" name="name"/.test(contact) && !/Last name|lastName/.test(contact));
+  ok("the server splits the name for the CRM's required last name",
+    /read\("name"\)/.test(quote) && /lastName: nameParts\.at\(-1\)/.test(quote));
+  ok("organization is optional on the form and on the server alike",
+    !/name="organization"[^>]*required/.test(contact) && !/!fields\.organization/.test(quote));
 }
 
 group("Typography");
