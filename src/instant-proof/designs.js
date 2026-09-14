@@ -63,10 +63,9 @@ export const DESIGNS = [
     /* Headers only. The customer fills in their own rows. */
     templateCsv: "/csv-templates/directory-classic-template.csv",
     templateFilename: "directory-classic.csv",
-    /* The same headings, filled with twenty made-up households, so a visitor
-       can preview their colours before they have typed a single row. */
+    /* The same headings, filled with twenty made-up households, loaded from the
+       + menu so a visitor can preview colours before typing a single row. */
     sampleCsv: "/samples/directory-classic-sample.csv",
-    sampleFilename: "directory-classic-sample.csv",
   },
   {
     id: "directory-photos",

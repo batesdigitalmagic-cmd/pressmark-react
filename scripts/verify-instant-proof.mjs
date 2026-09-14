@@ -1676,7 +1676,7 @@ group("Sample render and in-page PDF preview");
     sample.slice(1).every((row) => /555-01\d\d/.test(row) && /@example\.(org|com)/.test(row)));
   ok("the sample is offered behind the + menu only, not as a card on the page",
     !/Use sample data|ip-sample/.test(page) && /Load the sample \.csv\s*</.test(composer) &&
-    /href=\{design\.sampleCsv\}/.test(composer) && /sampleCsv: "\/samples\/directory-classic-sample\.csv"/.test(read("src/instant-proof/designs.js")));
+    !/Download the sample/.test(composer) && /sampleCsv: "\/samples\/directory-classic-sample\.csv"/.test(read("src/instant-proof/designs.js")));
   ok("the sample goes through the same checks as an upload", /choose\(new File\(\[blob\], SAMPLE_NAME/.test(page));
   ok("the sample needs no permission checkbox, a real file still does",
     /!permitted && !sample/.test(page) && /\{!sample && \(\s*<label className="ip-consent">/.test(composer));

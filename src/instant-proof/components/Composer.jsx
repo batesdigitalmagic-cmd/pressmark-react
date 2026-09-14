@@ -104,31 +104,20 @@ export default function Composer({
                   />
                 </label>
 
-                {/* The prefilled sample, two ways: loaded straight in to preview
-                    colours, or downloaded to see what a finished file looks like. */}
+                {/* The prefilled sample, pulled straight in so a visitor can
+                    preview colours without filling in a spreadsheet. */}
                 {design.sampleCsv && (
-                  <>
-                    <button
-                      type="button"
-                      className="ip-menu-item"
-                      onClick={() => {
-                        onSample();
-                        close();
-                      }}
-                    >
-                      <SparkIcon />
-                      Load the sample .csv
-                    </button>
-                    <a
-                      className="ip-menu-item"
-                      href={design.sampleCsv}
-                      download={design.sampleFilename}
-                      onClick={close}
-                    >
-                      <DownloadIcon />
-                      Download the sample .csv
-                    </a>
-                  </>
+                  <button
+                    type="button"
+                    className="ip-menu-item"
+                    onClick={() => {
+                      onSample();
+                      close();
+                    }}
+                  >
+                    <SparkIcon />
+                    Load the sample .csv
+                  </button>
                 )}
 
                 <button
