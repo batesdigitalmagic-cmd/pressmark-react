@@ -328,6 +328,10 @@ export default function ProofTool() {
                   detail, including what clean data does for the finished design.
                 </p>
                 <p>
+                  New to this? <a href="/blog/church-directory-template">Our church directory template
+                  guide</a> shows what a good directory includes and how to set it in your church colors.
+                </p>
+                <p>
                   Ready to print? <a href="/blog/print-pdf-online">How to print a PDF online</a>{" "}
                   covers uploading your PDF to a print service and the checks that stop a reprint.
                 </p>

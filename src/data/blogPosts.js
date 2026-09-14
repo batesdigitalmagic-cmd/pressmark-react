@@ -1943,6 +1943,139 @@ export const POSTS = [
       },
     ],
   },
+
+  {
+    slug: "church-directory-template",
+    cluster: "directories",
+    category: "Directories",
+    title: "Church Directory Template: Build Yours in Your Church Colors and Download It Free",
+    seoTitle: "Free Church Directory Template in Your Church Colors | Pressmark Studio",
+    metaDescription:
+      "Use a free church directory template: fill in a spreadsheet, choose your church colors, and download a print-ready directory PDF built in Adobe InDesign.",
+    excerpt:
+      "Most church directory templates are a Word or Publisher file you retype by hand. Here is what a good one needs, and how to turn your member list into a print-ready directory in your church's colors, free.",
+    author: AUTHOR,
+    publishedDate: "2026-09-13",
+    updatedDate: "2026-09-13",
+    readingTime: 7,
+    featuredImage: "/proof-templates/directory-classic/preview-spread.png",
+    featuredImageAlt:
+      "A church directory template spread: seven member listings per page with name and phone on a dotted leader, alternate phone, email, address and family members",
+    relatedPosts: [
+      "how-to-fill-out-csv-church-directory",
+      "clean-data-better-directory-designs",
+      "print-pdf-online",
+    ],
+    content: [
+      {
+        type: "p",
+        text: "A church directory template is a ready-made layout for your members' names, phone numbers, email addresses, home addresses and family members, so you can produce a printed or PDF directory without designing one from scratch. The fastest kind is not a document you type into at all: you fill in a spreadsheet, and the directory is built from it.",
+      },
+      {
+        type: "p",
+        text: "Pressmark Studio's free directory tool works that way. Download the template spreadsheet, add your households, choose your church colors, and the Directory Classic design is set in Adobe InDesign from your list. When it is built, you preview it right in your browser and download the print-ready PDF.",
+      },
+      { type: "h2", text: "What a good church directory template includes" },
+      {
+        type: "p",
+        text: "Whatever tool you use, a church directory is only useful if members can find each other quickly and the details are consistent from page to page. A good template gives every household the same structure:",
+      },
+      {
+        type: "ul",
+        items: [
+          "**Household name first, surname then given name,** so the book sorts the way people look things up: \"Abbott, Maya\".",
+          "**The main phone number on the same line as the name,** joined by a dotted leader, so it can be read at a glance.",
+          "**An alternate phone, email addresses and the home address,** each with a clear label.",
+          "**Family members,** so a spouse or child can be found under the household.",
+          "**A rule between listings,** so one family never runs into the next.",
+          "**A print size that suits a church directory,** such as 5.5 × 8.5 inches, the booklet size most churches hand out.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Directory Classic is built around exactly that listing. The featured image above is a real export: seven households to a page, alphabetical, ready to print.",
+      },
+      { type: "h2", text: "Why Word and Publisher church directory templates cause problems" },
+      {
+        type: "p",
+        text: "Search for a church directory template and most results are Microsoft Word or Publisher files. They look fine for the first page. The trouble starts on page ten.",
+      },
+      {
+        type: "ul",
+        items: [
+          "**Every listing is typed or pasted by hand,** so a directory of 200 households means 200 chances for a missing digit or a misspelled name.",
+          "**One late change shifts every page after it.** Add a family near the front and the whole book reflows.",
+          "**Spacing drifts.** Listings slowly stop lining up, and nobody notices until it is printed.",
+          "**Publisher is being retired.** Microsoft ends Publisher in October 2026, so a directory kept as a .pub file needs a new home. [Our guide to the Publisher retirement](/blog/microsoft-publisher-retiring-october-2026) explains the options.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Your member list almost certainly lives in a spreadsheet or church management system already. Building the directory from that list, rather than retyping it into a document, removes the typing errors and makes next year's edition a matter of updating the list.",
+      },
+      { type: "h2", text: "Make the directory yours with your church colors" },
+      {
+        type: "p",
+        text: "A directory handed out on Sunday should look like it belongs to your church, not to a template website. In Pressmark's tool you choose the colors before the directory is built:",
+      },
+      {
+        type: "ul",
+        items: [
+          "**Lines:** the double rule under every household, in your church's main color.",
+          "**Text:** the color of every name, label and detail.",
+          "**Background:** the page color behind everything.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Pick a color with the color picker or type your church's exact hex code from its logo or website. A live preview of real listings changes as you choose, so you can see your colors on the page before anything is built. The colors are applied to the InDesign file itself, so the PDF carries them exactly.",
+      },
+      {
+        type: "note",
+        text: "For print, dark lines and text read best. A deep navy, burgundy or forest green for the lines, with near-black text on a white or cream background, keeps every listing easy to read.",
+      },
+      { type: "h2", text: "How to make your church directory, step by step" },
+      {
+        type: "ol",
+        items: [
+          "**Download the template.** On [the directory tool](/), open the + menu and choose Download the template. It is a spreadsheet with the columns already named.",
+          "**Fill in your households.** One household per row: last name, first name, address, phone, alternate phone, email, alternate email and family members. [How to fill out the CSV](/blog/how-to-fill-out-csv-church-directory) walks through each column.",
+          "**Save it as CSV and upload it** from the same + menu.",
+          "**Choose your church colors** with the color dots, watching the preview.",
+          "**Create your PDF.** The directory is sorted alphabetically and set in InDesign.",
+          "**Preview it and download.** When it is built, it appears in the page on your phone or computer, and the Download PDF button saves the print-ready file.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Want to see it before typing a single row? Choose **Load the sample .csv** from the + menu. It fills the tool with twenty example households so you can try your colors and build a real sample directory.",
+      },
+      { type: "h2", text: "Free, with a download as soon as it is built" },
+      {
+        type: "p",
+        text: "The tool is free: no account, no watermark and nothing held back. Building takes a few minutes while InDesign sets your directory, and the page shows where it is the whole time. The moment it is finished, the PDF is ready to preview and download. The download link is private to your directory and your files are deleted after 48 hours.",
+      },
+      { type: "h2", text: "Printing your church directory" },
+      {
+        type: "p",
+        text: "The PDF is print-ready at 5.5 × 8.5 inches per page. Print a few copies at the church office, or upload it to an online printer for stapled booklets. [How to print a PDF online](/blog/print-pdf-online) covers ordering, paper and the checks that avoid a reprint.",
+      },
+      { type: "h2", text: "What about a church directory with photos?" },
+      {
+        type: "p",
+        text: "Directory Classic is a text directory. A photo directory design is in production. In the meantime, [how to prepare photos for a church directory](/blog/prepare-photos-church-directory) explains how to name, crop and size member portraits so they are ready when it arrives.",
+      },
+      { type: "h2", text: "When to have the directory built for you" },
+      {
+        type: "p",
+        text: "If your list needs cleaning, your church wants a custom design, a cover, photos or several sections, or the deadline is close, Pressmark Studio can build the whole directory for you. [See pricing](/pricing) or [request a price](/contact).",
+      },
+      {
+        type: "p",
+        text: "Otherwise, [start your church directory now](/): download the template, choose your colors, and have a print-ready PDF today.",
+      },
+    ],
+  },
 ];
 
 /* ── derived helpers, used by pages and the generator ── */
