@@ -759,6 +759,67 @@ export const SHELL_CSS = `
 
   /* ── Step rail ── */
 
+  /* ── Rendering bar ── */
+
+  .ip-rendering {
+    position: sticky;
+    /* Clear of the phone's top bar; the desktop query below lifts it to the top. */
+    top: 72px;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 6px var(--proof-space-2);
+    margin: 0 0 var(--proof-space-4);
+    padding: 10px 12px;
+    background: var(--proof-surface);
+    border-radius: var(--proof-radius-lg);
+    box-shadow: 0 4px 16px -8px rgba(16, 24, 40, 0.3);
+    font-size: 0.85rem;
+    color: var(--proof-ink);
+  }
+  /* A ring with one maroon quarter, turning. */
+  .ip-rendering-mark {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--proof-accent-soft);
+    border-top-color: var(--proof-accent);
+    animation: ip-rendering-spin 0.8s linear infinite;
+  }
+  .ip-rendering-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ip-rendering-track {
+    grid-column: 1 / -1;
+    position: relative;
+    height: 3px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--proof-accent-soft);
+  }
+  /* A short segment sweeping across, again and again: motion, not a measure. */
+  .ip-rendering-sweep {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 35%;
+    border-radius: inherit;
+    background: var(--proof-accent);
+    animation: ip-rendering-sweep 1.4s ease-in-out infinite;
+  }
+  @keyframes ip-rendering-spin { to { transform: rotate(360deg); } }
+  @keyframes ip-rendering-sweep {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(290%); }
+  }
+  /* Reduced motion: the mark holds still and the bar pulses gently in place. */
+  @media (prefers-reduced-motion: reduce) {
+    .ip-rendering-mark { animation: none; }
+    .ip-rendering-sweep { width: 100%; animation: ip-rendering-pulse 2s ease-in-out infinite; }
+    @keyframes ip-rendering-pulse { 50% { opacity: 0.35; } }
+  }
+  @media (min-width: 900px) {
+    .ip-rendering { top: var(--proof-space-4); }
+  }
+
   .ip-steps { list-style: none; margin: 0 0 var(--proof-space-5); padding: 0; display: grid; gap: 2px; }
   .ip-step {
     display: flex;

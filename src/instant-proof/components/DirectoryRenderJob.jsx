@@ -240,8 +240,32 @@ export default function DirectoryRenderJob({
   /* Where the job actually is, as an index into PHASES. */
   const reached = completed ? 3 : PHASES.findIndex((phase) => phase.key === stage);
 
+  const working = !completed && !failed;
+  /* The bar's one-line label: the current phase in the customer's words. */
+  const workingLabel = submitting
+    ? PHASES[0].label
+    : PHASES[Math.max(reached, 0)]?.label || "Creating your PDF";
+
   return (
-    <section aria-live="polite" aria-busy={submitting || (Boolean(job) && !completed && !failed)}>
+    <section aria-live="polite" aria-busy={submitting || (Boolean(job) && working)}>
+      {/*
+        * The rendering bar: a turning mark and a sweep that says "still working"
+        * for as long as the job is queued or rendering. It deliberately has no
+        * percentage and never fills — the server only knows the stage, not how
+        * far through it InDesign is, so a bar that crept forward would be
+        * inventing progress. It stays pinned under the top of the screen, so a
+        * visitor who scrolls while they wait can still see it moving.
+        */}
+      {working && !error && (
+        <div className="ip-rendering" role="status">
+          <span className="ip-rendering-mark" aria-hidden="true" />
+          <span className="ip-rendering-label">{workingLabel}…</span>
+          <span className="ip-rendering-track" aria-hidden="true">
+            <span className="ip-rendering-sweep" />
+          </span>
+        </div>
+      )}
+
       {!failed && (
         <ol className="ip-steps">
           {PHASES.map((phase, index) => (
