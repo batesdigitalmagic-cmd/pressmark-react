@@ -32,6 +32,14 @@
  * afterwards, so nothing here calls the result a "proof" or holds anything
  * back.
  *
+ * ── Try it with sample data ──
+ *
+ * A visitor without a spreadsheet can load our own made-up directory
+ * (public/samples), choose colours, and render it through exactly the same
+ * pipeline a customer's file goes through. The result is previewed in the page,
+ * so it can be judged on a phone or a desktop without downloading anything.
+ * It is a real render, not a canned file: the colours are theirs.
+ *
  * ── Privacy ──
  *
  * The CSV is a browser File in React state until the customer presses Create.
@@ -55,6 +63,10 @@ import { columnsOf, requiredColumnsOf, schemaFor } from "../instant-proof/csv/sc
 const SCHEMA = schemaFor("church-directory");
 const REQUIRED = requiredColumnsOf(SCHEMA);
 const OPTIONAL = columnsOf(SCHEMA).filter((column) => !REQUIRED.includes(column));
+
+/* Twenty made-up households with 555 numbers and example.org addresses. */
+const SAMPLE_CSV = "/samples/directory-classic-sample.csv";
+const SAMPLE_NAME = "sample-directory.csv";
 
 /* The server refuses anything larger, so refuse it here where we can say why. */
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -122,6 +134,10 @@ export default function ProofTool() {
   const [resumeJobId] = useState(
     () => new URLSearchParams(window.location.search).get("job") || ""
   );
+  /* Remembered in the address too, so a resumed sample job still says so. */
+  const [sample, setSample] = useState(
+    () => new URLSearchParams(window.location.search).get("sample") === "1"
+  );
 
   const [designId, setDesignId] = useState(DEFAULT_DESIGN_ID);
   const [file, setFile] = useState(null);
@@ -139,8 +155,9 @@ export default function ProofTool() {
      template carries all six for designs still to come. */
   const swatchKeys = swatchKeysFor(designId);
 
-  const choose = useCallback(async (chosen) => {
+  const choose = useCallback(async (chosen, isSample = false) => {
     if (!chosen) return;
+    setSample(isSample);
     setChecking(true);
     setError("");
     setAccepted(null);
@@ -156,6 +173,19 @@ export default function ProofTool() {
     setAccepted(result);
   }, []);
 
+  /* The sample goes through the same checks as an upload, so it can never be
+     something a real customer's file could not be. */
+  const useSample = useCallback(async () => {
+    try {
+      const response = await fetch(SAMPLE_CSV);
+      if (!response.ok) throw new Error();
+      const blob = await response.blob();
+      await choose(new File([blob], SAMPLE_NAME, { type: "text/csv" }), true);
+    } catch {
+      setError("The sample directory could not be loaded. Try again in a moment.");
+    }
+  }, [choose]);
+
   /* The menu item opens the disclosure and scrolls to it, rather than opening a
      second panel over the one the customer just used. */
   const openInstructions = useCallback(() => {
@@ -169,14 +199,16 @@ export default function ProofTool() {
   const rememberJob = useCallback((created) => {
     const url = new URL(window.location.href);
     url.searchParams.set("job", created);
+    if (sample) url.searchParams.set("sample", "1");
     window.history.replaceState({}, "", url);
-  }, []);
+  }, [sample]);
 
   const startOver = useCallback(() => {
     setFile(null);
     setAccepted(null);
     setError("");
     setPermitted(false);
+    setSample(false);
     setSubmitted(false);
     window.history.replaceState({}, "", window.location.pathname);
     /* The resumed id is fixed for the life of the page, so a resumed job needs
@@ -203,8 +235,8 @@ export default function ProofTool() {
   };
 
   const blocking = !accepted
-    ? "Upload your completed CSV to continue."
-    : !permitted
+    ? "Upload your completed CSV, or try the sample, to continue."
+    : !permitted && !sample
       ? "Confirm you have permission to use this information."
       : "";
 
@@ -231,6 +263,7 @@ export default function ProofTool() {
               initialJobId={resumeJobId}
               onJobId={rememberJob}
               onStartOver={startOver}
+              sample={sample}
             />
           </section>
         ) : (
@@ -250,6 +283,25 @@ export default function ProofTool() {
             </ol>
 
             <DesignChooser selectedId={designId} onSelect={setDesignId} />
+
+            {/* The way in for someone who has not filled in a template yet. */}
+            {!(sample && accepted) && (
+              <section className="ip-card ip-sample" aria-labelledby="sample-title">
+                <div className="ip-sample-text">
+                  <h2 className="ip-sample-title" id="sample-title">
+                    No spreadsheet yet? Try a sample render
+                  </h2>
+                  <p className="ip-note">
+                    Load our sample directory of 20 households, choose your colours, and create a
+                    real InDesign PDF. Preview it right here on your phone or computer, and download
+                    it only if you want to.
+                  </p>
+                </div>
+                <button type="button" className="ip-btn" onClick={useSample} disabled={checking}>
+                  Use sample data
+                </button>
+              </section>
+            )}
 
             {error && (
               <p role="alert" className="ip-error" style={{ marginTop: "var(--proof-space-5)" }}>
@@ -287,8 +339,12 @@ export default function ProofTool() {
                   </li>
                 </ul>
                 <p>
-                  <a href="/blog">The Data Merge section</a> covers the spreadsheet side in more
+                  <a href="/data-merge">The Data Merge section</a> covers the spreadsheet side in more
                   detail, including what clean data does for the finished design.
+                </p>
+                <p>
+                  Ready to print? <a href="/blog/print-pdf-online">How to print a PDF online</a>{" "}
+                  covers uploading your PDF to a print service and the checks that stop a reprint.
                 </p>
               </div>
             </details>
@@ -309,6 +365,8 @@ export default function ProofTool() {
               onPermittedChange={setPermitted}
               blocking={blocking}
               onSubmit={() => setSubmitted(true)}
+              sample={sample}
+              onSample={useSample}
             />
           </>
         )}

@@ -918,7 +918,8 @@ group("Church Directory Classic proof tool");
     ["the sidebar", readFileSync(resolve(ROOT, "src/instant-proof/nav.js"), "utf8")],
     /* The blog has its own nav bar, and it kept "Create a Proof" after the
        sidebar changed — which is why it is checked here too. */
-    ["the Data Merge section", readFileSync(resolve(ROOT, "src/blog/shell.jsx"), "utf8") +
+    ["the Data Merge section and the Blog", readFileSync(resolve(ROOT, "src/blog/shell.jsx"), "utf8") +
+      readFileSync(resolve(ROOT, "src/pages/DataMerge.jsx"), "utf8") +
       readFileSync(resolve(ROOT, "src/pages/Blog.jsx"), "utf8")],
   ];
   for (const [name, source] of chrome) {
@@ -1050,7 +1051,7 @@ group("Workspace shell");
 
   const order = [...nav.matchAll(/href: "([^"]+)"/g)].map((match) => match[1]);
   ok("the sidebar is in the specified order",
-     order.join(" ") === "/ /directory-designs /blog /services /pricing /contact",
+     order.join(" ") === "/ /directory-designs /data-merge /services /pricing /contact",
      order.join(" "));
   ok("the privacy line is in the sidebar",
      /Your uploaded files are processed privately\./.test(shell));
@@ -1451,6 +1452,7 @@ group("The mark");
   const boot = readFileSync(resolve(ROOT, "src/instant-proof/components/BootScreen.jsx"), "utf8");
   const blog = readFileSync(resolve(ROOT, "src/blog/shell.jsx"), "utf8") +
     readFileSync(resolve(ROOT, "src/pages/Blog.jsx"), "utf8") +
+    readFileSync(resolve(ROOT, "src/pages/DataMerge.jsx"), "utf8") +
     readFileSync(resolve(ROOT, "src/pages/Article.jsx"), "utf8");
 
   ok("three cuts of one mark are available",
@@ -1507,6 +1509,7 @@ group("Asking for a price");
     "src/instant-proof/nav.js",
     "src/blog/shell.jsx",
     "src/pages/Blog.jsx",
+    "src/pages/DataMerge.jsx",
     "contact.html",
   ];
   for (const page of pages) {
@@ -1575,55 +1578,148 @@ group("Typography");
     !/fonts\.googleapis\.com/.test(readFileSync(resolve(ROOT, "src/instant-proof/styles.js"), "utf8")));
 }
 
-group("The Data Merge section");
+group("The Data Merge section and the Blog");
 {
   const blog = await import("../src/data/blogPosts.js");
   const read = (path) => readFileSync(resolve(ROOT, path), "utf8");
-  const index = read("src/pages/Blog.jsx");
+  const dataMerge = read("src/pages/DataMerge.jsx");
+  const feed = read("src/pages/Blog.jsx");
   const article = read("src/pages/Article.jsx");
   const shellParts = read("src/blog/shell.jsx");
+  const nav = read("src/instant-proof/nav.js");
   const vercel = JSON.parse(read("vercel.json"));
+  const vite = read("vite.config.js");
+  const generator = read("scripts/generate-blog-pages.mjs");
 
-  ok("/blog is the Data Merge section", blog.BLOG_BASE === "/blog" && blog.BLOG_META.name === "Data Merge");
-  ok("written for organisations buying it, and says so",
-    /data merge services/i.test(blog.BLOG_META.tagline) && /have a studio do it/i.test(blog.BLOG_META.intro));
+  /* Two doors, each its own page. */
+  ok("/data-merge is the Data Merge section",
+    blog.DATA_MERGE_BASE === "/data-merge" && blog.DATA_MERGE_META.name === "Data Merge" &&
+    existsSync(resolve(ROOT, "data-merge.html")) && /src\/data-merge\.jsx/.test(read("data-merge.html")) &&
+    /dataMerge: 'data-merge\.html'/.test(vite));
+  ok("/blog is the Blog", blog.BLOG_BASE === "/blog" && blog.BLOG_META.name === "Blog");
+  ok("the sidebar links the Data Merge section once, and not the Blog",
+    (nav.match(/href: "\/data-merge"/g) || []).length === 1 && !/href: "\/blog"/.test(nav) &&
+    !/label: "Blog"/.test(nav) && !/href: "\/guides"/.test(nav));
+  ok("the Blog is still reachable from the Data Merge section", /href=\{BLOG_BASE\}/.test(dataMerge));
+  ok("the sitemap lists the Data Merge section", /DATA_MERGE_BASE,/.test(generator));
+  ok("the Data Merge section is written for organisations buying it, and says so",
+    /data merge services/i.test(blog.DATA_MERGE_META.tagline) && /have a studio do it/i.test(blog.DATA_MERGE_META.intro));
 
-  /* It leads with data merge… */
+  /* The Data Merge section shows data merge and nothing else. */
   const dm = blog.DATA_MERGE_CATEGORIES;
   ok("the lead article is a data merge article", dm.includes(blog.getFeaturedPost().category),
     blog.getFeaturedPost().slug);
-  ok("the filter lists the data merge topics first",
+  ok("the section lists only data merge articles", /filter\(isDataMerge\)/.test(dataMerge));
+  ok("the Blog's filter lists the data merge topics first",
     JSON.stringify(blog.CATEGORIES.slice(1, 1 + dm.length)) === JSON.stringify(dm), blog.CATEGORIES.join(" | "));
-  /* By the headings' ids, not their words — the file's own header comment
-     mentions "More from the studio" before either heading appears. */
-  ok("the index shows data merge before everything else",
-    index.indexOf('id="bl-dm"') > 0 && index.indexOf('id="bl-dm"') < index.indexOf('id="bl-more"'));
-
-  /* …without moving anything that is already indexed. */
-  ok("every other article stays in the section, under its own topic",
-    blog.POSTS.filter((post) => !dm.includes(post.category)).length === 10);
   ok("every topic in the filter has articles, and every article's topic is in it",
     blog.CATEGORIES.filter((c) => c !== "All").every((c) => blog.POSTS.some((post) => post.category === c)) &&
     blog.POSTS.every((post) => blog.CATEGORIES.includes(post.category)));
 
-  /* The route to a price is on every page of the section. */
+  /* The Blog is a feed: newest first, grouped by month, paged. */
+  const published = blog.getPublishedPosts("2026-09-13");
+  ok("the Blog is newest first",
+    published.every((post, i) => i === 0 || published[i - 1].publishedDate >= post.publishedDate));
+  ok("and groups older posts under their month, a page at a time",
+    /groupByMonth/.test(feed) && /Show older posts/.test(feed) && /PAGE_SIZE/.test(feed));
+
+  /* Written ahead, released on the day. */
+  const tomorrow = { publishedDate: "2026-09-14" };
+  ok("a post dated ahead is not published yet",
+    !blog.isPublished(tomorrow, "2026-09-13") && blog.isPublished(tomorrow, "2026-09-14"));
+  ok("the build only generates pages for published posts", /const POSTS = getPublishedPosts\(\)/.test(generator));
+  ok("the lists and articles only show published posts",
+    /getPublishedPosts\(\)/.test(feed) && /getPublishedPosts\(\)/.test(dataMerge) && /isPublished\(found\)/.test(article));
+
+  /* Articles stay where they are indexed, and credit the right door. */
+  const dmPost = blog.POSTS.find((post) => dm.includes(post.category));
+  const otherPost = blog.POSTS.find((post) => !dm.includes(post.category));
+  ok("every article keeps its /blog/<slug> address", blog.POSTS.every((post) => blog.postUrl(post) === `/blog/${post.slug}`));
+  ok("a data merge article is credited to the Data Merge section, anything else to the Blog",
+    blog.sectionFor(dmPost).href === "/data-merge" && blog.sectionFor(otherPost).href === "/blog");
+  ok("the article's breadcrumb and sidebar highlight follow that",
+    /<AppShell current=\{section\.href\}>/.test(article) && /href=\{section\.href\}/.test(article));
+
+  /* The route to a price is on every page. */
   ok("the hire card asks for a price and links pricing",
     /href="\/contact"[\s\S]*?Request a price/.test(shellParts) && /href="\/pricing"/.test(shellParts));
-  ok("the index offers it", /<HireUs/.test(index));
-  ok("and so does every article", /<HireUs/.test(article));
+  ok("the section, the Blog and every article offer it", /<HireUs/.test(dataMerge) && /<HireUs/.test(feed) && /<HireUs/.test(article));
 
   /* Guides folded in, not left overlapping. */
   ok("the separate guides page is gone",
     !existsSync(resolve(ROOT, "guides.html")) && !existsSync(resolve(ROOT, "src/pages/Guides.jsx")));
-  ok("and /guides sends old links to the section",
-    vercel.redirects.some((r) => r.source === "/guides" && r.destination === "/blog" && r.permanent));
-  ok("the sidebar has one entry for it",
-    (read("src/instant-proof/nav.js").match(/href: "\/(blog|guides)"/g) || []).length === 1);
+  ok("and /guides sends old links to the Data Merge section",
+    vercel.redirects.some((r) => r.source === "/guides" && r.destination === "/data-merge" && r.permanent));
 
   /* In the shell, like every page. */
-  ok("the index and articles are drawn by AppShell", /<AppShell current="\/blog"/.test(index) && /<AppShell current="\/blog"/.test(article));
+  ok("both indexes are drawn by AppShell",
+    /<AppShell current=\{DATA_MERGE_BASE\}>/.test(dataMerge) && /<AppShell current=\{BLOG_BASE\}>/.test(feed));
   ok("the old editorial chrome is retired", !existsSync(resolve(ROOT, "src/blog/components.jsx")));
-  ok("a filtered view survives a reload and can be shared", /categoryFromHash/.test(index) && /hashchange/.test(index));
+  ok("a filtered view survives a reload and can be shared",
+    [dataMerge, feed].every((page) => /categoryFromHash/.test(page) && /hashchange/.test(page)));
+}
+
+group("Sample render and in-page PDF preview");
+{
+  const read = (path) => readFileSync(resolve(ROOT, path), "utf8");
+  const page = read("src/pages/ProofTool.jsx");
+  const composer = read("src/instant-proof/components/Composer.jsx");
+  const job = read("src/instant-proof/components/DirectoryRenderJob.jsx");
+  const preview = read("src/instant-proof/components/PdfPreview.jsx");
+  /* Split on either line ending: the sample was saved from a spreadsheet with
+     Windows line endings, which is exactly what a customer's file will have. */
+  const sample = read("public/samples/directory-classic-sample.csv").trim().split(/\r?\n/);
+  const template = read("public/csv-templates/directory-classic-template.csv").trim();
+
+  ok("the sample has the template's exact heading row", sample[0] === template, sample[0]);
+  ok("and twenty made-up households", sample.length === 21 &&
+    sample.slice(1).every((row) => /555-01\d\d/.test(row) && /@example\.(org|com)/.test(row)));
+  ok("the homepage offers it, and so does the + menu",
+    /Use sample data/.test(page) && /Try it with sample data/.test(composer));
+  ok("the sample goes through the same checks as an upload", /choose\(new File\(\[blob\], SAMPLE_NAME/.test(page));
+  ok("the sample needs no permission checkbox, a real file still does",
+    /!permitted && !sample/.test(page) && /\{!sample && \(\s*<label className="ip-consent">/.test(composer));
+  ok("a finished PDF is previewed in the page, with download still offered",
+    /<PdfPreview url=\{job\.downloadUrl\}/.test(job) && /Download PDF/.test(job));
+  ok("the preview draws with pdf.js, not an iframe a phone cannot show",
+    /pdfjs-dist\/legacy\/build\/pdf\.mjs/.test(preview) && !/<iframe\s/.test(preview));
+  ok("pdf.js loads only when a preview is shown", /await Promise\.all\(\[\s*import\("pdfjs-dist/.test(preview) &&
+    !/^import .*pdfjs/m.test(preview));
+  ok("pages are drawn as they near the screen", /IntersectionObserver/.test(preview));
+}
+
+group("Support chat");
+{
+  const read = (path) => readFileSync(resolve(ROOT, path), "utf8");
+  const support = await import("../src/support.js");
+  const chat = read("src/instant-proof/components/SupportChat.jsx");
+  const shell = read("src/instant-proof/components/AppShell.jsx");
+  const css = read("src/instant-proof/theme.css.js");
+
+  ok("messages go to the studio's number", support.SUPPORT_PHONE.e164 === "+14703444864" &&
+    support.SUPPORT_PHONE.display === "(470) 344-4864");
+  ok("it covers InDesign automation, data merge and Microsoft Publisher",
+    JSON.stringify(support.SUPPORT_TOPICS) === JSON.stringify(["InDesign automation", "Data merge", "Microsoft Publisher"]));
+
+  const href = support.smsHref({ topic: "Data merge", message: "  A 300-member directory  " });
+  const body = decodeURIComponent(href.split("&body=")[1]);
+  ok("Send opens a text addressed to that number", href.startsWith("sms:+14703444864?&body="), href);
+  ok("and the text leads with the topic, then the message, trimmed",
+    body === "Data merge project\nA 300-member directory\n(via pressmark.studio)", JSON.stringify(body));
+  ok("a message with no topic still sends", !decodeURIComponent(support.smsHref({ topic: "", message: "Hi" })).includes("project"));
+  ok("calling is offered too", support.telHref() === "tel:+14703444864");
+
+  ok("the panel says replies come by text, before anyone types", /Replies by text/.test(chat) && /Opens your messaging app/.test(chat));
+  ok("an empty message cannot be sent", /aria-disabled=\{message\.trim\(\) \? undefined : true\}/.test(chat) && /preventDefault/.test(chat));
+  ok("Escape closes it and focus goes back to the button that opened it", /Escape/.test(chat) && /returnFocus\?\.current\?\.focus\(\)/.test(chat));
+
+  ok("every page in the shell has it", /<SupportChat /.test(shell));
+  ok("a corner button on a desktop, a Chat button in the phone bar",
+    /className="ip-chat-launcher"/.test(shell) && /ip-topbar-actions/.test(shell) &&
+    /\.ip-chat-launcher \{ display: none; \}/.test(css));
+  ok("it sits above the consent banner", /\.ip-chat \{[\s\S]*?bottom: var\(--pm-consent-height, 0px\)/.test(css));
+  ok("it is drawn from the shell's tokens", /\.ip-chat \{[\s\S]*?background: var\(--proof-surface\)/.test(css) &&
+    /\.ip-chat-topic\[aria-pressed="true"\] \{ background: var\(--proof-accent\)/.test(css));
 }
 
 group("Maroon accent and Google buttons");

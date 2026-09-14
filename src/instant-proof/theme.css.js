@@ -805,10 +805,9 @@ export const SHELL_CSS = `
 
   .ip-designs { display: grid; gap: var(--proof-space-3); margin-top: var(--proof-space-5); }
   .ip-design {
-    display: grid;
-    grid-template-columns: 52px minmax(0, 1fr);
-    gap: var(--proof-space-3);
-    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
     width: 100%;
     text-align: left;
     background: var(--proof-surface);
@@ -826,15 +825,29 @@ export const SHELL_CSS = `
     box-shadow: 0 0 0 1px var(--proof-ink);
   }
   .ip-design[aria-disabled="true"] { cursor: not-allowed; opacity: 0.72; }
+  /* Thumbnail beside the description lines, exactly four of them tall: four
+     lines of 0.9rem at 1.5 line height plus the 6px between the two paragraphs.
+     A fixed size rather than a stretched one — stretching made the thumbnail's
+     width depend on the text's height, which depends on the thumbnail's width,
+     and on a phone the text overflowed the card. */
+  .ip-design-row { display: flex; align-items: flex-end; gap: var(--proof-space-3); flex: 1; }
   .ip-design-thumb {
-    width: 52px;
+    flex: none;
+    height: calc(4 * 0.9rem * 1.5 + 6px);
     aspect-ratio: var(--proof-cover-ratio);
     border: 1px solid var(--proof-border);
     border-radius: var(--proof-radius-sm);
     overflow: hidden;
     background: var(--proof-paper);
+    box-sizing: border-box;
+    position: relative;
   }
-  .ip-design-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* Absolute, so the image's own 1650px size never feeds into the layout. */
+  .ip-design-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  .ip-nowrap { white-space: nowrap; }
+  /* The card's gap already spaces the lines from the title; a top margin here
+     would make the thumbnail taller than the text beside it. */
+  .ip-design-body > .ip-design-desc:first-child { margin-top: 0; }
   /*
    * Not .ip-design-name — that belongs to the old carousel, where it is a 26px
    * centred display face. A card in a workspace wants neither.
@@ -843,8 +856,8 @@ export const SHELL_CSS = `
   /* display:block because these are spans inside a <button> — a button may not
      contain <p>, and an inline span drops its top margin, which ran the two
      paragraphs of the unavailable card together into one. */
-  .ip-design-body { display: block; }
-  .ip-design-desc { display: block; margin: 6px 0 0; font-size: 0.9rem; color: var(--proof-muted); line-height: 1.5; }
+  .ip-design-body { display: block; min-width: 0; flex: 1; }
+  .ip-design-desc { display: block; margin: 6px 0 0; hyphens: manual; font-size: 0.9rem; color: var(--proof-muted); line-height: 1.5; }
 
   /* ── Live preview ── */
 
@@ -1347,6 +1360,187 @@ export const SHELL_CSS = `
     .ip-boot { animation-delay: 0.35s; }
   }
 
+  /* ── Sample render ── */
+
+  .ip-sample {
+    display: grid;
+    gap: var(--proof-space-3);
+    align-items: center;
+    margin-top: var(--proof-space-5);
+  }
+  .ip-sample-title { font-size: 1.02rem; font-weight: 500; color: var(--proof-ink); margin: 0; }
+  .ip-sample .ip-note { margin-top: 6px; }
+  .ip-sample .ip-btn { justify-self: start; }
+  @media (min-width: 640px) {
+    .ip-sample { grid-template-columns: minmax(0, 1fr) auto; }
+  }
+
+  /* ── PDF preview ──
+   *
+   * Pages on a grey desk, one column, full width of the card: on a phone that is
+   * the whole screen, which is as large as a page can be read; on a desktop the
+   * column is capped so a page is not blown up past its printed size.
+   */
+  .ip-pdf {
+    margin-top: var(--proof-space-4);
+    border: 1px solid var(--proof-border);
+    border-radius: var(--proof-radius-lg);
+    overflow: hidden;
+    background: #eceef1;
+  }
+  .ip-pdf-bar {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--proof-space-3);
+    padding: var(--proof-space-2) var(--proof-space-3);
+    background: var(--proof-surface);
+    border-bottom: 1px solid var(--proof-border);
+    font-size: 0.82rem;
+    color: var(--proof-ink);
+  }
+  .ip-pdf-pages {
+    display: grid;
+    gap: var(--proof-space-3);
+    width: 100%;
+    max-width: 520px;
+    max-height: min(78svh, 900px);
+    margin: 0 auto;
+    padding: var(--proof-space-3);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .ip-pdf-page {
+    margin: 0;
+    width: 100%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.18);
+  }
+  .ip-pdf-page canvas { display: block; width: 100%; height: 100%; }
+  .ip-pdf-loading { animation: ip-pdf-pulse 1.4s ease-in-out infinite; }
+  @keyframes ip-pdf-pulse { 50% { opacity: 0.55; } }
+  @media (prefers-reduced-motion: reduce) { .ip-pdf-loading { animation: none; } }
+  .ip-pdf-actions { display: flex; flex-wrap: wrap; gap: var(--proof-space-2); margin-top: var(--proof-space-4); }
+
+  /* ── Support chat ──
+   *
+   * Built from the shell's own parts: a surface card with the large radius and
+   * hairline border, the Google-key buttons, pill chips like the blog filter
+   * with the maroon for the chosen one, and form fields like /contact's.
+   *
+   * Phone first: a sheet across the bottom, above the tool's pinned action bar
+   * and the consent banner, opened from the Chat button in the top bar.
+   */
+  .ip-topbar-actions { display: flex; align-items: center; gap: var(--proof-space-2); }
+
+  .ip-chat {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: var(--pm-consent-height, 0px);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    max-height: min(82svh, 640px);
+    background: var(--proof-surface);
+    border: 1px solid var(--proof-border);
+    border-radius: var(--proof-radius-lg) var(--proof-radius-lg) 0 0;
+    box-shadow: 0 -12px 40px -16px rgba(16, 24, 40, 0.35);
+    color: var(--proof-ink-soft);
+    font-family: var(--proof-body);
+  }
+  .ip-chat-head {
+    display: flex;
+    align-items: center;
+    gap: var(--proof-space-3);
+    padding: var(--proof-space-3) var(--proof-space-4);
+    border-bottom: 1px solid var(--proof-border);
+  }
+  .ip-chat-avatar {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--proof-accent);
+    color: #fff;
+  }
+  .ip-chat-heading { flex: 1; min-width: 0; display: grid; gap: 2px; }
+  .ip-chat-title { font-weight: 500; font-size: 1rem; color: var(--proof-ink); }
+  .ip-chat-sub { font-size: 0.8rem; color: var(--proof-muted); }
+  .ip-chat-close {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--proof-ink-soft);
+    cursor: pointer;
+  }
+  .ip-chat-close:hover { background: ${BUTTON.background}; color: var(--proof-ink); }
+
+  .ip-chat-body {
+    display: grid;
+    gap: var(--proof-space-3);
+    padding: var(--proof-space-4);
+    padding-bottom: calc(var(--proof-space-4) + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  /* The studio's opening line, as a message bubble. */
+  .ip-chat-bubble {
+    margin: 0;
+    padding: var(--proof-space-3);
+    background: ${BUTTON.background};
+    border-radius: 4px var(--proof-radius-lg) var(--proof-radius-lg) var(--proof-radius-lg);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--proof-ink-soft);
+  }
+  .ip-chat-topics { display: flex; flex-wrap: wrap; gap: var(--proof-space-2); }
+  .ip-chat-topic {
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--proof-border);
+    border-radius: 999px;
+    background: var(--proof-surface);
+    color: var(--proof-ink-soft);
+    font: inherit;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+  .ip-chat-topic:hover { border-color: var(--proof-border-strong); }
+  .ip-chat-topic[aria-pressed="true"] { background: var(--proof-accent); border-color: var(--proof-accent); color: #fff; }
+  .ip-chat-input {
+    width: 100%;
+    min-height: 96px;
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 16px; /* iOS zooms the page on focus at anything smaller. */
+    line-height: 1.5;
+    color: var(--proof-ink);
+    background: var(--proof-surface);
+    border: 1px solid var(--proof-border);
+    border-radius: var(--proof-radius);
+    resize: vertical;
+  }
+  .ip-chat-input:focus-visible { outline: 2px solid var(--proof-focus); outline-offset: 1px; }
+  .ip-chat-send { width: 100%; }
+  .ip-chat-send[aria-disabled="true"] { color: ${BUTTON.textDisabled}; cursor: not-allowed; }
+  .ip-chat-note { margin: 0; font-size: 0.78rem; line-height: 1.5; color: var(--proof-muted); }
+  .ip-chat-alt { display: flex; flex-wrap: wrap; gap: var(--proof-space-2); }
+  .ip-chat-alt .ip-btn { flex: 1; }
+  @media (pointer: coarse) {
+    .ip-chat-topic { min-height: 44px; }
+    .ip-chat-close { width: 44px; height: 44px; }
+  }
+
+  /* The corner button is the desktop's way in. */
+  .ip-chat-launcher { display: none; }
+
   /* ── Desktop ── */
 
   @media (min-width: 900px) {
@@ -1376,6 +1570,38 @@ export const SHELL_CSS = `
     .ip-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     /* Two 2:1 exports side by side still read at a desktop's width. */
     .ip-shots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    /* The chat: a corner button, and a card that opens above it. */
+    .ip-chat-launcher {
+      position: fixed;
+      right: var(--proof-space-5);
+      bottom: calc(var(--pm-consent-height, 0px) + var(--proof-space-5));
+      z-index: 25;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      padding: 0 18px 0 14px;
+      border: 1px solid var(--proof-border);
+      border-radius: 999px;
+      background: var(--proof-surface);
+      color: var(--proof-ink);
+      font: inherit;
+      font-size: ${BUTTON.fontSize};
+      box-shadow: 0 6px 20px -8px rgba(16, 24, 40, 0.3);
+      cursor: pointer;
+    }
+    .ip-chat-launcher svg { color: var(--proof-accent); }
+    .ip-chat-launcher:hover { border-color: ${BUTTON.borderHover}; }
+    .ip-chat {
+      left: auto;
+      right: var(--proof-space-5);
+      bottom: calc(var(--pm-consent-height, 0px) + var(--proof-space-5) + 56px);
+      width: 380px;
+      max-height: min(72svh, 620px);
+      border-radius: var(--proof-radius-lg);
+      box-shadow: 0 16px 48px -16px rgba(16, 24, 40, 0.35);
+    }
 
   }
 `;

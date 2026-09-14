@@ -24,6 +24,8 @@ import {
   formatDate,
   getPostBySlug,
   getRelatedPosts,
+  isPublished,
+  sectionFor,
 } from "../data/blogPosts.js";
 
 function slugFromPath() {
@@ -32,11 +34,14 @@ function slugFromPath() {
 }
 
 export default function Article() {
-  const post = getPostBySlug(slugFromPath());
+  const found = getPostBySlug(slugFromPath());
+  /* A post dated ahead has no page in the build, but the dev server serves any
+     slug; treat it as not found there too. */
+  const post = found && isPublished(found) ? found : null;
 
   if (!post) {
     return (
-      <AppShell current="/blog">
+      <AppShell current={BLOG_BASE}>
         <p className="ip-crumb">{BLOG_META.name}</p>
         <h1 className="ip-h1">Article not found</h1>
         <p className="ip-lead">That article may have moved or been renamed.</p>
@@ -50,24 +55,27 @@ export default function Article() {
   }
 
   const related = getRelatedPosts(post);
+  /* A data merge article belongs to the Data Merge section; anything else to
+     the Blog. That decides the breadcrumb and which sidebar entry is lit. */
+  const section = sectionFor(post);
 
   return (
-    <AppShell current="/blog">
+    <AppShell current={section.href}>
       <style>{BLOG_CSS}</style>
 
       <nav aria-label="Breadcrumb">
         <ol className="bl-breadcrumb">
           <li>
-            <a href={BLOG_BASE}>{BLOG_META.name}</a>
+            <a href={section.href}>{section.name}</a>
           </li>
           {/* An article filed under "Data Merge" in the Data Merge section would
               read "Data Merge / Data Merge"; the topic crumb is dropped when it
               only repeats the section. */}
-          {post.category !== BLOG_META.name && (
+          {post.category !== section.name && (
             <>
               <li aria-hidden="true">/</li>
               <li>
-                <a href={`${BLOG_BASE}#${encodeURIComponent(post.category)}`}>{post.category}</a>
+                <a href={`${section.href}#${encodeURIComponent(post.category)}`}>{post.category}</a>
               </li>
             </>
           )}
@@ -122,7 +130,7 @@ export default function Article() {
           )}
 
           <p className="bl-back">
-            <a href={BLOG_BASE}>← All {BLOG_META.name.toLowerCase()} articles</a>
+            <a href={section.href}>← All {section.name === BLOG_META.name ? "blog posts" : "data merge articles"}</a>
           </p>
         </article>
       </div>

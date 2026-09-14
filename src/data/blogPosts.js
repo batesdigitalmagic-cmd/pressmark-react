@@ -1,15 +1,25 @@
 /*
- * Pressmark Insights — the single source of truth for the blog.
+ * The single source of truth for the Blog and the Data Merge section.
  *
- * Everything downstream reads from here: the index page, every article page,
- * the category filter, related-post links, sitemap.xml, and the per-article
- * <head> tags baked into static HTML at build time by
- * scripts/generate-blog-pages.mjs.
+ * Everything downstream reads from here: /blog (every article, newest first),
+ * /data-merge (the data merge articles, for buyers), every article page, the
+ * category filter, related-post links, sitemap.xml, and the per-article <head>
+ * tags baked into static HTML at build time by scripts/generate-blog-pages.mjs.
  *
- * ── Adding an article ──
- * Append one object to POSTS and run `npm run build`. The page, its route,
- * its meta tags, its JSON-LD, and its sitemap entry are all generated. No
- * component needs touching.
+ * ── Adding a daily post ──
+ * Add one object to POSTS — anywhere, the pages sort by date — with a unique
+ * slug and a `publishedDate`, then build. The page, its route, its meta tags,
+ * its JSON-LD and its sitemap entry are all generated. No component needs
+ * touching.
+ *
+ * A post dated in the future is written but not published: the build skips its
+ * page and its sitemap entry, and the lists leave it out. So a week of posts
+ * can be written in one sitting, one per day, and each appears on the first
+ * deploy on or after its date. (Nothing redeploys the site by itself each
+ * morning — see isPublished below.)
+ *
+ * A post in one of DATA_MERGE_CATEGORIES appears in both places: the Blog feed
+ * and the Data Merge section. Any other category appears on the Blog only.
  *
  * ── Content blocks ──
  * Body content is structured data, not HTML strings. That keeps the renderer
@@ -34,19 +44,30 @@ export const BLOG_BASE = "/blog";
 export const AUTHOR = "Pressmark Studio";
 
 /*
- * ── The section's audience ──
+ * ── Two doors, one set of articles ──
  *
- * /blog is the Data Merge section, written for organisations that want data
- * merge done FOR them: a church office with a membership spreadsheet, a school
- * with four hundred portraits, an association with a member list and a print
- * deadline. It explains what data merge is, what it takes to get right, and
- * when to hand it to a studio — and every page ends at "Request a price".
+ * Every article lives at /blog/<slug>, whichever door a reader came in by, so
+ * nothing already indexed has moved.
  *
- * Articles on other subjects (Photoshop automation, yearbook design, print
- * production) stay here under their own categories and at their own URLs, so
- * nothing already indexed moves. The section simply leads with data merge.
+ * /blog is the Blog: every published article, newest first, for anyone who
+ * follows the studio's writing day to day.
+ *
+ * /data-merge is the Data Merge section, written for organisations that want
+ * data merge done FOR them: a church office with a membership spreadsheet, a
+ * school with four hundred portraits, an association with a member list and a
+ * print deadline. It explains what data merge is, what it takes to get right,
+ * and when to hand it to a studio — and every page ends at "Request a price".
  */
 export const BLOG_META = {
+  name: "Blog",
+  tagline: "The Pressmark Studio Blog",
+  intro:
+    "New every day: directories, yearbooks, data merge, print production and the automation behind them — practical notes from a studio that builds publications from spreadsheets.",
+};
+
+export const DATA_MERGE_BASE = "/data-merge";
+
+export const DATA_MERGE_META = {
   name: "Data Merge",
   tagline: "Data Merge Services for Directories, Yearbooks & Member Publications",
   intro:
@@ -56,13 +77,13 @@ export const BLOG_META = {
 };
 
 /*
- * The categories that ARE data merge. The index leads with these, and the
- * filter bar lists them first; everything else follows under "More from the
- * studio". Adding a data merge category means adding it here as well as below.
+ * The categories that ARE data merge — the ones /data-merge shows. The Blog's
+ * filter bar lists them first. Adding a data merge category means adding it
+ * here as well as below.
  */
 export const DATA_MERGE_CATEGORIES = ["Data Merge", "Directories"];
 
-/* Order matters — this is the filter bar, left to right. Data merge leads. */
+/* Order matters — this is the Blog's filter bar, left to right. Data merge leads. */
 export const CATEGORIES = [
   "All",
   "Data Merge",
@@ -1814,9 +1835,139 @@ export const POSTS = [
       },
     ],
   },
+
+  {
+    slug: "print-pdf-online",
+    cluster: "production",
+    category: "Print Production",
+    title: "How to Print a PDF Online: Upload It Once and Get It Right",
+    seoTitle: "How to Print a PDF Online (and Make Sure It Prints Right) | Pressmark Studio",
+    metaDescription:
+      "Print a PDF online in five steps: check the file, choose a print service, pick paper and binding, upload, and approve the proof. Plus the fixes that stop a reprint.",
+    excerpt:
+      "Printing a PDF online takes minutes. Getting back exactly what you saw on screen takes a file that was set up for print. Here is the whole process, and the checks that decide how it turns out.",
+    author: AUTHOR,
+    publishedDate: "2026-09-13",
+    updatedDate: "2026-09-13",
+    readingTime: 7,
+    featuredImage: "/blog/yearbook-print-ready-pdf-checklist.jpg",
+    featuredImageAlt: "A print-ready PDF being checked before it is uploaded to an online printer",
+    relatedPosts: [
+      "bleed-trim-safe-area",
+      "rgb-vs-cmyk-print",
+      "spreadsheet-to-print-ready-pdf",
+    ],
+    content: [
+      {
+        type: "p",
+        text: "To print a PDF online, you upload the file to a print service, choose the paper, size, quantity and finishing, approve a proof, and the printed copies are shipped to you or held for pickup. Most online printers, from office-supply chains to specialist book printers, work this way, and the ordering part takes a few minutes.",
+      },
+      {
+        type: "p",
+        text: "What decides whether the copies that arrive look like the file on your screen is not the ordering. It is whether the PDF was made for print. A file that looks perfect on a monitor can come back with white slivers at the edges, text cut off at the trim, dull colours or blurry photos. Every one of those is set when the PDF is created, not when it is uploaded.",
+      },
+      { type: "h2", text: "How to print a PDF online, step by step" },
+      {
+        type: "ol",
+        items: [
+          "**Check the PDF is print-ready.** Right page size, bleed if anything runs to the edge, fonts embedded, images at print resolution. The checklist below covers each one.",
+          "**Choose a print service that fits the job.** A few flyers or a short document suits a local or office-supply print shop with online upload. Bound books, directories and yearbooks suit an online book or booklet printer.",
+          "**Pick the product options.** Finished size, paper weight and finish, colour or black and white, single or double sided, and binding (stapled, perfect bound, coil).",
+          "**Upload the PDF and review the proof.** Most services show an on-screen preview, and many flag problems such as low-resolution images or missing bleed. Read every warning before approving.",
+          "**Order a single copy first for anything long or expensive.** One proof copy costs little next to reprinting a full run.",
+        ],
+      },
+      { type: "h2", text: "The print-ready PDF checklist" },
+      {
+        type: "p",
+        text: "Printers ask for a \"print-ready PDF\". It means a file the press can use as it is, with nothing for the printer to guess at or fix. These are the checks that matter.",
+      },
+      { type: "h3", text: "Page size matches the finished size" },
+      {
+        type: "p",
+        text: "A 5.5 × 8.5 inch booklet needs a 5.5 × 8.5 inch PDF, not a letter-sized page with the booklet drawn in the middle. If the sizes do not match, the printer scales the file, and margins and type size change with it.",
+      },
+      { type: "h3", text: "Bleed on anything that touches the edge" },
+      {
+        type: "p",
+        text: "Printers trim sheets after printing, and the cut is never perfectly exact. A background colour or photo that runs to the edge needs to extend about 0.125 inch (3 mm) past the trim, or a thin white line can appear. [Bleed, trim and safe area](/blog/bleed-trim-safe-area) explains how much you need and where.",
+      },
+      { type: "h3", text: "Important content inside the safe area" },
+      {
+        type: "p",
+        text: "Keep text, page numbers and faces at least 0.125 inch inside the trim, and more in a bound book, where the inner margin disappears into the binding.",
+      },
+      { type: "h3", text: "Fonts embedded" },
+      {
+        type: "p",
+        text: "A PDF that does not embed its fonts can print in a substitute typeface, with different spacing and line breaks. Exporting as PDF/X, or a \"high quality print\" preset, embeds them.",
+      },
+      { type: "h3", text: "Images at print resolution" },
+      {
+        type: "p",
+        text: "Photos need roughly 300 pixels per inch at the size they print. An image that looks sharp on screen at 72 pixels per inch will print soft. [Preparing images for printing](/blog/prepare-images-yearbook-printing) covers the arithmetic.",
+      },
+      { type: "h3", text: "Colour set up for print" },
+      {
+        type: "p",
+        text: "Screens mix light in RGB and presses mix ink in CMYK. Bright screen colours, especially blues and greens, can print noticeably duller. Many online printers convert for you; if colour matters, convert and check it yourself first. [RGB vs CMYK](/blog/rgb-vs-cmyk-print) shows what changes.",
+      },
+      {
+        type: "note",
+        text: "Most failed print orders trace back to one of three things: no bleed, text too close to the edge, or low-resolution images. Check those three before anything else.",
+      },
+      { type: "h2", text: "Printing a PDF online vs printing at home" },
+      {
+        type: "p",
+        text: "A home or office printer is fine for a few pages on standard paper. An online print service makes sense when you need more copies than a desktop printer handles comfortably, heavier or coated paper, colour to the edge of the page, or binding. The file requirements are the same either way; a print service is simply less forgiving, because it prints exactly what you send.",
+      },
+      { type: "h2", text: "Common problems when printing a PDF online" },
+      {
+        type: "ul",
+        items: [
+          "**A white edge on some pages.** The background did not extend into the bleed.",
+          "**Text cut off at the edge.** Content sat outside the safe area.",
+          "**Everything printed slightly smaller.** The PDF page size did not match the product size, so the printer scaled it to fit.",
+          "**Pages in the wrong order in a booklet.** The PDF was exported as printer spreads instead of single pages. Most printers want single pages, in reading order.",
+          "**Blurry photos.** Images were placed at screen resolution or enlarged after placing.",
+        ],
+      },
+      { type: "h2", text: "When the PDF has to be built first" },
+      {
+        type: "p",
+        text: "If what you need to print is a member directory, yearbook section or any publication built from a list of names and details, the hard part is making the PDF, not ordering the prints. Pressmark Studio's free tool turns a completed spreadsheet into a print-ready directory PDF laid out in Adobe InDesign, with the page size, margins and fonts already set up for a printer. [Create a directory PDF](/) and upload the result to the print service you choose.",
+      },
+      {
+        type: "p",
+        text: "For a larger or custom publication, or a Microsoft Publisher file that needs rebuilding before it can print, [request a price](/contact) and we will prepare the print-ready file for you.",
+      },
+    ],
+  },
 ];
 
 /* ── derived helpers, used by pages and the generator ── */
+
+/* Today as YYYY-MM-DD, in UTC — the same calendar every publishedDate is read in. */
+export const todayIso = (now = new Date()) => now.toISOString().slice(0, 10);
+
+/*
+ * Whether a post is out yet. A plain string comparison is correct because both
+ * sides are YYYY-MM-DD.
+ *
+ * The build decides which pages exist, so a post dated tomorrow goes live on
+ * the first deploy from tomorrow onwards. For posts to appear every morning
+ * with nobody pushing, schedule a daily redeploy (a Vercel deploy hook called
+ * once a day); the pages themselves need nothing more.
+ */
+export const isPublished = (post, today = todayIso()) => post.publishedDate <= today;
+
+/* Newest first; posts on the same day keep the order they are written in. */
+export const byNewest = (a, b) => (a.publishedDate < b.publishedDate ? 1 : a.publishedDate > b.publishedDate ? -1 : 0);
+
+export const getPublishedPosts = (today = todayIso()) =>
+  POSTS.filter((post) => isPublished(post, today)).sort(byNewest);
+
+export const isDataMerge = (post) => DATA_MERGE_CATEGORIES.includes(post.category);
 
 export const getPostBySlug = (slug) => POSTS.find((post) => post.slug === slug) || null;
 
@@ -1825,11 +1976,17 @@ export const getFeaturedPost = () => POSTS.find((post) => post.featured) || POST
 export const getPostsByCategory = (category) =>
   category === "All" ? POSTS : POSTS.filter((post) => post.category === category);
 
-export const getRelatedPosts = (post) =>
+export const getRelatedPosts = (post, today = todayIso()) =>
   (post.relatedPosts || [])
     .map(getPostBySlug)
-    .filter(Boolean)
+    .filter((related) => related && isPublished(related, today))
     .slice(0, 3);
+
+/* Which door an article belongs to, for its breadcrumb and sidebar highlight. */
+export const sectionFor = (post) =>
+  isDataMerge(post)
+    ? { name: DATA_MERGE_META.name, href: DATA_MERGE_BASE }
+    : { name: BLOG_META.name, href: BLOG_BASE };
 
 export const postUrl = (post) => `${BLOG_BASE}/${post.slug}`;
 export const postAbsoluteUrl = (post) => `${SITE_URL}${postUrl(post)}`;

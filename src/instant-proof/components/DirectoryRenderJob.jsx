@@ -26,6 +26,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import PdfPreview from "./PdfPreview.jsx";
+
 /* File -> Promise<job>. WeakMap so a discarded File does not pin its response. */
 const submissions = new WeakMap();
 
@@ -102,6 +104,7 @@ export default function DirectoryRenderJob({
   initialJobId,
   onJobId,
   onStartOver,
+  sample = false,
 }) {
   const [job, setJob] = useState(
     initialJobId ? { jobId: initialJobId, status: "queued", stage: "queued" } : null
@@ -266,14 +269,25 @@ export default function DirectoryRenderJob({
               InDesign render of your directory.
             </p>
           )}
-          {/* `.ip-btn` carries the padding and typography; `.ip-btn-gold` only
-              the colours. Without both the link renders unstyled. */}
-          <a className="ip-btn ip-btn-gold ip-touch" href={job.downloadUrl}>
-            Download PDF
-          </a>
+          {/* Seen in the page first, on a phone or a desktop alike; downloading
+              is the customer's choice, not the only way to look at it. */}
+          <PdfPreview url={job.downloadUrl} title={sample ? "Sample directory" : "Your directory"} />
+          <div className="ip-pdf-actions">
+            <a className="ip-btn ip-touch" href={job.downloadUrl}>
+              Download PDF
+            </a>
+            {sample && (
+              <a className="ip-btn ip-touch" href="/csv-templates/directory-classic-template.csv" download="directory-classic.csv">
+                Download the template for your own
+              </a>
+            )}
+          </div>
           <p className="ip-note ip-muted" style={{ marginTop: "var(--proof-space-3)" }}>
-            The link is private to this PDF and stops working after 48 hours, when your CSV
-            and PDF are deleted.
+            {sample
+              ? "This is the real InDesign render of the sample directory, in your colours. Fill in the template with your own households to make yours. "
+              : ""}
+            The link is private to this PDF and stops working after 48 hours, when the CSV and
+            PDF are deleted.
           </p>
         </div>
       )}

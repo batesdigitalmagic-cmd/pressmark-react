@@ -27,12 +27,21 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = resolve(ROOT, "blog");
 
 const {
-  POSTS,
+  POSTS: ALL_POSTS,
   BLOG_META,
+  DATA_MERGE_BASE,
   SITE_URL,
   BLOG_BASE,
   AUTHOR,
+  getPublishedPosts,
+  sectionFor,
 } = await import(resolve(ROOT, "src/data/blogPosts.js"));
+
+/* Only posts whose date has arrived get a page, a sitemap entry or a place in
+   the index's JSON-LD. A post dated tomorrow is published by the first build
+   from tomorrow on. */
+const POSTS = getPublishedPosts();
+const scheduled = ALL_POSTS.length - POSTS.length;
 
 const escape = (value) =>
   String(value ?? "")
@@ -50,7 +59,7 @@ function head({ title, description, canonical, image, imageAlt, type = "website"
   const absoluteImage = image ? `${SITE_URL}${image}` : `${SITE_URL}/icons.svg`;
   return `    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=4" />
     <title>${escape(title)}</title>
     <meta name="description" content="${escape(description)}" />
     <link rel="canonical" href="${escape(canonical)}" />
@@ -87,10 +96,15 @@ ${headHtml}
 }
 
 function breadcrumbLd(post) {
+  /* The same trail the page draws: the Data Merge section for data merge
+     articles, the Blog for the rest. */
+  const section = sectionFor(post);
   const items = [
     { name: "Home", url: SITE_URL },
-    { name: BLOG_META.name, url: `${SITE_URL}${BLOG_BASE}` },
-    { name: post.category, url: `${SITE_URL}${BLOG_BASE}#${encodeURIComponent(post.category)}` },
+    { name: section.name, url: `${SITE_URL}${section.href}` },
+    ...(post.category === section.name
+      ? []
+      : [{ name: post.category, url: `${SITE_URL}${section.href}#${encodeURIComponent(post.category)}` }]),
     { name: post.title, url: `${SITE_URL}${BLOG_BASE}/${post.slug}` },
   ];
   return {
@@ -142,15 +156,10 @@ writeFileSync(
   page({
     entry: "/src/blog.jsx",
     headHtml: head({
-      /* The tagline already leads with the section's name ("Data Merge Services
-         for…"), so prefixing the name as well read "Data Merge — Data Merge
-         Services". The name is only added when the tagline does not carry it. */
-      title: BLOG_META.tagline.includes(BLOG_META.name)
-        ? `${BLOG_META.tagline} | Pressmark Studio`
-        : `${BLOG_META.name} — ${BLOG_META.tagline} | Pressmark Studio`,
+      title: "Blog — Directories, Yearbooks, Data Merge & Print | Pressmark Studio",
       description: BLOG_META.intro,
       canonical: `${SITE_URL}${BLOG_BASE}`,
-      image: POSTS.find((p) => p.featured)?.featuredImage,
+      image: POSTS[0]?.featuredImage,
       imageAlt: BLOG_META.name,
       extra: `    <script type="application/ld+json">${jsonLd({
         "@context": "https://schema.org",
@@ -201,6 +210,7 @@ for (const post of POSTS) {
 const staticRoutes = [
   "/",
   "/directory-designs",
+  DATA_MERGE_BASE,
   "/how-it-works",
   "/services",
   "/pricing",
@@ -247,4 +257,8 @@ Sitemap: ${SITE_URL}/sitemap.xml
 );
 
 const generated = readdirSync(OUT_DIR).length;
-console.log(`[blog] ${generated} pages, ${POSTS.length} articles, sitemap + robots.txt written`);
+console.log(
+  `[blog] ${generated} pages, ${POSTS.length} articles published` +
+    (scheduled ? `, ${scheduled} scheduled for later` : "") +
+    ", sitemap + robots.txt written"
+);
