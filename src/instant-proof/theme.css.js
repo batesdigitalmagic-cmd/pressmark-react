@@ -1123,6 +1123,11 @@ export const SHELL_CSS = `
     border-radius: var(--proof-radius-lg);
     box-shadow: 0 12px 36px -10px rgba(16, 24, 40, 0.38);
   }
+  /* Focus moves onto the panel when it opens, so a screen reader starts there.
+     It is a container, not a control: no ring around it. The items inside keep
+     theirs. */
+  .ip-root .ip-pop-panel:focus,
+  .ip-root .ip-pop-panel:focus-visible { outline: none; }
   .ip-pop-panel[data-align="start"] { left: 0; }
   .ip-pop-panel[data-align="end"] { right: 0; }
 
