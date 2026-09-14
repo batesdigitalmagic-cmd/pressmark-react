@@ -147,13 +147,14 @@ export default function Composer({
         >
           {{
             trigger: <ColorMark swatches={swatchKeys.map((key) => colors[key])} />,
-            panel: (
+            panel: ({ close }) => (
               <ColorControls
                 colors={colors}
                 defaults={defaults}
                 design={design}
                 keys={swatchKeys}
                 onChange={onColorsChange}
+                onClose={close}
               />
             ),
           }}

@@ -37,6 +37,7 @@
 import { useId, useState } from "react";
 
 import DesignPreviewCard from "./DesignPreviewCard.jsx";
+import { CloseIcon } from "./Icons.jsx";
 import { BRAND_COLORS, isValidHex, normalizeHex } from "../colors.js";
 
 function ColorControl({ label, hint, value, defaultValue, onChange }) {
@@ -122,9 +123,20 @@ function ColorControl({ label, hint, value, defaultValue, onChange }) {
   );
 }
 
-export default function ColorControls({ colors, defaults, design, keys, onChange }) {
+export default function ColorControls({ colors, defaults, design, keys, onChange, onClose }) {
   return (
     <div className="ip-colors">
+      {/* Pinned to the top of the panel as it scrolls, so the way out is always
+          in reach — on a phone the panel covers most of the screen, and
+          tapping outside it is not obvious. */}
+      {onClose && (
+        <div className="ip-colors-head">
+          <span className="ip-colors-title">Colours</span>
+          <button type="button" className="ip-chat-close" aria-label="Close colours" onClick={onClose}>
+            <CloseIcon />
+          </button>
+        </div>
+      )}
       {BRAND_COLORS.filter((color) => keys.includes(color.key)).map((color) => (
         <ColorControl
           key={color.key}

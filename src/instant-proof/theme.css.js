@@ -1207,6 +1207,19 @@ export const SHELL_CSS = `
   /* ── Colour panel ── */
 
   .ip-colors { display: grid; gap: var(--proof-space-3); padding: var(--proof-space-2); }
+  .ip-colors-head {
+    position: sticky;
+    /* Up past the panel's and this list's own padding, so it pins flush. */
+    top: calc(-2 * var(--proof-space-2));
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: calc(-1 * var(--proof-space-2)) calc(-1 * var(--proof-space-2)) 0;
+    padding: var(--proof-space-2) var(--proof-space-2) var(--proof-space-2) var(--proof-space-2);
+    background: var(--proof-surface);
+  }
+  .ip-colors-title { font-size: 0.95rem; font-weight: 500; color: var(--proof-ink); }
   .ip-color-row { display: grid; gap: 6px; }
   .ip-color-label { font-size: 0.78rem; font-weight: 500; color: var(--proof-ink); }
   .ip-color-hint { display: block; font-weight: 400; color: var(--proof-muted); }
