@@ -868,8 +868,10 @@ export const SHELL_CSS = `
    */
   .ip-preview {
     padding: 22px 22px 14px;
-    border: 1px solid var(--proof-border);
+    border: 0;
     border-radius: var(--proof-radius);
+    /* No stroke; a soft shadow keeps a white page visible on the white panel. */
+    box-shadow: 0 1px 4px rgba(16, 24, 40, 0.14);
     background: var(--proof-preview-bg);
     color: var(--proof-preview-text);
     font-size: 0.66rem;
@@ -1116,9 +1118,10 @@ export const SHELL_CSS = `
     max-width: min(320px, calc(100vw - 2 * var(--proof-pad)));
     padding: var(--proof-space-2);
     background: var(--proof-surface);
-    border: 1px solid var(--proof-border);
+    /* No stroke on popups: the shadow alone lifts the panel off the page. */
+    border: 0;
     border-radius: var(--proof-radius-lg);
-    box-shadow: 0 12px 32px -12px rgba(16, 24, 40, 0.32);
+    box-shadow: 0 12px 36px -10px rgba(16, 24, 40, 0.38);
   }
   .ip-pop-panel[data-align="start"] { left: 0; }
   .ip-pop-panel[data-align="end"] { right: 0; }
@@ -1514,7 +1517,7 @@ export const SHELL_CSS = `
     flex-direction: column;
     max-height: min(82svh, 640px);
     background: var(--proof-surface);
-    border: 1px solid var(--proof-border);
+    border: 0;
     border-radius: var(--proof-radius-lg) var(--proof-radius-lg) 0 0;
     box-shadow: 0 -12px 40px -16px rgba(16, 24, 40, 0.35);
     color: var(--proof-ink-soft);
@@ -1525,7 +1528,6 @@ export const SHELL_CSS = `
     align-items: center;
     gap: var(--proof-space-3);
     padding: var(--proof-space-3) var(--proof-space-4);
-    border-bottom: 1px solid var(--proof-border);
   }
   .ip-chat-avatar {
     flex: none;
