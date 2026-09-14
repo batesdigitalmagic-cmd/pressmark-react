@@ -235,7 +235,7 @@ export default function ProofTool() {
   };
 
   const blocking = !accepted
-    ? "Upload your completed CSV, or try the sample, to continue."
+    ? "Upload your completed CSV, or load the sample from the + menu, to continue."
     : !permitted && !sample
       ? "Confirm you have permission to use this information."
       : "";
@@ -283,25 +283,6 @@ export default function ProofTool() {
             </ol>
 
             <DesignChooser selectedId={designId} onSelect={setDesignId} />
-
-            {/* The way in for someone who has not filled in a template yet. */}
-            {!(sample && accepted) && (
-              <section className="ip-card ip-sample" aria-labelledby="sample-title">
-                <div className="ip-sample-text">
-                  <h2 className="ip-sample-title" id="sample-title">
-                    No spreadsheet yet? Try a sample render
-                  </h2>
-                  <p className="ip-note">
-                    Load our sample directory of 20 households, choose your colours, and create a
-                    real InDesign PDF. Preview it right here on your phone or computer, and download
-                    it only if you want to.
-                  </p>
-                </div>
-                <button type="button" className="ip-btn" onClick={useSample} disabled={checking}>
-                  Use sample data
-                </button>
-              </section>
-            )}
 
             {error && (
               <p role="alert" className="ip-error" style={{ marginTop: "var(--proof-space-5)" }}>

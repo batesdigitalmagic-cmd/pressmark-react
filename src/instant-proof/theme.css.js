@@ -1362,21 +1362,6 @@ export const SHELL_CSS = `
     .ip-boot { animation-delay: 0.35s; }
   }
 
-  /* ── Sample render ── */
-
-  .ip-sample {
-    display: grid;
-    gap: var(--proof-space-3);
-    align-items: center;
-    margin-top: var(--proof-space-5);
-  }
-  .ip-sample-title { font-size: 1.02rem; font-weight: 500; color: var(--proof-ink); margin: 0; }
-  .ip-sample .ip-note { margin-top: 6px; }
-  .ip-sample .ip-btn { justify-self: start; }
-  @media (min-width: 640px) {
-    .ip-sample { grid-template-columns: minmax(0, 1fr) auto; }
-  }
-
   /* ── PDF preview ──
    *
    * Pages on a grey desk, one column, full width of the card: on a phone that is
