@@ -504,7 +504,7 @@ export const POSTS = [
       },
       {
         type: "p",
-        text: "After the 30 photos, BatchCutout is $99 as a one-time purchase with no subscription. [Download the trial or buy BatchCutout v1.2](/buy), then test it on the kind of folder that currently consumes your production day.",
+        text: "After the 30 photos, BatchCutout is $10 as a one-time purchase with no subscription. [Download the trial or buy BatchCutout v1.2](/buy), then test it on the kind of folder that currently consumes your production day.",
       },
       {
         type: "p",

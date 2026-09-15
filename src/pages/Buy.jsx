@@ -15,7 +15,7 @@ const VERSION = "1.2.0";
 
 /* Display copy only — the amount actually charged comes from the Stripe price
    ID on the server (api/checkout.js → PRODUCT.priceId). Keep the two in step. */
-const PRICE = "$99";
+const PRICE = "$10";
 
 /* The Pressmark Penguin. Served from public/ so the original vector artwork
    stays crisp at every screen size. */
