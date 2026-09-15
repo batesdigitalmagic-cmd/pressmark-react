@@ -249,7 +249,7 @@ export default function ProofTool() {
       <BootScreen />
       <AppShell current="/">
         <p className="ip-crumb">Instant Book Creator</p>
-        <h1 className="ip-h1">Create Your Directory PDF</h1>
+        <h1 className="ip-h1">Create Your Directory Book</h1>
         <p className="ip-lead">Download the spreadsheet template, then paste your data on template and save as CSV file.</p>
 
         {submitted ? (
