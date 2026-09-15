@@ -940,7 +940,7 @@ group("Church Directory Classic proof tool");
     "Choose a design",
     "Download and complete the template",
     "Upload your CSV and choose colours",
-    "Create your multi-page PDF",
+    "Create your book PDF",
   ]) {
     ok(`the rail names "${step}"`, page.includes(step));
   }
