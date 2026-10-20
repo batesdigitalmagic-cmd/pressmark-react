@@ -139,7 +139,12 @@ export default async function handler(request) {
 async function issueFor(session, mode) {
   const email = session.customer_details?.email || session.customer_email || null;
 
+  // Set by api/checkout.js. Orders from before the second product carry
+  // "batchcutout" or nothing, and both mean BatchCutout.
+  const product = session.metadata?.product || "batchcutout";
+
   const { created, license } = await ensureLicense({
+    product,
     orderId: session.id,
     email,
     name: session.customer_details?.name ?? null,
@@ -152,6 +157,7 @@ async function issueFor(session, mode) {
   // searchable, and readable by anyone with dashboard access.
   log.info("license issued", {
     mode,
+    product,
     order: session.id,
     email: maskEmail(email),
     key: `${license.key.slice(0, 9)}…`,

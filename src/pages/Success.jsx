@@ -8,7 +8,11 @@ const MAX_ATTEMPTS = 5;
 const RETRY_MS = 1500;
 
 export default function Success() {
-  const sessionId = new URLSearchParams(window.location.search).get("session_id");
+  const query = new URLSearchParams(window.location.search);
+  const sessionId = query.get("session_id");
+  /* Set by checkout so the page knows what was bought even if the license
+     lookup below fails. Only used to pick a download link and a label. */
+  const boughtEnhance = query.get("product") === "enhancecutout";
 
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
@@ -16,6 +20,7 @@ export default function Success() {
   const attempts = useRef(0);
   // StrictMode double-invokes effects; a purchase must fire once.
   const firedPurchase = useRef(false);
+  const startedDownload = useRef(false);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -74,6 +79,28 @@ export default function Success() {
     };
   }, [sessionId]);
 
+  /* Start the download as soon as the key is on screen, so a buyer doesn't
+     have to hunt for it. Once only. The button below stays as the fallback
+     for browsers that block automatic downloads. */
+  const productDownload = (data && data.downloadUrl) ||
+    (boughtEnhance ? "/api/download?product=enhancecutout" : DOWNLOAD_URL);
+  useEffect(() => {
+    if (!data || startedDownload.current) return;
+    startedDownload.current = true;
+    const timer = setTimeout(() => {
+      const link = document.createElement("a");
+      link.href = productDownload;
+      link.rel = "noopener";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [data, productDownload]);
+
+  const productName = (data && data.productShortName) || (boughtEnhance ? "Enhance + Cutout" : "BatchCutout");
+  const isEnhance = data ? data.product === "enhancecutout" : boughtEnhance;
+
   const copyKey = async () => {
     if (!data) return;
     try {
@@ -98,7 +125,7 @@ export default function Success() {
       <>
         <h1 style={S.h1}>No order found</h1>
         <p style={S.lead}>
-          This page needs an order to show. If you just bought BatchCutout, your key
+          This page needs an order to show. If you just bought from Pressmark, your key
           is in your email. If it isn't there, email{" "}
           <a href="mailto:support@pressmark.studio">support@pressmark.studio</a> and
           we'll resend it.
@@ -120,8 +147,8 @@ export default function Success() {
           <a href="mailto:support@pressmark.studio">support@pressmark.studio</a>{" "}
           with the address you paid with and we'll send it straight over.
         </p>
-        <a className="pm-btn" style={S.btnPrimary} href={DOWNLOAD_URL}>
-          Download BatchCutout
+        <a className="pm-btn" style={S.btnPrimary} href={productDownload}>
+          Download {productName}
         </a>
         <p style={{ ...S.note, marginTop: "1.5rem" }}>
           The download works now — you can install while you wait for the key.
@@ -224,9 +251,12 @@ export default function Success() {
         </button>
       </div>
 
-      <a className="pm-btn" style={S.btnPrimary} href={DOWNLOAD_URL}>
-        Download BatchCutout
+      <a className="pm-btn" style={S.btnPrimary} href={productDownload}>
+        Download {productName}
       </a>
+      <p style={{ ...S.note, marginTop: "0.75rem" }}>
+        Your download should start by itself. If it doesn't, use the button above.
+      </p>
 
       <ol
         style={{
@@ -238,14 +268,31 @@ export default function Success() {
         }}
       >
         <li style={{ marginBottom: "0.6rem" }}>Quit Photoshop.</li>
-        <li style={{ marginBottom: "0.6rem" }}>
-          Unzip, and copy <strong style={{ color: PALETTE.text }}>BatchCutout.jsxbin</strong> into
-          your Photoshop <strong style={{ color: PALETTE.text }}>Presets/Scripts</strong> folder.
-        </li>
-        <li style={{ marginBottom: "0.6rem" }}>
-          Start Photoshop, then go to{" "}
-          <strong style={{ color: PALETTE.text }}>File › Scripts › BatchCutout</strong>.
-        </li>
+        {isEnhance ? (
+          <>
+            <li style={{ marginBottom: "0.6rem" }}>
+              Unzip, and copy the whole <strong style={{ color: PALETTE.text }}>Enhance + Cutout</strong> folder
+              (keep its files together) into your Photoshop{" "}
+              <strong style={{ color: PALETTE.text }}>Presets/Scripts</strong> folder.
+            </li>
+            <li style={{ marginBottom: "0.6rem" }}>
+              Start Photoshop, then go to{" "}
+              <strong style={{ color: PALETTE.text }}>File › Scripts › Pressmark_EnhanceCutout</strong>.
+              Its AI actions install themselves the first time.
+            </li>
+          </>
+        ) : (
+          <>
+            <li style={{ marginBottom: "0.6rem" }}>
+              Unzip, and copy <strong style={{ color: PALETTE.text }}>BatchCutout.jsxbin</strong> into
+              your Photoshop <strong style={{ color: PALETTE.text }}>Presets/Scripts</strong> folder.
+            </li>
+            <li style={{ marginBottom: "0.6rem" }}>
+              Start Photoshop, then go to{" "}
+              <strong style={{ color: PALETTE.text }}>File › Scripts › BatchCutout</strong>.
+            </li>
+          </>
+        )}
         <li>Paste the key above when it asks.</li>
       </ol>
 

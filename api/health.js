@@ -62,8 +62,23 @@ const GROUPS = {
     label: "Installer downloads",
     /* Every release needs storage, not just the newest: old purchase emails
        link to older versions and must keep resolving. */
-    required: RELEASE_ENV_VARS,
+    required: RELEASE_ENV_VARS.filter((name) => !name.includes("ENHANCECUTOUT")),
     optional: ["CURRENT_VERSION"],
+  },
+  enhancecutout: {
+    label: "Pressmark Enhance + Cutout (second product)",
+    // All-or-nothing, like the sandbox: see the rule below the loop.
+    required: [],
+    optional: [
+      "STRIPE_PRICE_ID_ENHANCECUTOUT",
+      "DOWNLOAD_URL_ENHANCECUTOUT_1_0_0",
+      "LICENSE_API_URL",
+      "LICENSE_ADMIN_TOKEN",
+      "STRIPE_TEST_PRICE_ID_ENHANCECUTOUT",
+      "LICENSE_API_URL_TEST",
+      "LICENSE_ADMIN_TOKEN_TEST",
+      "CURRENT_VERSION_ENHANCECUTOUT",
+    ],
   },
   quoteForm: {
     label: "Quote form (Zoho CRM, WorkDrive, Mail)",
@@ -143,6 +158,21 @@ export default async function handler(request) {
 
   if (!groups.licenseStore.ready) {
     missing.push("KV_REST_API_URL + KV_REST_API_TOKEN");
+  }
+
+  /* Enhance + Cutout can only be sold once all three of its live pieces are
+     set: a price, a download, and the license server (its keys can only be
+     issued there). Nothing set = not launched yet, which is fine. Some set =
+     a half-launched product that would take money and fail to deliver. */
+  const ecVars = ["STRIPE_PRICE_ID_ENHANCECUTOUT", "DOWNLOAD_URL_ENHANCECUTOUT_1_0_0", "LICENSE_API_URL", "LICENSE_ADMIN_TOKEN"];
+  const ecPriceSet = isSet("STRIPE_PRICE_ID_ENHANCECUTOUT");
+  const ecAll = ecVars.every(isSet);
+  groups.enhancecutout.ready = !ecPriceSet || ecAll;
+  groups.enhancecutout.state = !ecPriceSet
+    ? "not on sale (no live price set)"
+    : ecAll ? "on sale" : "partial: price set but download or license server missing";
+  if (!groups.enhancecutout.ready) {
+    missing.push(...ecVars.filter((name) => !isSet(name)));
   }
 
   const ready = Object.values(groups).every((group) => group.ready);

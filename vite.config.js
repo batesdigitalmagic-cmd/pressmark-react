@@ -103,6 +103,7 @@ export default defineConfig({
         pricing: 'pricing.html',
         contact: 'contact.html',
         buy: 'buy.html',
+        enhanceCutout: 'enhance-cutout.html',
         success: 'success.html',
         portal: 'portal.html',
         health: 'health.html',

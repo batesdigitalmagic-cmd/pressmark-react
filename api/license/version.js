@@ -1,7 +1,8 @@
 /* Versions and their storage URLs come from lib/releases.js, which api/download.js
    reads too. This file used to keep its own copy of the map; the two drifting
    apart is how a release ends up advertised here but un-downloadable there. */
-import { LATEST, availableVersions, releaseUrl } from '../../lib/releases.js';
+import { availableVersions, latestFor, releaseUrl } from '../../lib/releases.js';
+import { resolveProduct } from '../../lib/products.js';
 
 export default function handler(req, res) {
   if (req.method !== 'GET') {
@@ -10,7 +11,8 @@ export default function handler(req, res) {
 
   const { product, current, channel } = req.query;
 
-  const latestVersion = LATEST;
+  const productId = resolveProduct(product) || 'batchcutout';
+  const latestVersion = latestFor(productId);
 
   /* Advertise the download through /api/download rather than the raw storage
      URL. That endpoint is a permanent link on our own domain, so the target
@@ -24,13 +26,13 @@ export default function handler(req, res) {
   const proto = req.headers['x-forwarded-proto'] || 'https';
   const baseUrl = host ? `${proto}://${host}` : 'https://pressmark.studio';
 
-  const downloadUrl = releaseUrl(latestVersion)
-    ? `${baseUrl}/api/download?v=${latestVersion}`
+  const downloadUrl = releaseUrl(latestVersion, productId)
+    ? `${baseUrl}/api/download?v=${latestVersion}${productId === 'batchcutout' ? '' : `&product=${productId}`}`
     : null;
 
   return res.status(200).json({
     ok: true,
-    product: product || 'batchcutout',
+    product: productId,
     channel: channel || 'stable',
     current: current || '',
     latest: latestVersion,
@@ -39,6 +41,6 @@ export default function handler(req, res) {
     download_url: downloadUrl,
     /* Every release still downloadable, newest last. Additive — existing
        plugin builds read only the fields above and are unaffected. */
-    available: availableVersions()
+    available: availableVersions(productId)
   });
 }
