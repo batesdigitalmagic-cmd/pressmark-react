@@ -90,6 +90,13 @@ export const PROOF_TOKENS_CSS = `
     --proof-space-6: 32px;
     --proof-space-7: 44px;
     --proof-pad: ${PAGE_PAD};
+    /*
+     * The page measure. A token rather than a literal for the same reason the
+     * gutter is one: .ip-page is no longer the only box capped to it — the hero
+     * has to land on the same left edge — and two literals widened in different
+     * media queries is precisely how they drift apart.
+     */
+    --proof-measure: 760px;
 
     /* Mostly square, with just enough radius to look intentional. */
     --proof-radius: 4px;

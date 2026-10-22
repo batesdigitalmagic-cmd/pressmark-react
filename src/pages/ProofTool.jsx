@@ -55,6 +55,7 @@ import BootScreen from "../instant-proof/components/BootScreen.jsx";
 import Composer from "../instant-proof/components/Composer.jsx";
 import DesignChooser from "../instant-proof/components/DesignChooser.jsx";
 import DirectoryRenderJob from "../instant-proof/components/DirectoryRenderJob.jsx";
+import Hero, { TOOL_ANCHOR } from "../instant-proof/components/Hero.jsx";
 import { DEFAULT_COLORS, changedColors } from "../instant-proof/colors.js";
 import { DEFAULT_DESIGN_ID, designFor, swatchKeysFor } from "../instant-proof/designs.js";
 import { PROOF_EVENTS, emit } from "../instant-proof/analytics.js";
@@ -247,10 +248,24 @@ export default function ProofTool() {
   return (
     <>
       <BootScreen />
-      <AppShell current="/">
-        <p className="ip-crumb">Instant Book Creator</p>
-        <h1 className="ip-h1">Create Your Directory Book</h1>
-        <p className="ip-lead">Download the spreadsheet template, then paste your data on template and save as CSV file.</p>
+      {/*
+        * No hero once the job is running. A customer who has pressed Create has
+        * already been sold; leaving it up would also mean a reload that resumes
+        * a job lands on a photograph with the render a screen below it.
+        */}
+      <AppShell current="/create-pdf" hero={submitted ? null : <Hero />}>
+        {/*
+          * tabIndex -1 so the hero's button can put focus here after it scrolls.
+          * Without it the viewport moves and the caret does not, which leaves a
+          * keyboard user tabbing back up through the hero they just left.
+          */}
+        <div id={TOOL_ANCHOR} className="ip-tool-anchor" tabIndex={-1}>
+          <p className="ip-crumb">Do It Yourself</p>
+          {/* h2, not h1: the hero above carries the page's one h1 now. The
+              class is unchanged, so it still sets at the same size. */}
+          <h2 className="ip-h1">Create A Directory Book</h2>
+        </div>
+        <p className="ip-lead">Paste your data into the spreadsheet template, save it as a CSV file, then upload it here.</p>
 
         {submitted ? (
           <section className="ip-card" style={{ marginTop: "var(--proof-space-6)" }}>
@@ -272,6 +287,15 @@ export default function ProofTool() {
           </section>
         ) : (
           <>
+            {/*
+              * The wrapper is not cosmetic. .ip-composer is position:sticky with
+              * bottom:0, and a sticky element sticks for the height of its
+              * PARENT — so without this it would stay pinned over everything
+              * below it, and the section after it would scroll underneath the
+              * bar on a phone. Ending the parent here releases it exactly where
+              * the tool ends.
+              */}
+            <div className="ip-tool-flow">
             <ol className="ip-steps" style={{ marginTop: "var(--proof-space-6)" }}>
               {STEPS.map((label, index) => (
                 <li className="ip-step" key={label} data-state={stateOf(index + 1)}>
@@ -365,6 +389,28 @@ export default function ProofTool() {
               sample={sample}
               onSample={useSample}
             />
+            </div>
+
+            <section className="ip-section ip-prose ip-audience">
+              <h2>Who Is This Service Best For?</h2>
+              <p>
+                Pressmark is for organizations that need a lot of information set out
+                clearly and accurately:
+              </p>
+              <ul>
+                <li>School yearbooks and portrait books</li>
+                <li>Church and membership directories</li>
+                <li>Sports programs and team books</li>
+                <li>Staff and employee directories</li>
+                <li>Association and government directories</li>
+                <li>Event programs and commemorative books</li>
+                <li>Annual reports and community publications</li>
+              </ul>
+              <p>
+                Wherever you are, your photographs and information come back as a designed
+                publication, ready to download and print.
+              </p>
+            </section>
           </>
         )}
       </AppShell>

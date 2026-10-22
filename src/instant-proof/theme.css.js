@@ -38,7 +38,7 @@ ${PROOF_TOKENS_CSS}
   .ip-page {
     width: 100%;
     /* Centred and capped: never stretched across a desktop. */
-    max-width: 760px;
+    max-width: var(--proof-measure);
     margin: 0 auto;
     padding: 0 var(--proof-pad);
   }
@@ -457,7 +457,7 @@ ${PROOF_TOKENS_CSS}
   }
 
   @media (min-width: 1200px) {
-    .ip-page { max-width: 1040px; }
+    .ip-root { --proof-measure: 1040px; }
   }
 
   /* ── Narrow phones ────────────────────────────────────────────── */
@@ -475,6 +475,19 @@ ${PROOF_TOKENS_CSS}
       scroll-behavior: auto !important;
     }
     .ip-slide[aria-checked="true"] .ip-slide-frame { transform: none; }
+    /*
+     * Collapsing the duration is not enough for these three: it lands them on
+     * their end frame, which for the cue is a chevron frozen mid-nudge. The
+     * push and the rise are simply dropped; the cue keeps its rotation, which
+     * is what draws it, and loses only the travel.
+     */
+    .ip-hero-photo { animation: none; }
+    .ip-hero-eyebrow,
+    .ip-hero-title,
+    .ip-hero-lead,
+    .ip-hero-actions,
+    .ip-hero-points { animation: none; opacity: 1; transform: none; }
+    .ip-hero-cue { animation: none; transform: rotate(45deg); opacity: 0.6; }
   }
 `;
 
@@ -696,6 +709,237 @@ export const SHELL_CSS = `
     padding-top: var(--proof-space-6);
     padding-bottom: var(--proof-space-7);
   }
+  /*
+   * A hero opens the page against the chrome. The padding that normally sits
+   * above the crumb is moved onto the tool below the photograph instead, so the
+   * gap between hero and heading is the one that was always there.
+   */
+  .ip-workspace[data-hero="true"] { padding-top: 0; }
+  /*
+   * The tool is a scroll target, so it takes focus when the hero's button sends
+   * the viewport here — without this the outline would be drawn around the
+   * whole remainder of the page.
+   */
+  .ip-tool-anchor { scroll-margin-top: var(--proof-space-4); }
+  .ip-tool-anchor:focus { outline: none; }
+  /* ── Hero ─────────────────────────────────────────────────────────
+   *
+   * Full width of the workspace column, never of the viewport: on a desktop
+   * .ip-app is a grid and the sidebar owns the first track, so 100vw would run
+   * the photograph underneath the navigation. It is rendered as a sibling of
+   * .ip-page for the same reason — .ip-page is capped at 760px, and a hero that
+   * has to reach the edges cannot live inside a container whose whole job is to
+   * stop things reaching the edges.
+   *
+   * .ip-workspace[data-hero] drops the padding the page normally opens with, so
+   * the photograph starts against the top bar rather than floating below a band
+   * of paper.
+   */
+  .ip-hero {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    /* svh, not vh: on a phone vh is the tallest the viewport ever gets, so the
+       bottom of the hero sits behind the browser's own chrome on first paint. */
+    min-height: min(88svh, 680px);
+    /* Vertical only. The gutter belongs to .ip-hero-inner — see below. */
+    padding: var(--proof-space-7) 0 var(--proof-space-6);
+    /*
+     * The gap to the tool below. Carried by the hero rather than by padding on
+     * .ip-page, because .ip-bleed derives its negative margin from that
+     * padding — anything that overrides it silently breaks every full-width
+     * rule further down the page.
+     */
+    margin-bottom: var(--proof-space-7);
+    overflow: hidden;
+    /*
+     * The floor under the photograph. Carries the same tonal weight, so a
+     * missing or slow file leaves a composed dark panel rather than a hole —
+     * the text's contrast comes from here and the scrim, never from the image.
+     */
+    background:
+      radial-gradient(120% 90% at 78% 18%, rgba(86, 89, 94, 0.5), transparent 60%),
+      linear-gradient(160deg, #2b2d30 0%, #1a1c1f 58%, #0e0f11 100%);
+  }
+  .ip-hero-photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    /* max-width:100% from the root reset would otherwise fight the cover. */
+    max-width: none;
+    object-fit: cover;
+    /* The subject sits right of centre; a tall phone crop loses her at 50%. */
+    object-position: 58% 34%;
+    z-index: -2;
+    animation: ip-hero-push 24s ease-out both;
+  }
+  /*
+   * The scrim is a pseudo-element on the section rather than a filter on the
+   * image, so it is still painted when the photograph fails to load and the
+   * gradient floor is what is showing.
+   */
+  .ip-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    /*
+     * One gradient, not two. The previous pair — a bottom wash and a left wash
+     * — composited to about 98% black across the corner the text sits in, which
+     * is a photograph nobody can see. This darkens only the band the words
+     * actually occupy and is fully clear by 70%, so the subject reads.
+     *
+     * The text is anchored to the bottom at every width for the same reason: it
+     * keeps the scrim in one predictable place instead of centred over the face.
+     */
+    background:
+      linear-gradient(to top,
+        rgba(8, 11, 15, 0.9) 0%,
+        rgba(8, 11, 15, 0.76) 24%,
+        rgba(8, 11, 15, 0.46) 48%,
+        rgba(8, 11, 15, 0.16) 70%,
+        rgba(8, 11, 15, 0) 100%);
+  }
+  /*
+   * Built exactly like .ip-page — same cap, same gutter, same border-box — so
+   * the hero's heading lands on the same left edge as the tool's heading below
+   * it. Padding the section instead would inset the 760px box by a further
+   * gutter and leave the two headings a --proof-pad apart, which is visible the
+   * moment you scroll from one to the other.
+   */
+  .ip-hero-inner {
+    position: relative;
+    width: 100%;
+    max-width: var(--proof-measure);
+    margin: 0 auto;
+    padding: 0 var(--proof-pad);
+  }
+  .ip-hero-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    /* Not the maroon accent: at this size on a photograph it goes muddy. */
+    color: rgba(255, 255, 255, 0.72);
+    margin: 0;
+    animation: ip-hero-rise 0.62s 0.05s ease-out both;
+  }
+  .ip-hero-title {
+    font-family: var(--proof-display);
+    font-weight: 700;
+    font-size: clamp(2.05rem, 7.4vw, 3.6rem);
+    line-height: 1.02;
+    letter-spacing: -0.015em;
+    color: #ffffff;
+    margin: var(--proof-space-3) 0 0;
+    max-width: 15em;
+    overflow-wrap: break-word;
+    text-wrap: balance;
+    animation: ip-hero-rise 0.62s 0.13s ease-out both;
+  }
+  .ip-hero-lead {
+    font-size: clamp(1rem, 2.3vw, 1.12rem);
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.88);
+    margin: var(--proof-space-4) 0 0;
+    max-width: 34em;
+    animation: ip-hero-rise 0.62s 0.21s ease-out both;
+  }
+  .ip-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--proof-space-3);
+    margin-top: var(--proof-space-5);
+    animation: ip-hero-rise 0.62s 0.29s ease-out both;
+  }
+  /*
+   * The one light control on the site. It overrides the shared .ip-btn skin
+   * rather than adding a variant, because this is the only place a button is
+   * ever set on a photograph.
+   */
+  .ip-hero-cta {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: var(--proof-ink);
+    font-weight: 700;
+    padding: 0 var(--proof-space-5);
+  }
+  /*
+   * The :not() pair is not decoration. The shared hover is written
+   * .ip-btn:hover:not(:disabled):not([aria-disabled="true"]), and a selector
+   * one pseudo-class lighter loses to it however far down the file it sits —
+   * which would put a grey #dadce0 ring on a white button over a photograph.
+   * Matched exactly, so source order decides and this wins.
+   */
+  .ip-hero-cta:hover:not(:disabled):not([aria-disabled="true"]) {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: var(--proof-accent-deep);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+  }
+  /*
+   * The time claim, said three ways. Kept to single short phrases: this is the
+   * last thing read before the fold and it has to survive a glance.
+   */
+  .ip-hero-points {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--proof-space-2) var(--proof-space-5);
+    margin: var(--proof-space-5) 0 0;
+    padding: 0;
+    font-size: 0.86rem;
+    color: rgba(255, 255, 255, 0.76);
+    animation: ip-hero-rise 0.62s 0.37s ease-out both;
+  }
+  .ip-hero-points li {
+    display: flex;
+    align-items: center;
+    gap: var(--proof-space-2);
+  }
+  .ip-hero-points li::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    /*
+     * Plain white, not the InDesign pink. That scheme means "progress" and
+     * belongs to the step rail alone; the maroon accent is no use here either,
+     * as it goes muddy against a photograph at 5px.
+     */
+    background: rgba(255, 255, 255, 0.55);
+    flex: none;
+  }
+  /* A chevron drawn from one rotated corner, breathing on the spot. */
+  .ip-hero-cue {
+    position: absolute;
+    left: 50%;
+    bottom: 14px;
+    width: 12px;
+    height: 12px;
+    margin-left: -6px;
+    border-right: 2px solid rgba(255, 255, 255, 0.5);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+    transform: rotate(45deg);
+    animation: ip-hero-cue 2.4s 1.2s ease-in-out infinite;
+  }
+
+  @keyframes ip-hero-push {
+    from { transform: scale(1.09); }
+    to   { transform: scale(1); }
+  }
+  @keyframes ip-hero-rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes ip-hero-cue {
+    0%, 100% { transform: rotate(45deg) translate(0, 0); opacity: 0.5; }
+    50%      { transform: rotate(45deg) translate(3px, 3px); opacity: 0.9; }
+  }
+
   .ip-crumb {
     font-size: 0.75rem;
     letter-spacing: 0.12em;
@@ -1730,7 +1974,21 @@ export const SHELL_CSS = `
       z-index: 1;
     }
     .ip-workspace { padding-top: var(--proof-space-7); }
+    .ip-workspace[data-hero="true"] { padding-top: 0; }
+    .ip-hero {
+      min-height: min(84svh, 760px);
+      padding-bottom: var(--proof-space-7);
+    }
+    /* Wider frame, so the subject no longer has to be dragged back by the crop. */
+    .ip-hero-photo { object-position: center 32%; }
     .ip-designs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    /* Seven short lines read as a column of stubs at this width; two up keeps
+       the section as compact as the rest of the page. */
+    .ip-audience ul {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 var(--proof-space-6);
+    }
     /* In the flow rather than pinned: there is no thumb-reach problem on a
        desktop, and a floating bar over a short page reads as a notice. */
     .ip-composer { position: static; margin-inline: 0; border: 1px solid var(--proof-border); border-radius: var(--proof-radius-lg); box-shadow: var(--proof-shadow); padding: var(--proof-space-4); }

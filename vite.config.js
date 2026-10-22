@@ -94,8 +94,9 @@ export default defineConfig({
       // Multi-page: the tool, each content route, the storefront, and every
       // blog article build as separate entries with their own static <head>.
       input: {
-        /* The tool. `/instant-proof` is redirected here by vercel.json. */
+        /* The tool. `/` is the scripts home; the free PDF tool is create-pdf.html. `/instant-proof` is redirected there by vercel.json. */
         main: 'index.html',
+        createPdf: 'create-pdf.html',
         directoryDesigns: 'directory-designs.html',
         dataMerge: 'data-merge.html',
         howItWorks: 'how-it-works.html',

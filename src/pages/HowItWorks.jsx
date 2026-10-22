@@ -69,7 +69,7 @@ export default function HowItWorks() {
 
         <h2>Start now</h2>
         <p>
-          <a className="ip-btn ip-btn-primary ip-touch" href="/">
+          <a className="ip-btn ip-btn-primary ip-touch" href="/create-pdf">
             Create a directory PDF
           </a>
         </p>
