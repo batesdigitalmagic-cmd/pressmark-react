@@ -15,17 +15,23 @@
 
 export const NAV_GROUPS = [
   [
-    { label: "Create a PDF", href: "/" },
+    { label: "Home", href: "/" },
+    { label: "Scripts", href: "/buy" },
+    { label: "Create a PDF (free)", href: "/create-pdf" },
     { label: "Directory Designs", href: "/directory-designs" },
-    /* The Data Merge section is for buyers. The Blog (/blog, the daily feed)
-       is deliberately not in the sidebar; it is reached from the Data Merge
-       section and from its own articles. */
+    /* The Data Merge section is for buyers. */
     { label: "Data Merge", href: "/data-merge" },
+    /*
+     * The blog's index (/blog, the daily feed). It was deliberately kept out of
+     * the sidebar and reached only from the Data Merge section and from its own
+     * articles; it is named "Resources" here rather than "Blog" because that is
+     * what a visitor looking for guidance scans for.
+     */
+    { label: "Resources", href: "/blog" },
   ],
   [
     { label: "Services", href: "/services" },
     { label: "Pricing", href: "/pricing" },
-    { label: "Scripts", href: "/buy" },
     { label: "Need a Custom Publication?", href: "/contact" },
   ],
 ];

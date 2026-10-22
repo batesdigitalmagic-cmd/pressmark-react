@@ -1,12 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { initAnalytics } from "./analytics.js";
-import ProofTool from "./pages/ProofTool.jsx";
+import Home from "./pages/Home.jsx";
 
 initAnalytics();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <ProofTool />
+    <Home />
   </React.StrictMode>,
 );

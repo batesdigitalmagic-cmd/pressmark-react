@@ -62,8 +62,13 @@ function NavList({ current, onNavigate }) {
  * @param {string} props.current  The pathname of the page being rendered, so the
  *   sidebar can mark it. Passed in rather than read from `location` because each
  *   page already knows what it is, and a build-time value cannot go stale.
+ * @param {React.ReactNode} [props.hero]  A full-width band rendered above the
+ *   page, outside .ip-page's 760px cap — the only way something can reach the
+ *   edges of the workspace, since that cap is the whole point of .ip-page.
+ *   Passing one also repoints the skip link, because "skip to the tool" that
+ *   lands you on a photograph is a broken promise.
  */
-export default function AppShell({ current = "/", children }) {
+export default function AppShell({ current = "/", hero = null, children }) {
   const [open, setOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   /* A studio reply the visitor has not seen yet: a dot on the chat buttons. */
@@ -118,7 +123,7 @@ export default function AppShell({ current = "/", children }) {
       <style>{PROOF_CSS}</style>
       <style>{SHELL_CSS}</style>
 
-      <a className="ip-skip" href="#workspace">
+      <a className="ip-skip" href={hero ? "#tool" : "#workspace"}>
         Skip to the tool
       </a>
 
@@ -183,7 +188,9 @@ export default function AppShell({ current = "/", children }) {
           </div>
         </aside>
 
-        <main className="ip-workspace" id="workspace">
+        <main className="ip-workspace" id="workspace" data-hero={hero ? "true" : undefined}>
+          {hero}
+
           <div className="ip-page">
             {children}
 

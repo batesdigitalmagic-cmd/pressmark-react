@@ -204,11 +204,13 @@ for (const post of POSTS) {
 }
 
 // ── sitemap + robots ──
-/* Every indexable route. The tool is "/", which is why it carries the highest
+/* Every indexable route. The home page is "/", which is why it carries the highest
    priority; /success, /sandbox, /portal and /health are excluded here and in
    robots.txt below because they are transactional or internal. */
 const staticRoutes = [
   "/",
+  "/create-pdf",
+  "/enhance-cutout",
   "/directory-designs",
   DATA_MERGE_BASE,
   "/how-it-works",

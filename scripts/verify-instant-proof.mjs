@@ -846,7 +846,18 @@ group("33. Mobile layout");
   ok("the action bar respects the home indicator", /env\(safe-area-inset-bottom/.test(css));
   ok("a spacer keeps the bar off the content", /\.ip-actions-spacer/.test(css));
   ok("the bar is not sticky on desktop", /min-width: 900px\)[\s\S]*?\.ip-actions \{ position: static/.test(css));
-  ok("desktop is centred and capped, not full-bleed", /\.ip-page \{[\s\S]*?max-width: 760px/.test(css));
+  /*
+   * The cap is a token now, because the hero is capped to it too and has to
+   * land on the same left edge. Checked the same way the gutter is: one
+   * declaration, and every box that honours it reads the variable.
+   */
+  ok("desktop is centred and capped, not full-bleed",
+     /--proof-measure: 760px/.test(readFileSync(resolve(ROOT, "src/instant-proof/tokens.js"), "utf8")) &&
+     /\.ip-page \{[\s\S]*?max-width: var\(--proof-measure\)/.test(css));
+  ok("the measure has one source of truth, so the hero cannot drift from the page",
+     (css.match(/max-width: var\(--proof-measure\)/g) || []).length === 2 &&
+     !/max-width: (760|1040)px/.test(css) &&
+     /min-width: 1200px\)[\s\S]*?--proof-measure: 1040px/.test(css));
   ok("the desktop design preview is at most 300px", /minmax\(0, 1fr\) 300px/.test(css));
   ok("reduced motion is respected", /prefers-reduced-motion: reduce/.test(css));
   ok("hover is never required — selection uses aria-checked, not :hover",
@@ -1051,7 +1062,7 @@ group("Workspace shell");
 
   const order = [...nav.matchAll(/href: "([^"]+)"/g)].map((match) => match[1]);
   ok("the sidebar is in the specified order",
-     order.join(" ") === "/ /directory-designs /data-merge /services /pricing /contact",
+     order.join(" ") === "/ /buy /create-pdf /directory-designs /data-merge /blog /services /pricing /contact",
      order.join(" "));
   ok("the privacy line is in the sidebar",
      /Your uploaded files are processed privately\./.test(shell));
@@ -1603,8 +1614,15 @@ group("The Data Merge section and the Blog");
     existsSync(resolve(ROOT, "data-merge.html")) && /src\/data-merge\.jsx/.test(read("data-merge.html")) &&
     /dataMerge: 'data-merge\.html'/.test(vite));
   ok("/blog is the Blog", blog.BLOG_BASE === "/blog" && blog.BLOG_META.name === "Blog");
-  ok("the sidebar links the Data Merge section once, and not the Blog",
-    (nav.match(/href: "\/data-merge"/g) || []).length === 1 && !/href: "\/blog"/.test(nav) &&
+  /*
+   * The Blog is in the sidebar now, as "Resources" — it was excluded on the
+   * grounds that a daily feed is not a destination, and that was reversed
+   * deliberately. What still holds is that each door is linked once and that
+   * /guides, the old address, never comes back as a link.
+   */
+  ok("the sidebar links each section once, under its own name",
+    (nav.match(/href: "\/data-merge"/g) || []).length === 1 &&
+    (nav.match(/href: "\/blog"/g) || []).length === 1 &&
     !/label: "Blog"/.test(nav) && !/href: "\/guides"/.test(nav));
   ok("the Blog is still reachable from the Data Merge section", /href=\{BLOG_BASE\}/.test(dataMerge));
   ok("the sitemap lists the Data Merge section", /DATA_MERGE_BASE,/.test(generator));

@@ -48,7 +48,7 @@ export default function DirectoryDesigns() {
             </div>
             {design.renderable ? (
               <p style={{ marginTop: "var(--proof-space-4)" }}>
-                <a className="ip-btn ip-btn-primary ip-touch" href="/">
+                <a className="ip-btn ip-btn-primary ip-touch" href="/create-pdf">
                   Create a PDF with this design
                 </a>
               </p>

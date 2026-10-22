@@ -76,7 +76,7 @@ export default function Pricing() {
       <section className="ip-prose" style={{ marginTop: "var(--proof-space-6)" }}>
         <h2>The directory tool is free</h2>
         <p>
-          Creating a Directory Classic PDF on <a href="/">the homepage</a> is free, with no
+          Creating a Directory Classic PDF on <a href="/create-pdf">the PDF tool</a> is free, with no
           account and nothing held back. The pricing above is for custom publication work.
         </p>
         <p>

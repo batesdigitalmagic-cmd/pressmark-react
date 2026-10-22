@@ -3,7 +3,7 @@
   "redirects": [
     {
       "source": "/instant-proof",
-      "destination": "/",
+      "destination": "/create-pdf",
       "permanent": true
     },
     {
