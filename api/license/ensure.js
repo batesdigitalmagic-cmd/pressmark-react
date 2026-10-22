@@ -12,6 +12,7 @@ import { logger } from "../../lib/log.js";
 
 const log = logger("license-ensure");
 import { ensureLicense } from "../../lib/licenses.js";
+import { downloadPath, getProduct, resolveProduct } from "../../lib/products.js";
 
 export const config = { runtime: "edge" };
 
@@ -60,7 +61,11 @@ export default async function handler(request) {
       return json({ error: "This order has not been paid." }, 402);
     }
 
+    const productId = resolveProduct(session.metadata?.product) || "batchcutout";
+    const product = getProduct(productId);
+
     const { license } = await ensureLicense({
+      product: productId,
       orderId: session.id,
       email: session.customer_details?.email ?? null,
       name: session.customer_details?.name ?? null,
@@ -79,13 +84,17 @@ export default async function handler(request) {
       transactionId: await hashOrderId(session.id),
       value: typeof session.amount_total === "number" ? session.amount_total / 100 : null,
       currency: (session.currency || "").toUpperCase() || null,
-      item: "Pressmark BatchCutout",
-      itemId: "batchcutout",
+      item: product.name,
+      itemId: product.id,
     };
 
     // Only the key and the address it went to. Never the whole record.
     return json({
       key: license.key,
+      product: product.id,
+      productName: product.name,
+      productShortName: product.shortName,
+      downloadUrl: downloadPath(product.id),
       email: license.email,
       maxDevices: license.max_devices,
       livemode: license.livemode !== false,

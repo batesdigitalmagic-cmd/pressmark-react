@@ -10,7 +10,8 @@
  * Nothing here writes to /buy's flow, and /buy never reaches this file.
  */
 
-import { PRODUCT, TEST, getStripe, isConfigured, isSandboxKeySafe, priceIdFor } from "../lib/stripe.js";
+import { TEST, getStripe, isProductConfigured, isSandboxKeySafe, priceIdFor } from "../lib/stripe.js";
+import { getProduct, resolveProduct } from "../lib/products.js";
 import { logger } from "../lib/log.js";
 
 const log = logger("checkout-sandbox");
@@ -22,10 +23,17 @@ export default async function handler(request) {
     return json({ error: "Method not allowed" }, 405);
   }
 
-  if (!isConfigured(TEST)) {
-    log.error("sandbox not configured");
+  const body = await request.json().catch(() => ({}));
+  const productId = resolveProduct(body.product ?? new URL(request.url).searchParams.get("product"));
+  if (!productId) {
+    return json({ error: "Unknown product." }, 400);
+  }
+  const PRODUCT = getProduct(productId);
+
+  if (!isProductConfigured(TEST, productId)) {
+    log.error("sandbox not configured", null, { product: productId });
     return json(
-      { error: "Sandbox is not configured. Set STRIPE_TEST_SECRET_KEY and STRIPE_TEST_PRICE_ID." },
+      { error: `Sandbox is not configured for ${PRODUCT.shortName}. Set STRIPE_TEST_SECRET_KEY and its test price id.` },
       503
     );
   }
@@ -46,16 +54,16 @@ export default async function handler(request) {
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items: [{ price: priceIdFor(TEST), quantity: 1 }],
+      line_items: [{ price: priceIdFor(TEST, productId), quantity: 1 }],
       customer_creation: "always",
       automatic_tax: { enabled: process.env.STRIPE_TAX === "true" },
       allow_promotion_codes: true,
 
-      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}&product=${productId}`,
       cancel_url: `${origin}/sandbox?cancelled=1`,
 
       metadata: {
-        product: "batchcutout",
+        product: productId,
         max_devices: String(PRODUCT.maxDevices),
         update_months: String(PRODUCT.updateMonths),
         // Survives into the webhook and onto the license record.

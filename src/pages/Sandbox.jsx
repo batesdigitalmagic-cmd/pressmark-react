@@ -12,11 +12,17 @@ export default function Sandbox() {
 
   const cancelled = new URLSearchParams(window.location.search).has("cancelled");
 
-  const checkout = async () => {
-    setBusy(true);
+  /* Which product to test-buy. Both run through the same sandbox endpoint;
+     the server looks up the test price for whichever is chosen. */
+  const checkout = async (product) => {
+    setBusy(product);
     setError("");
     try {
-      const response = await fetch("/api/checkout-test", { method: "POST" });
+      const response = await fetch("/api/checkout-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product }),
+      });
       const body = await response.json().catch(() => ({}));
       if (body.url) {
         window.location.assign(body.url);
@@ -53,7 +59,7 @@ export default function Sandbox() {
         </div>
 
         <p style={S.eyebrow}>Pressmark Studio</p>
-        <h1 style={S.h1}>BatchCutout (test)</h1>
+        <h1 style={S.h1}>Sandbox purchases (test)</h1>
         <p style={S.lead}>
           This page uses Stripe test credentials. No card is charged and no money
           moves. It exists to verify checkout, licence issuance, and refunds end to
@@ -86,9 +92,14 @@ export default function Sandbox() {
           </div>
         )}
 
-        <button className="pm-btn" style={S.btnPrimary} onClick={checkout} disabled={busy}>
-          {busy ? "Opening sandbox checkout…" : "Run a sandbox purchase"}
-        </button>
+        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+          <button className="pm-btn" style={S.btnPrimary} onClick={() => checkout("batchcutout")} disabled={Boolean(busy)}>
+            {busy === "batchcutout" ? "Opening sandbox checkout…" : "Test-buy BatchCutout"}
+          </button>
+          <button className="pm-btn" style={S.btnPrimary} onClick={() => checkout("enhancecutout")} disabled={Boolean(busy)}>
+            {busy === "enhancecutout" ? "Opening sandbox checkout…" : "Test-buy Enhance + Cutout"}
+          </button>
+        </div>
 
         {error && <p role="alert" style={S.error}>{error}</p>}
 

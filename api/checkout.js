@@ -1,9 +1,11 @@
 /*
  * Creates a Stripe Checkout Session and hands back the redirect URL.
- * The buy button posts here.
+ * The buy buttons post here: /buy with no body (BatchCutout, as always),
+ * /enhance-cutout with { product: "enhancecutout" }.
  */
 
-import { PRODUCT, getStripe, stripeConfigured } from "../lib/stripe.js";
+import { LIVE, getStripe, isProductConfigured, priceIdFor } from "../lib/stripe.js";
+import { getProduct, resolveProduct } from "../lib/products.js";
 import { logger } from "../lib/log.js";
 
 const log = logger("checkout");
@@ -15,8 +17,19 @@ export default async function handler(request) {
     return json({ error: "Method not allowed" }, 405);
   }
 
-  if (!stripeConfigured || !PRODUCT.priceId) {
-    log.error("not configured", null, { hasKey: stripeConfigured, hasPrice: Boolean(PRODUCT.priceId) });
+  /* The product comes from the page, but only as a choice between known ids.
+     Price, seats and update period are all looked up here, never taken from
+     the request. */
+  const body = await request.json().catch(() => ({}));
+  const productId = resolveProduct(body.product ?? new URL(request.url).searchParams.get("product"));
+  if (!productId) {
+    return json({ error: "Unknown product." }, 400);
+  }
+  const PRODUCT = getProduct(productId);
+  const priceId = priceIdFor(LIVE, productId);
+
+  if (!isProductConfigured(LIVE, productId)) {
+    log.error("not configured", null, { product: productId, hasPrice: Boolean(priceId) });
     return json({ error: "Checkout is not available right now. Please email support@pressmark.studio." }, 503);
   }
 
@@ -26,7 +39,7 @@ export default async function handler(request) {
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items: [{ price: PRODUCT.priceId, quantity: 1 }],
+      line_items: [{ price: priceId, quantity: 1 }],
 
       // Stripe collects and verifies the email. It becomes the address the
       // license is tied to and the one recovery answers to, so it has to be
@@ -38,11 +51,11 @@ export default async function handler(request) {
 
       allow_promotion_codes: true,
 
-      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/buy?cancelled=1`,
+      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}&product=${productId}`,
+      cancel_url: `${origin}${PRODUCT.page}?cancelled=1`,
 
       metadata: {
-        product: "batchcutout",
+        product: productId,
         max_devices: String(PRODUCT.maxDevices),
         update_months: String(PRODUCT.updateMonths),
       },
