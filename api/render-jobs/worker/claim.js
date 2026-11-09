@@ -11,7 +11,7 @@
 
 import { workerAuthorized } from "../../../lib/render-jobs/auth.js";
 import { apiError, json, workerJob } from "../../../lib/render-jobs/http.js";
-import { claimNextJob } from "../../../lib/render-jobs/jobs.js";
+import { claimNextJob, recordWorkerSeen } from "../../../lib/render-jobs/jobs.js";
 import { assertRenderStorage } from "../../../lib/render-jobs/storage.js";
 import { toNodeHandler } from "../../../lib/render-jobs/node-adapter.js";
 
@@ -38,6 +38,7 @@ async function handler(request) {
     const workerId = String(body.workerId || "").trim().slice(0, 100);
     if (!workerId) return json({ error: "A workerId is required." }, 400);
 
+    await recordWorkerSeen(workerId);
     const job = await claimNextJob(workerId);
     /* 204 rather than an error: an empty queue is the normal state of a
        healthy system, and the worker polls on it. */

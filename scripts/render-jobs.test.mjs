@@ -680,6 +680,10 @@ function nodeStyleResponse() {
       captured.headers = headers || {};
       captured.headersSent = true;
     },
+    write(chunk) {
+      captured.chunks.push(Buffer.from(chunk));
+      return true;
+    },
     end(chunk) {
       if (chunk) captured.chunks.push(Buffer.from(chunk));
       captured.ended = true;

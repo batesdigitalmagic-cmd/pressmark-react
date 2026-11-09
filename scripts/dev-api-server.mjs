@@ -54,6 +54,7 @@ const handlers = {
   heartbeat: (await import("../api/render-jobs/worker/[jobId]/heartbeat.js")).default,
   result: (await import("../api/render-jobs/worker/[jobId]/result.js")).default,
   chatMessages: (await import("../api/chat/messages.js")).default,
+  platform: (await import("../api/platform/[...path].js")).default,
   chatSms: (await import("../api/chat/sms.js")).default,
 };
 
@@ -62,6 +63,7 @@ const handlers = {
 function route(pathname) {
   if (pathname === "/api/chat/messages") return handlers.chatMessages;
   if (pathname === "/api/chat/sms") return handlers.chatSms;
+  if (pathname.startsWith("/api/platform/")) return handlers.platform;
   if (pathname === "/api/render-jobs") return handlers.submit;
   if (pathname === "/api/render-jobs/cleanup") return handlers.cleanup;
   if (pathname === "/api/render-jobs/worker/claim") return handlers.claim;
@@ -87,6 +89,13 @@ const server = createServer(async (nodeRequest, nodeResponse) => {
     nodeResponse.end(JSON.stringify({ error: "No such route in the dev API host." }));
     return;
   }
+
+  /* This host is plain HTTP on loopback. Vercel always sets x-forwarded-proto,
+     and the adapter assumes https when it is absent, which made the platform
+     session cookie `Secure` and so unusable over http://localhost in Safari.
+     Say what is true here. Production code is untouched: on Vercel the header
+     is always present, and the cookie stays Secure. */
+  if (!nodeRequest.headers["x-forwarded-proto"]) nodeRequest.headers["x-forwarded-proto"] = "http";
 
   const started = Date.now();
   try {
