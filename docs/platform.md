@@ -92,3 +92,16 @@ Set it only in the Preview environment, with Preview-scoped `KV_REST_API_*`,
 The Redis in `.env.render` holds 20 keys: 3 `license:*`, 17 `sandbox:*`. The live
 site depends on it. The platform adds only `plat:*` keys and never deletes or
 flushes. Do not repoint `KV_REST_API_*` in Production at a different database.
+
+## Separate Redis for the platform (2026-11-11)
+
+Every existing consumer (licence store, render queue, health) reads
+`KV_REST_API_*`; `UPSTASH_REDIS_REST_*` is only a fallback inside
+`lib/license-store.js` when `KV_*` is absent. The platform therefore did NOT use the
+second database until this change. `lib/platform/redis.js` now sends all
+`plat:*` commands to `PLATFORM_REDIS_REST_URL` + `PLATFORM_REDIS_REST_TOKEN` when both
+are set, and to the shared database otherwise. One set without the other is refused.
+The render queue stays on the shared database (the worker and existing endpoints
+read it there); a project stores only a job id, so no cross-database transaction
+exists. `/api/health` reports the mode under `groups.platform.state` (presence
+only). Not verified against a real Upstash database until the first live request.

@@ -80,6 +80,13 @@ const GROUPS = {
       "CURRENT_VERSION_ENHANCECUTOUT",
     ],
   },
+  platform: {
+    label: "B2B platform (/app accounts and projects)",
+    /* Not required: the rest of the site must report healthy on its own. The
+       rules that matter are applied below the loop. */
+    required: [],
+    optional: ["PLATFORM_SESSION_SECRET", "PLATFORM_REDIS_REST_URL", "PLATFORM_REDIS_REST_TOKEN", "PRESSMARK_PREVIEW_ISOLATED"],
+  },
   quoteForm: {
     label: "Quote form (Zoho CRM, WorkDrive, Mail)",
     required: [
@@ -174,6 +181,19 @@ export default async function handler(request) {
   if (!groups.enhancecutout.ready) {
     missing.push(...ecVars.filter((name) => !isSet(name)));
   }
+
+  /* The platform's own database is all-or-nothing: one variable without the
+     other would be refused at runtime, so say so here instead of at first login. */
+  const platformPair = ["PLATFORM_REDIS_REST_URL", "PLATFORM_REDIS_REST_TOKEN"].filter(isSet).length;
+  groups.platform.ready = platformPair !== 1;
+  groups.platform.state = !isSet("PLATFORM_SESSION_SECRET")
+    ? "accounts disabled (no session secret)"
+    : platformPair === 1
+      ? "misconfigured: set both PLATFORM_REDIS_REST_* variables or neither"
+      : platformPair === 2
+        ? "accounts enabled, dedicated database"
+        : "accounts enabled, shared database";
+  if (!groups.platform.ready) missing.push("PLATFORM_REDIS_REST_URL + PLATFORM_REDIS_REST_TOKEN (both or neither)");
 
   const ready = Object.values(groups).every((group) => group.ready);
 

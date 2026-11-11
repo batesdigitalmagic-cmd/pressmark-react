@@ -434,3 +434,40 @@ test("a Vercel preview refuses to run until it is marked isolated from productio
     delete process.env.PRESSMARK_PREVIEW_ISOLATED;
   }
 });
+
+/* ── Which Redis does the platform use? ── */
+test("platform Redis selection: shared by default, dedicated only when both variables are set, never silently half-configured", async () => {
+  const { platformRedisConfig, platformCommand } = await import("../lib/platform/redis.js");
+  assert.equal(platformRedisConfig({}).mode, "shared");
+  assert.equal(platformRedisConfig({ PLATFORM_REDIS_REST_URL: "https://x.upstash.io" }).mode, "invalid");
+  assert.equal(platformRedisConfig({ PLATFORM_REDIS_REST_TOKEN: "t" }).mode, "invalid");
+  assert.equal(platformRedisConfig({ PLATFORM_REDIS_REST_URL: "http://x.upstash.io", PLATFORM_REDIS_REST_TOKEN: "t" }).mode, "invalid", "https only");
+  /* The license store's fallback name must not select the platform database. */
+  assert.equal(platformRedisConfig({ UPSTASH_REDIS_REST_URL: "https://new.upstash.io", UPSTASH_REDIS_REST_TOKEN: "t" }).mode, "shared");
+  assert.equal(platformRedisConfig({ PLATFORM_REDIS_REST_URL: "https://new.upstash.io", PLATFORM_REDIS_REST_TOKEN: "t" }).mode, "dedicated");
+
+  /* Local/test mode always uses the in-process emulation, whatever the variables say. */
+  assert.equal(await platformCommand(["SET", "plat:probe", "1"]), "OK");
+});
+
+test("a dedicated platform Redis receives the platform's commands with ITS credentials, not the shared ones", async () => {
+  const realEnv = { ...process.env };
+  const { platformCommand } = await import("../lib/platform/redis.js");
+  /* usingLocalKv() is true under test, so drive the REST path directly by
+     lifting the test flag for just this call. */
+  const savedNode = process.env.NODE_ENV;
+  process.env.NODE_ENV = "production";
+  try {
+    const seen = [];
+    const fetchImpl = async (url, init) => { seen.push({ url, auth: init.headers.Authorization, body: JSON.parse(init.body) }); return new Response(JSON.stringify({ result: "OK" })); };
+    const env = { KV_REST_API_URL: "https://old.upstash.io", KV_REST_API_TOKEN: "old-token", PLATFORM_REDIS_REST_URL: "https://new.upstash.io", PLATFORM_REDIS_REST_TOKEN: "new-token" };
+    assert.equal(await platformCommand(["SET", "plat:user:1", "{}"], { env, fetchImpl }), "OK");
+    assert.deepEqual(seen, [{ url: "https://new.upstash.io", auth: "Bearer new-token", body: ["SET", "plat:user:1", "{}"] }]);
+    /* A half-configured pair throws rather than falling back to the shared database. */
+    await assert.rejects(platformCommand(["GET", "x"], { env: { ...env, PLATFORM_REDIS_REST_TOKEN: "" }, fetchImpl }), /BOTH/);
+    assert.equal(seen.length, 1, "nothing reached any database");
+  } finally {
+    process.env.NODE_ENV = savedNode;
+    Object.assign(process.env, realEnv);
+  }
+});
