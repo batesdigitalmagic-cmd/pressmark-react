@@ -49,10 +49,8 @@ const handlers = {
   status: (await import("../api/render-jobs/[jobId].js")).default,
   download: (await import("../api/render-jobs/[jobId]/download.js")).default,
   cleanup: (await import("../api/render-jobs/cleanup.js")).default,
-  claim: (await import("../api/render-jobs/worker/claim.js")).default,
-  input: (await import("../api/render-jobs/worker/[jobId]/input.js")).default,
-  heartbeat: (await import("../api/render-jobs/worker/[jobId]/heartbeat.js")).default,
-  result: (await import("../api/render-jobs/worker/[jobId]/result.js")).default,
+  /* One function for every worker endpoint, exactly as Vercel serves them. */
+  worker: (await import("../api/render-jobs/worker/[...path].js")).default,
   chatMessages: (await import("../api/chat/messages.js")).default,
   platform: (await import("../api/platform/[...path].js")).default,
   chatSms: (await import("../api/chat/sms.js")).default,
@@ -66,12 +64,9 @@ function route(pathname) {
   if (pathname.startsWith("/api/platform/")) return handlers.platform;
   if (pathname === "/api/render-jobs") return handlers.submit;
   if (pathname === "/api/render-jobs/cleanup") return handlers.cleanup;
-  if (pathname === "/api/render-jobs/worker/claim") return handlers.claim;
+  if (pathname.startsWith("/api/render-jobs/worker/")) return handlers.worker;
 
-  let match = pathname.match(/^\/api\/render-jobs\/worker\/([^/]+)\/(input|heartbeat|result)$/);
-  if (match) return handlers[match[2]];
-
-  match = pathname.match(/^\/api\/render-jobs\/([^/]+)\/download$/);
+  let match = pathname.match(/^\/api\/render-jobs\/([^/]+)\/download$/);
   if (match) return handlers.download;
 
   match = pathname.match(/^\/api\/render-jobs\/([^/]+)$/);

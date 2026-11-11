@@ -4,11 +4,12 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import platform from "../api/platform/[...path].js";
-import claim from "../api/render-jobs/worker/claim.js";
-import result from "../api/render-jobs/worker/[jobId]/result.js";
+import worker from "../api/render-jobs/worker/[...path].js";
 import { __resetLocalKv } from "../lib/render-jobs/kv.js";
 import { templateById } from "../lib/platform/templates.js";
 import { putOutputPdf } from "../lib/render-jobs/blob.js";
+const claim = worker;
+const result = worker;
 
 /* A small but structurally valid PDF with the template's trim size. */
 function makePdf({ pages = 2, width, height, padBytes = 0 } = {}) {
@@ -469,5 +470,53 @@ test("a dedicated platform Redis receives the platform's commands with ITS crede
   } finally {
     process.env.NODE_ENV = savedNode;
     Object.assign(process.env, realEnv);
+  }
+});
+
+/* ── Deployment limits ── */
+test("the project stays within Vercel Hobby's 12 Node serverless functions", async () => {
+  const { readdir, readFile } = await import("node:fs/promises");
+  const walk = async (dir) => (await Promise.all((await readdir(dir, { withFileTypes: true })).map(async (e) => {
+    const full = path.join(dir, e.name);
+    return e.isDirectory() ? walk(full) : [full];
+  }))).flat();
+  const files = (await walk(path.resolve("api"))).filter((f) => f.endsWith(".js") && !path.basename(f).startsWith("_"));
+  const node = [];
+  for (const f of files) if (!/runtime:\s*['"]edge['"]/.test(await readFile(f, "utf8"))) node.push(path.relative(process.cwd(), f));
+  assert.ok(node.length <= 12, `${node.length} Node functions (limit 12 on Hobby; Edge functions do not count):\n${node.join("\n")}`);
+});
+
+test("the single worker function serves every worker URL, keeps auth-before-method, and 404s the rest", async () => {
+  const { createServer } = await import("node:http");
+  const { createApi } = await import("../worker/api.mjs");
+  const a = await signUp("route@acme.test");
+  const project = await newProject(a);
+  await call("POST", `projects/${project.id}/csv`, { cookie: a, form: csvForm() });
+  await call("POST", `projects/${project.id}/submit`, { cookie: a, body: {} });
+
+  const server = createServer((req, res) => worker(req, res));
+  await new Promise((r) => server.listen(0, "127.0.0.1", r));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  try {
+    /* No token: 401 whatever the method, on every worker URL (the probe must not learn methods). */
+    for (const u of ["claim", "status", `${"a".repeat(64)}/heartbeat`, `${"a".repeat(64)}/input`, `${"a".repeat(64)}/result`]) {
+      assert.equal((await fetch(`${base}/api/render-jobs/worker/${u}`)).status, 401, u);
+    }
+    const auth = { authorization: `Bearer ${workerToken}` };
+    assert.equal((await fetch(`${base}/api/render-jobs/worker/nope`, { headers: auth })).status, 404);
+    assert.equal((await fetch(`${base}/api/render-jobs/worker/claim/extra`, { headers: auth })).status, 404);
+
+    /* The real worker client, over real HTTP, through the one function. */
+    const api = createApi({ apiUrl: base, token: workerToken, workerId: "mac-1" });
+    const job = await api.claim();
+    assert.ok(job?.jobId, "claimed");
+    assert.equal(await api.heartbeat(job.jobId, { progress: 10 }), true);
+    assert.match((await api.downloadInput(job.jobId)).toString("utf8"), /last_name/);
+    const done = await api.complete(job.jobId, Buffer.from(makePdf()));
+    assert.equal(done.status, "completed");
+    assert.equal((await call("GET", `projects/${project.id}`, { cookie: a })).json.project.status, "proof_ready");
+    assert.ok((await (await fetch(`${base}/api/render-jobs/worker/status`, { headers: auth })).json()), "status answers");
+  } finally {
+    await new Promise((r) => server.close(r));
   }
 });

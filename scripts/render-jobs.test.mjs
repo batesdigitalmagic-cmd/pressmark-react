@@ -6,13 +6,17 @@ import path from "node:path";
 import submit from "../api/render-jobs/index.js";
 import status from "../api/render-jobs/[jobId].js";
 import download from "../api/render-jobs/[jobId]/download.js";
-import claim from "../api/render-jobs/worker/claim.js";
-import input from "../api/render-jobs/worker/[jobId]/input.js";
-import heartbeat from "../api/render-jobs/worker/[jobId]/heartbeat.js";
-import result from "../api/render-jobs/worker/[jobId]/result.js";
+import worker from "../api/render-jobs/worker/[...path].js";
 import cleanup from "../api/render-jobs/cleanup.js";
-import workerStatus from "../api/render-jobs/worker/status.js";
 import { __resetLocalKv, command } from "../lib/render-jobs/kv.js";
+
+/* Every worker endpoint is served by ONE function (see that file). The tests keep
+   their per-endpoint names so each reads as what it exercises. */
+const claim = worker;
+const input = worker;
+const heartbeat = worker;
+const result = worker;
+const workerStatus = worker;
 import { Readable } from "node:stream";
 import {
   JOB_STATUSES,

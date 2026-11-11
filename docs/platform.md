@@ -105,3 +105,15 @@ The render queue stays on the shared database (the worker and existing endpoints
 read it there); a project stores only a job id, so no cross-database transaction
 exists. `/api/health` reports the mode under `groups.platform.state` (presence
 only). Not verified against a real Upstash database until the first live request.
+
+## Vercel Hobby function limit (2026-11-11)
+
+Hobby allows 12 Node serverless functions per deployment; each `.js` under `api/`
+counts, Edge functions (`runtime: "edge"`, 18 of them) do not. `main` was exactly at
+12, so the platform's route made 13 and PR #4's preview failed. The five Mac-worker
+endpoints (`claim`, `status`, `:jobId/heartbeat`, `:jobId/input`, `:jobId/result`) are
+now served by one catch-all, `api/render-jobs/worker/[...path].js`, which dispatches by
+path to the same handlers (moved, otherwise unchanged, to
+`lib/render-jobs/worker-routes/`). It is a catch-all route, not a rewrite, so every URL,
+method and auth rule is identical. Count is now 9. A test fails if it exceeds 12.
+Not verified until a Vercel deployment serves it.
