@@ -8,6 +8,7 @@ import claim from "../api/render-jobs/worker/claim.js";
 import result from "../api/render-jobs/worker/[jobId]/result.js";
 import { __resetLocalKv } from "../lib/render-jobs/kv.js";
 import { templateById } from "../lib/platform/templates.js";
+import { putOutputPdf } from "../lib/render-jobs/blob.js";
 
 /* A small but structurally valid PDF with the template's trim size. */
 function makePdf({ pages = 2, width, height, padBytes = 0 } = {}) {
@@ -368,5 +369,68 @@ test("a large PDF (>4.5 MB) streams through the real Node handler without being 
     }
   } finally {
     await new Promise((resolve) => server.close(resolve));
+  }
+});
+
+/* ── Large-PDF upload: the worker goes straight to Blob, the server verifies ──
+   Local mode has no Blob, so the test plays Blob's part by writing the object
+   itself. What is under test is the server's decision: it must look at what was
+   stored, not believe the worker. */
+async function claimJob() {
+  const headers = { authorization: `Bearer ${workerToken}`, "content-type": "application/json" };
+  const claimed = await claim(new Request(`${ORIGIN}/api/render-jobs/worker/claim`, { method: "POST", headers, body: JSON.stringify({ workerId: "mac-1" }) }));
+  assert.equal(claimed.status, 200);
+  return claimed.json();
+}
+const resultCall = (job, fields) => {
+  const form = new FormData();
+  for (const [k, v] of Object.entries(fields)) form.set(k, v);
+  return result(new Request(`${ORIGIN}${job.resultUrl}`, { method: "POST", headers: { authorization: `Bearer ${workerToken}` }, body: form }));
+};
+
+test("direct upload: the server verifies the stored object before completing the job", async () => {
+  const a = await signUp("direct@acme.test");
+  const project = await newProject(a);
+  await call("POST", `projects/${project.id}/csv`, { cookie: a, form: csvForm() });
+  await call("POST", `projects/${project.id}/submit`, { cookie: a, body: {} });
+  const job = await claimJob();
+
+  /* Not available in local mode: says so, so the worker can fall back. */
+  assert.equal((await resultCall(job, { status: "request_upload", workerId: "mac-1" })).status, 501);
+  /* Only the worker holding the lease may ask. */
+  assert.equal((await resultCall(job, { status: "request_upload", workerId: "intruder" })).status, 409);
+
+  /* Claims an upload that never happened. */
+  assert.equal((await resultCall(job, { status: "completed", workerId: "mac-1", uploaded: "true" })).status, 400);
+  /* An object that is not a PDF is rejected AND removed. */
+  await putOutputPdf(job.id ?? job.jobId, new TextEncoder().encode("<html>".repeat(200)));
+  assert.equal((await resultCall(job, { status: "completed", workerId: "mac-1", uploaded: "true" })).status, 400);
+  const still = await call("GET", `projects/${project.id}`, { cookie: a });
+  assert.notEqual(still.json.project.status, "proof_ready", "a bad upload must not become a proof");
+  /* Another worker cannot finish it. */
+  await putOutputPdf(job.id ?? job.jobId, makePdf({ padBytes: 6 * 1024 * 1024 }));
+  assert.equal((await resultCall(job, { status: "completed", workerId: "intruder", uploaded: "true" })).status, 409);
+
+  /* The real thing: a >4.5 MB PDF is verified in place and completes. */
+  const ok = await resultCall(job, { status: "completed", workerId: "mac-1", uploaded: "true" });
+  assert.equal(ok.status, 200, await ok.clone().text());
+  const after = await call("GET", `projects/${project.id}`, { cookie: a });
+  assert.equal(after.json.project.status, "proof_ready");
+  const proofFile = await call("GET", `projects/${project.id}/proofs/1/file`, { cookie: a });
+  assert.ok(proofFile.bytes.length > 4.5 * 1024 * 1024, "the proof is the full >4.5 MB file");
+});
+
+test("a Vercel preview refuses to run until it is marked isolated from production storage", async () => {
+  process.env.VERCEL_ENV = "preview";
+  try {
+    const blocked = await call("GET", "templates");
+    assert.equal(blocked.status, 503);
+    assert.match(blocked.json.error, /not marked isolated/);
+    assert.equal((await call("POST", "register", { body: { email: "p@x.test", password: "correct horse battery", name: "P", companyName: "P" } })).status, 503, "nothing is written either");
+    process.env.PRESSMARK_PREVIEW_ISOLATED = "1";
+    assert.equal((await call("GET", "templates")).status, 401, "isolated preview behaves normally");
+  } finally {
+    delete process.env.VERCEL_ENV;
+    delete process.env.PRESSMARK_PREVIEW_ISOLATED;
   }
 });

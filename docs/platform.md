@@ -59,3 +59,36 @@ production_jobs(id, project_id, org_id, status, attempts, lease…) · job_event
 proofs(id, job_id, version, path) · approvals(id, proof_id, user_id, decision, notes, at) · final_files(id, proof_id, path, validated_at) ·
 subscriptions(org_id, stripe ids, plan, status) · usage_records(org_id, job_id, period) · audit_logs(org_id, actor, action, at).
 RLS: every table filtered by `org_id IN (select org_id from organization_members where user_id = auth.uid())`.
+
+## Large PDFs (added 2026-11-10)
+
+Vercel rejects any request body over 4.5 MB before a function runs, and caps a
+*buffered* response at 4.5 MB. Both are handled:
+
+- **Download:** proofs and finals are streamed from private Blob through
+  `/api/platform/...` (`streamObject`), so the organisation check still runs first
+  and the Blob URL never reaches a browser. `node-adapter.js` streams all responses.
+- **Upload (worker to server):** a PDF over 4 MB no longer goes through `/result`.
+  The worker POSTs `status=request_upload`; the server returns a client token
+  scoped to that job's `output.pdf`, PDF content only, a size cap and 15 minutes.
+  The worker uploads straight to Blob (multipart) and then POSTs
+  `status=completed&uploaded=true`; the server inspects the stored object (size and
+  `%PDF-` header) before completing, and deletes it if it is not a PDF. PDFs under
+  4 MB use the original multipart path, so an older worker keeps working.
+
+**Verified:** unit and integration tests (local storage), including a 10+ MB
+download through the real Node handler and server-side verification of a >4.5 MB
+direct upload. **Not verified:** token issuance and the multipart upload against
+a real Blob store. That is exercised for the first time by the preview test.
+
+## Preview isolation
+
+`/api/platform` returns 503 on a Vercel preview unless `PRESSMARK_PREVIEW_ISOLATED=1`.
+Set it only in the Preview environment, with Preview-scoped `KV_REST_API_*`,
+`BLOB_READ_WRITE_TOKEN` and `PRESSMARK_WORKER_TOKEN`.
+
+## Redis audit (2026-11-10, read-only)
+
+The Redis in `.env.render` holds 20 keys: 3 `license:*`, 17 `sandbox:*`. The live
+site depends on it. The platform adds only `plat:*` keys and never deletes or
+flushes. Do not repoint `KV_REST_API_*` in Production at a different database.

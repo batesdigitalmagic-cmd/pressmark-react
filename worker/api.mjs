@@ -15,7 +15,11 @@ export class ApiError extends Error {
   }
 }
 
-export function createApi(config) {
+/* Vercel refuses a request body over 4.5 MB before the function runs. Stay under
+   it with room for multipart framing; anything larger goes straight to Blob. */
+export const DIRECT_UPLOAD_MIN_BYTES = 4 * 1024 * 1024;
+
+export function createApi(config, { blobPut } = {}) {
   const url = (suffix) => `${config.apiUrl}${suffix}`;
   const auth = () => ({ Authorization: `Bearer ${config.token}` });
 
@@ -70,8 +74,50 @@ export function createApi(config) {
       return true;
     },
 
+    /**
+     * Large PDFs: ask the server for a token scoped to this job's output path,
+     * upload straight to Blob, then tell the server to verify and finish.
+     * Resolves null when direct upload is unavailable (501), so the caller can
+     * fall back to the multipart path instead of failing the job.
+     */
+    async completeDirect(jobId, pdfBytes) {
+      const ask = new FormData();
+      ask.set("status", "request_upload");
+      ask.set("workerId", config.workerId);
+      const granted = await fetch(url(`/api/render-jobs/worker/${jobId}/result`), {
+        method: "POST", headers: auth(), body: ask,
+      });
+      if (granted.status === 501) return null;
+      if (!granted.ok) throw await readError(granted);
+      const { pathname, clientToken } = await granted.json();
+
+      /* Imported on demand: the SDK is only needed for large files, and a missing
+         install must surface as a clear error rather than at worker start. */
+      const put = blobPut || (await import("@vercel/blob/client")).put;
+      await put(pathname, pdfBytes, {
+        access: "private",
+        token: clientToken,
+        contentType: "application/pdf",
+        multipart: true,
+      });
+
+      const done = new FormData();
+      done.set("status", "completed");
+      done.set("workerId", config.workerId);
+      done.set("uploaded", "true");
+      const response = await fetch(url(`/api/render-jobs/worker/${jobId}/result`), {
+        method: "POST", headers: auth(), body: done,
+      });
+      if (!response.ok) throw await readError(response);
+      return response.json();
+    },
+
     /** Upload the finished PDF and close the job. Safe to call twice. */
     async complete(jobId, pdfBytes) {
+      if (pdfBytes.length > DIRECT_UPLOAD_MIN_BYTES) {
+        const direct = await this.completeDirect(jobId, pdfBytes);
+        if (direct) return direct;
+      }
       const form = new FormData();
       form.set("status", "completed");
       form.set("workerId", config.workerId);

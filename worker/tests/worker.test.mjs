@@ -19,6 +19,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { describe, loadConfig, validateConfig } from "../config.mjs";
+import { createApi, DIRECT_UPLOAD_MIN_BYTES } from "../api.mjs";
 import { log, redact, shortJobId } from "../log.mjs";
 import { indesignDialogState, parseDialogProbe, runInDesignJob, swatchHandoff, verifyPdf, writeHandoff } from "../indesign.mjs";
 
@@ -457,3 +458,65 @@ async function listDirs(root) {
   const { readdir } = await import("node:fs/promises");
   return readdir(root);
 }
+
+/* ── Large PDFs ── */
+function fakeServer(handler) {
+  const calls = [];
+  const original = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    const form = init?.body instanceof FormData ? Object.fromEntries([...init.body.entries()].map(([k, v]) => [k, v instanceof Blob ? `[file ${v.size}]` : v])) : null;
+    calls.push({ url: String(url), form });
+    return handler(form);
+  };
+  return { calls, restore: () => { globalThis.fetch = original; } };
+}
+const reply = (status, body) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+const apiConfig = { apiUrl: "https://example.test", token: "t".repeat(32), workerId: "mac-1" };
+
+test("a PDF over the Vercel body cap goes straight to Blob, then the server is told to verify it", async () => {
+  const puts = [];
+  const server = fakeServer((form) =>
+    form.status === "request_upload"
+      ? reply(200, { pathname: "render-jobs/j/output.pdf", clientToken: "client-token" })
+      : reply(200, { status: "completed" }));
+  try {
+    const api = createApi(apiConfig, { blobPut: async (...args) => { puts.push(args); } });
+    const big = Buffer.alloc(DIRECT_UPLOAD_MIN_BYTES + 1, 0x25);
+    await api.complete("a".repeat(64), big);
+    assert.equal(puts.length, 1);
+    assert.equal(puts[0][0], "render-jobs/j/output.pdf");
+    assert.equal(puts[0][2].access, "private");
+    assert.equal(puts[0][2].multipart, true);
+    assert.deepEqual(server.calls.map((c) => c.form.status), ["request_upload", "completed"]);
+    assert.equal(server.calls[1].form.uploaded, "true");
+    assert.ok(!server.calls.some((c) => c.form.pdf), "the PDF body is never sent through the function");
+  } finally { server.restore(); }
+});
+
+test("a small PDF still uses the original multipart upload", async () => {
+  const server = fakeServer(() => reply(200, { status: "completed" }));
+  try {
+    const api = createApi(apiConfig, { blobPut: async () => assert.fail("must not use Blob directly") });
+    await api.complete("a".repeat(64), Buffer.alloc(5000, 0x25));
+    assert.equal(server.calls.length, 1);
+    assert.match(server.calls[0].form.pdf, /^\[file 5000\]$/);
+  } finally { server.restore(); }
+});
+
+test("when direct upload is unavailable the worker falls back instead of failing the job", async () => {
+  const server = fakeServer((form) => (form.status === "request_upload" ? reply(501, { error: "n/a" }) : reply(200, { status: "completed" })));
+  try {
+    const api = createApi(apiConfig, { blobPut: async () => assert.fail("no token, no direct upload") });
+    await api.complete("a".repeat(64), Buffer.alloc(DIRECT_UPLOAD_MIN_BYTES + 10, 0x25));
+    assert.deepEqual(server.calls.map((c) => Object.keys(c.form).includes("pdf")), [false, true]);
+  } finally { server.restore(); }
+});
+
+test("a failed Blob upload surfaces as an error so the lease expiry retries the job", async () => {
+  const server = fakeServer(() => reply(200, { pathname: "p", clientToken: "c" }));
+  try {
+    const api = createApi(apiConfig, { blobPut: async () => { throw new Error("network down"); } });
+    await assert.rejects(api.complete("a".repeat(64), Buffer.alloc(DIRECT_UPLOAD_MIN_BYTES + 1)), /network down/);
+    assert.equal(server.calls.length, 1, "the job is never marked complete");
+  } finally { server.restore(); }
+});
