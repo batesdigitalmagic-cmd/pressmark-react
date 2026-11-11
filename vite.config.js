@@ -107,6 +107,7 @@ export default defineConfig({
         enhanceCutout: 'enhance-cutout.html',
         success: 'success.html',
         portal: 'portal.html',
+        app: 'app.html',
         health: 'health.html',
         privacy: 'privacy.html',
         sandbox: 'sandbox.html',
